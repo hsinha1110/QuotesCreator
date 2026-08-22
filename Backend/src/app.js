@@ -10,7 +10,7 @@ const collectionRoutes = require("./routes/collectionRoutes");
 const downloadRoutes = require("./routes/downloadRoutes");
 const userRoutes = require("./routes/userRoutes");
 const aiRoutes = require("./routes/aiRoutes");
-
+const myQuotesRoutes = require("./routes/myQuotesRoutes");
 const app = express();
 
 app.use(cors());
@@ -54,4 +54,6 @@ app.use("/api/collections", collectionRoutes);
 app.use("/api/downloads", downloadRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ai", aiRoutes);
+// My Quotes
+app.use("/api/my-quotes", myQuotesRoutes);
 module.exports = app;

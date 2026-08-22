@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const Quote = require("../models/Quotes");
 const Category = require("../models/Category");
-const Subcategory = require("../models/SubCategory");
+const Subcategory = require("../models/Subcategory");
 const cloudinary = require("../config/cloudinary");
 
 // Upload image to Cloudinary
@@ -168,102 +168,53 @@ const getPopularQuotes = async (req, res) => {
 // ======================================
 const createQuote = async (req, res) => {
   try {
-    const { categoryId, subcategoryId, text, author } = req.body;
+    console.log("BODY:", req.body);
+    console.log("CONTENT TYPE:", req.headers["content-type"]);
 
-    // Validate IDs
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return res.status(400).json({
-        message: "Invalid category ID",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(subcategoryId)) {
-      return res.status(400).json({
-        message: "Invalid subcategory ID",
-      });
-    }
-
-    // Required text
-    if (!text || !text.trim()) {
-      return res.status(400).json({
-        message: "Quote text is required",
-      });
-    }
-
-    // Check category
-    const category = await Category.findById(categoryId);
-
-    if (!category) {
-      return res.status(404).json({
-        message: "Category not found",
-      });
-    }
-
-    // Check subcategory
-    const subcategory = await Subcategory.findById(subcategoryId);
-
-    if (!subcategory) {
-      return res.status(404).json({
-        message: "Subcategory not found",
-      });
-    }
-
-    // Make sure subcategory belongs to category
-    if (subcategory.categoryId.toString() !== categoryId.toString()) {
-      return res.status(400).json({
-        message: "Subcategory does not belong to this category",
-      });
-    }
-
-    // Check duplicate quote
-    const existingQuote = await Quote.findOne({
-      subcategoryId,
-      text: text.trim(),
-    });
-
-    if (existingQuote) {
-      return res.status(409).json({
-        message: "Quote already exists",
-      });
-    }
-
-    // Upload image if provided
-    let image = null;
-
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer);
-
-      image = result.secure_url;
-    }
-
-    // Create quote
-    const quote = await Quote.create({
+    const {
+      userId,
       categoryId,
       subcategoryId,
-      text: text.trim(),
-      author: author?.trim() || "Unknown",
+      text,
+      author,
       image,
+      isDraft,
+      source,
+    } = req.body || {};
+
+    const quote = await Quote.create({
+      userId,
+      categoryId,
+      subcategoryId,
+      text,
+      author,
+      image,
+      isDraft: isDraft ?? false,
+      source: source ?? "user",
     });
 
     res.status(201).json({
+      success: true,
       message: "Quote created successfully",
       quote,
     });
   } catch (error) {
-    // Duplicate key
+    console.error("Create Quote Error:", error);
+
     if (error.code === 11000) {
       return res.status(409).json({
-        message: "Quote already exists",
+        success: false,
+        message: "This quote already exists in this subcategory",
       });
     }
 
     res.status(500).json({
+      success: false,
       message: "Failed to create quote",
       error: error.message,
     });
   }
 };
-
 // ======================================
 // Get All Quotes
 // Pagination

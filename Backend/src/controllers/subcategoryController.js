@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Subcategory = require("../models/SubCategory");
+const Subcategory = require("../models/Subcategory");
 const Category = require("../models/Category");
 const cloudinary = require("../config/cloudinary");
 
