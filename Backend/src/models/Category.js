@@ -13,6 +13,12 @@ const categorySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    translations: {
+      type: Map,
+      of: String,
+      default: {},
+    },
   },
   {
     timestamps: true,

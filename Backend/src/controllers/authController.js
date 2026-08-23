@@ -3,6 +3,25 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const cloudinary = require("../config/cloudinary");
 
+// ======================================
+// ALLOWED LANGUAGES
+// ======================================
+
+const allowedLanguages = [
+  "English",
+  "Hindi",
+  "Spanish",
+  "French",
+  "German",
+  "Arabic",
+  "Portuguese",
+  "Italian",
+];
+
+// ======================================
+// CLOUDINARY UPLOAD
+// ======================================
+
 const uploadToCloudinary = (fileBuffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -21,7 +40,11 @@ const uploadToCloudinary = (fileBuffer) => {
     stream.end(fileBuffer);
   });
 };
-// Generate JWT
+
+// ======================================
+// GENERATE JWT
+// ======================================
+
 const generateToken = (userId) => {
   return jwt.sign(
     {
@@ -40,73 +63,88 @@ const generateToken = (userId) => {
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, language = "English" } = req.body || {};
 
+    // Name
     if (!name || !name.trim()) {
       return res.status(400).json({
+        success: false,
         message: "Name is required",
       });
     }
 
+    // Email
     if (!email || !email.trim()) {
       return res.status(400).json({
+        success: false,
         message: "Email is required",
       });
     }
 
+    // Password
     if (!password) {
       return res.status(400).json({
+        success: false,
         message: "Password is required",
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
+        success: false,
         message: "Password must be at least 6 characters",
+      });
+    }
+
+    // Language validation
+    if (!allowedLanguages.includes(language)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid language",
+        allowedLanguages,
       });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    // Check existing user
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
 
     if (existingUser) {
       return res.status(409).json({
+        success: false,
         message: "User already exists with this email",
       });
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Profile image
     let profileImage = null;
 
-    // Profile image optional
     if (req.file) {
       const result = await uploadToCloudinary(req.file.buffer);
 
       profileImage = result.secure_url;
     }
 
+    // Create user
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
       profileImage,
+      language,
     });
 
-    const token = jwt.sign(
-      {
-        userId: user._id,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-      },
-    );
+    // Generate token
+    const token = generateToken(user._id);
 
     res.status(201).json({
+      success: true,
       message: "Registration successful",
 
       user: {
@@ -114,18 +152,23 @@ const register = async (req, res) => {
         name: user.name,
         email: user.email,
         profileImage: user.profileImage,
+        language: user.language,
       },
 
       token,
     });
   } catch (error) {
+    console.error("Register Error:", error);
+
     if (error.code === 11000) {
       return res.status(409).json({
+        success: false,
         message: "Email already registered",
       });
     }
 
     res.status(500).json({
+      success: false,
       message: "Registration failed",
       error: error.message,
     });
@@ -138,16 +181,20 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
+    // Email
     if (!email || !email.trim()) {
       return res.status(400).json({
+        success: false,
         message: "Email is required",
       });
     }
 
+    // Password
     if (!password) {
       return res.status(400).json({
+        success: false,
         message: "Password is required",
       });
     }
@@ -161,6 +208,7 @@ const login = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
+        success: false,
         message: "Invalid email or password",
       });
     }
@@ -170,6 +218,7 @@ const login = async (req, res) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({
+        success: false,
         message: "Invalid email or password",
       });
     }
@@ -178,6 +227,7 @@ const login = async (req, res) => {
     const token = generateToken(user._id);
 
     res.status(200).json({
+      success: true,
       message: "Login successful",
 
       user: {
@@ -185,12 +235,16 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         profileImage: user.profileImage,
+        language: user.language || "English",
       },
 
       token,
     });
   } catch (error) {
+    console.error("Login Error:", error);
+
     res.status(500).json({
+      success: false,
       message: "Login failed",
       error: error.message,
     });

@@ -17,11 +17,18 @@ const subcategorySchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
+      default: "",
     },
 
     image: {
       type: String,
       required: true,
+    },
+
+    translations: {
+      type: Map,
+      of: String,
+      default: {},
     },
   },
   {
@@ -29,7 +36,16 @@ const subcategorySchema = new mongoose.Schema(
   },
 );
 
-subcategorySchema.index({ categoryId: 1, name: 1 }, { unique: true });
+subcategorySchema.index(
+  {
+    categoryId: 1,
+    name: 1,
+  },
+  {
+    unique: true,
+  },
+);
+
 const Subcategory = mongoose.model("Subcategory", subcategorySchema);
 
 module.exports = Subcategory;

@@ -5,6 +5,21 @@ const User = require("../models/User");
 const cloudinary = require("../config/cloudinary");
 
 // ======================================
+// ALLOWED LANGUAGES
+// ======================================
+
+const allowedLanguages = [
+  "English",
+  "Hindi",
+  "Spanish",
+  "French",
+  "German",
+  "Arabic",
+  "Portuguese",
+  "Italian",
+];
+
+// ======================================
 // CLOUDINARY UPLOAD
 // ======================================
 
@@ -37,6 +52,7 @@ const getProfile = async (req, res) => {
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
+        success: false,
         message: "Invalid user ID",
       });
     }
@@ -45,6 +61,7 @@ const getProfile = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found",
       });
     }
@@ -54,6 +71,8 @@ const getProfile = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.error("Get Profile Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to get profile",
@@ -69,26 +88,35 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email } = req.body;
 
+    const { name, email, language } = req.body || {};
+
+    // Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
+        success: false,
         message: "Invalid user ID",
       });
     }
 
+    // Find user
     const user = await User.findById(id);
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found",
       });
     }
 
-    // Update name
+    // ======================================
+    // UPDATE NAME
+    // ======================================
+
     if (name !== undefined) {
       if (!name.trim()) {
         return res.status(400).json({
+          success: false,
           message: "Name cannot be empty",
         });
       }
@@ -96,8 +124,18 @@ const updateProfile = async (req, res) => {
       user.name = name.trim();
     }
 
-    // Update email
+    // ======================================
+    // UPDATE EMAIL
+    // ======================================
+
     if (email !== undefined) {
+      if (!email.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Email cannot be empty",
+        });
+      }
+
       const normalizedEmail = email.trim().toLowerCase();
 
       const existingUser = await User.findOne({
@@ -107,6 +145,7 @@ const updateProfile = async (req, res) => {
 
       if (existingUser) {
         return res.status(409).json({
+          success: false,
           message: "Email already registered",
         });
       }
@@ -114,15 +153,36 @@ const updateProfile = async (req, res) => {
       user.email = normalizedEmail;
     }
 
-    // Update profile image
+    // ======================================
+    // UPDATE LANGUAGE
+    // ======================================
+
+    if (language !== undefined) {
+      if (!allowedLanguages.includes(language)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid language",
+          allowedLanguages,
+        });
+      }
+
+      user.language = language;
+    }
+
+    // ======================================
+    // UPDATE PROFILE IMAGE
+    // ======================================
+
     if (req.file) {
       const result = await uploadToCloudinary(req.file.buffer);
 
       user.profileImage = result.secure_url;
     }
 
+    // Save
     await user.save();
 
+    // Response
     res.status(200).json({
       success: true,
       message: "Profile updated successfully",
@@ -131,11 +191,15 @@ const updateProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         profileImage: user.profileImage,
+        language: user.language,
       },
     });
   } catch (error) {
+    console.error("Update Profile Error:", error);
+
     if (error.code === 11000) {
       return res.status(409).json({
+        success: false,
         message: "Email already registered",
       });
     }
@@ -155,34 +219,43 @@ const updateProfile = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const { id } = req.params;
-    const { currentPassword, newPassword } = req.body;
 
+    const { currentPassword, newPassword } = req.body || {};
+
+    // Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
+        success: false,
         message: "Invalid user ID",
       });
     }
 
+    // Validate passwords
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
+        success: false,
         message: "Current password and new password are required",
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
+        success: false,
         message: "New password must be at least 6 characters",
       });
     }
 
+    // Find user
     const user = await User.findById(id);
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found",
       });
     }
 
+    // Compare password
     const isPasswordValid = await bcrypt.compare(
       currentPassword,
       user.password,
@@ -190,10 +263,12 @@ const changePassword = async (req, res) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({
+        success: false,
         message: "Current password is incorrect",
       });
     }
 
+    // Hash new password
     user.password = await bcrypt.hash(newPassword, 10);
 
     await user.save();
@@ -203,6 +278,8 @@ const changePassword = async (req, res) => {
       message: "Password changed successfully",
     });
   } catch (error) {
+    console.error("Change Password Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to change password",
@@ -219,16 +296,20 @@ const deleteAccount = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
+        success: false,
         message: "Invalid user ID",
       });
     }
 
+    // Delete user
     const user = await User.findByIdAndDelete(id);
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found",
       });
     }
@@ -238,6 +319,8 @@ const deleteAccount = async (req, res) => {
       message: "Account deleted successfully",
     });
   } catch (error) {
+    console.error("Delete Account Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to delete account",

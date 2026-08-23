@@ -16,19 +16,86 @@ const {
   getPopularQuotes,
 } = require("../controllers/quoteController");
 
-router.post("/", createQuote);
+const upload = require("../middleware/upload");
+
+// ======================================
+// CREATE QUOTE
+// ======================================
+
+router.post(
+  "/",
+  upload.single("image"),
+  createQuote
+);
+
+// ======================================
+// GET ALL QUOTES
+// ======================================
 
 router.get("/", getQuotes);
+
+// ======================================
+// SEARCH
+// ======================================
+
 router.get("/search", searchQuotes);
+
+// ======================================
+// LATEST
+// ======================================
+
 router.get("/latest", getLatestQuotes);
+
+// ======================================
+// POPULAR
+// ======================================
+
 router.get("/popular", getPopularQuotes);
+
+// ======================================
+// DAILY
+// ======================================
+
 router.get("/daily", getDailyQuote);
 
-router.get("/category/:categoryId", getQuotesByCategory);
-router.get("/subcategory/:subcategoryId", getQuotesBySubcategory);
+// ======================================
+// CATEGORY
+// ======================================
+
+router.get(
+  "/category/:categoryId",
+  getQuotesByCategory
+);
+
+// ======================================
+// SUBCATEGORY
+// ======================================
+
+router.get(
+  "/subcategory/:subcategoryId",
+  getQuotesBySubcategory
+);
+
+// ======================================
+// GET SINGLE
+// ======================================
 
 router.get("/:id", getQuote);
-router.put("/:id", updateQuote);
+
+// ======================================
+// UPDATE
+// ======================================
+
+router.put(
+  "/:id",
+  upload.single("image"),
+  updateQuote
+);
+
+// ======================================
+// DELETE
+// ======================================
+
 router.delete("/:id", deleteQuote);
 
 module.exports = router;

@@ -13,16 +13,19 @@ const generateQuote = async (req, res) => {
       category = "Motivation",
       mood = "Positive",
       language = "English",
-    } = req.body;
+    } = req.body || {};
 
     const prompt = `
-Generate one original quote.
+Generate ONE original quote.
 
 Category: ${category}
 Mood: ${mood}
 Language: ${language}
 
-Rules:
+IMPORTANT:
+- The quote MUST be written completely in ${language}.
+- Do NOT translate it into English.
+- Do NOT mix languages.
 - Return ONLY the quote.
 - No explanation.
 - No quotation marks.
@@ -41,12 +44,8 @@ Rules:
 
       temperature: 0.6,
       max_completion_tokens: 300,
-
-      // Important for GPT-OSS
       include_reasoning: false,
     });
-
-    console.log("AI Response:", completion.choices[0]?.message);
 
     const quote = completion.choices[0]?.message?.content?.trim();
 
@@ -54,13 +53,13 @@ Rules:
       return res.status(500).json({
         success: false,
         message: "AI did not return a quote",
-        response: completion.choices[0]?.message || null,
       });
     }
 
     return res.status(200).json({
       success: true,
       quote,
+      language,
     });
   } catch (error) {
     console.error("Groq Error:", error);

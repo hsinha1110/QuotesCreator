@@ -1,7 +1,25 @@
 const Category = require("../models/Category");
 const cloudinary = require("../config/cloudinary");
 
-// Upload image to Cloudinary
+// ======================================
+// ALLOWED LANGUAGES
+// ======================================
+
+const allowedLanguages = [
+  "English",
+  "Hindi",
+  "Spanish",
+  "French",
+  "German",
+  "Arabic",
+  "Portuguese",
+  "Italian",
+];
+
+// ======================================
+// CLOUDINARY UPLOAD
+// ======================================
+
 const uploadToCloudinary = (fileBuffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -21,63 +39,91 @@ const uploadToCloudinary = (fileBuffer) => {
   });
 };
 
-// Create Category
+// ======================================
+// CREATE CATEGORY
+// ======================================
+
 const createCategory = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body;
+
+    let translations = {};
+
+    if (req.body.translations) {
+      try {
+        translations =
+          typeof req.body.translations === "string"
+            ? JSON.parse(req.body.translations)
+            : req.body.translations;
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid translations JSON",
+        });
+      }
+    }
 
     if (!name || !name.trim()) {
       return res.status(400).json({
+        success: false,
         message: "Category name is required",
       });
     }
 
     if (!req.file) {
       return res.status(400).json({
+        success: false,
         message: "Category image is required",
       });
     }
 
-    // Check duplicate category
     const existingCategory = await Category.findOne({
       name: name.trim(),
     });
 
     if (existingCategory) {
       return res.status(409).json({
+        success: false,
         message: "Category already exists",
       });
     }
 
-    // Upload image
     const result = await uploadToCloudinary(req.file.buffer);
 
-    // Create category
     const category = await Category.create({
       name: name.trim(),
       image: result.secure_url,
+      description: description?.trim() || "",
+      translations,
     });
 
     res.status(201).json({
+      success: true,
       message: "Category created successfully",
       category,
     });
   } catch (error) {
-    // MongoDB duplicate key
+    console.error("Create Category Error:", error);
+
     if (error.code === 11000) {
       return res.status(409).json({
+        success: false,
         message: "Category already exists",
       });
     }
 
     res.status(500).json({
+      success: false,
       message: "Failed to create category",
       error: error.message,
     });
   }
 };
 
-// Get All Categories
+// ======================================
+// GET ALL CATEGORIES
+// ======================================
+
 const getCategories = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -101,6 +147,8 @@ const getCategories = async (req, res) => {
       categories,
     });
   } catch (error) {
+    console.error("Get Categories Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to get categories",
@@ -109,48 +157,85 @@ const getCategories = async (req, res) => {
   }
 };
 
-// Get Single Category
+// ======================================
+// GET SINGLE CATEGORY
+// ======================================
+
 const getCategory = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
 
     if (!category) {
       return res.status(404).json({
+        success: false,
         message: "Category not found",
       });
     }
 
-    res.status(200).json(category);
+    res.status(200).json({
+      success: true,
+      category,
+    });
   } catch (error) {
+    console.error("Get Category Error:", error);
+
     res.status(500).json({
+      success: false,
       message: "Failed to get category",
       error: error.message,
     });
   }
 };
 
-// Update Category
+// ======================================
+// UPDATE CATEGORY
+// ======================================
 const updateCategory = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body;
+
+    let translations;
+
+    if (req.body.translations) {
+      try {
+        translations =
+          typeof req.body.translations === "string"
+            ? JSON.parse(req.body.translations)
+            : req.body.translations;
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid translations JSON",
+        });
+      }
+    }
 
     const category = await Category.findById(req.params.id);
 
     if (!category) {
       return res.status(404).json({
+        success: false,
         message: "Category not found",
       });
     }
 
-    // Check duplicate name
-    if (name && name.trim() !== category.name) {
-      const existingCategory = await Category.findOne({
+    // Name
+    if (name !== undefined) {
+      if (!name.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Category name cannot be empty",
+        });
+      }
+
+      const duplicate = await Category.findOne({
         name: name.trim(),
         _id: { $ne: req.params.id },
       });
 
-      if (existingCategory) {
+      if (duplicate) {
         return res.status(409).json({
+          success: false,
           message: "Category already exists",
         });
       }
@@ -158,49 +243,70 @@ const updateCategory = async (req, res) => {
       category.name = name.trim();
     }
 
-    // Update image if provided
+    // Description
+    if (description !== undefined) {
+      category.description = description.trim();
+    }
+
+    // Translations
+    if (translations !== undefined) {
+      if (typeof translations !== "object" || Array.isArray(translations)) {
+        return res.status(400).json({
+          success: false,
+          message: "Translations must be an object",
+        });
+      }
+
+      category.translations = translations;
+    }
+
+    // Image
     if (req.file) {
       const result = await uploadToCloudinary(req.file.buffer);
-
       category.image = result.secure_url;
     }
 
     await category.save();
 
     res.status(200).json({
+      success: true,
       message: "Category updated successfully",
       category,
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(409).json({
-        message: "Category already exists",
-      });
-    }
+    console.error("Update Category Error:", error);
 
     res.status(500).json({
+      success: false,
       message: "Failed to update category",
       error: error.message,
     });
   }
 };
+// ======================================
+// DELETE CATEGORY
+// ======================================
 
-// Delete Category
 const deleteCategory = async (req, res) => {
   try {
     const category = await Category.findByIdAndDelete(req.params.id);
 
     if (!category) {
       return res.status(404).json({
+        success: false,
         message: "Category not found",
       });
     }
 
     res.status(200).json({
+      success: true,
       message: "Category deleted successfully",
     });
   } catch (error) {
+    console.error("Delete Category Error:", error);
+
     res.status(500).json({
+      success: false,
       message: "Failed to delete category",
       error: error.message,
     });

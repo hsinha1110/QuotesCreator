@@ -2,8 +2,6 @@ const mongoose = require("mongoose");
 
 const quoteSchema = new mongoose.Schema(
   {
-    // Quote kis user ne create kiya
-    // Admin/AI quotes ke liye null ho sakta hai
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -18,7 +16,7 @@ const quoteSchema = new mongoose.Schema(
 
     subcategoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Subcategory", // ✅ FIX
+      ref: "Subcategory",
       default: null,
     },
 
@@ -37,6 +35,34 @@ const quoteSchema = new mongoose.Schema(
     image: {
       type: String,
       default: null,
+    },
+
+    language: {
+      type: String,
+      enum: [
+        "English",
+        "Hindi",
+        "Spanish",
+        "French",
+        "German",
+        "Arabic",
+        "Portuguese",
+        "Italian",
+      ],
+      default: "English",
+    },
+
+    // Different language versions
+    translations: {
+      type: Map,
+      of: String,
+      default: {},
+    },
+
+    // Popular quotes ke liye
+    views: {
+      type: Number,
+      default: 0,
     },
 
     isDraft: {
