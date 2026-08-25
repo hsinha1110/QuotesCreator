@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const Collection = require("../models/Collection");
-const Quote = require("../models/Quotes");
+const Quote = require("../models/Quote");
 
 // ======================================
 // CREATE COLLECTION

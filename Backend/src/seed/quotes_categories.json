@@ -1,0 +1,33 @@
+{
+  "categories": {
+    "attitude": {
+      "name": "Attitude",
+      "imageUrl": "",
+      "isActive": true,
+      "quotes": [
+        {
+          "text": "आपका दृष्टिकोण आपकी दिशा तय करता है।",
+          "translations": {
+            "English": "Your attitude determines your direction.",
+            "Hindi": "आपका दृष्टिकोण आपकी दिशा तय करता है।"
+          },
+          "author": "Unknown",
+          "imageUrl": "CLOUDINARY_URL",
+          "language": "Hindi",
+          "isActive": true
+        },
+        {
+          "text": "सकारात्मक सोच आपका पूरा जीवन बदल सकती है।",
+          "translations": {
+            "English": "A positive attitude can change your entire life.",
+            "Hindi": "सकारात्मक सोच आपका पूरा जीवन बदल सकती है।"
+          },
+          "author": "Unknown",
+          "imageUrl": "CLOUDINARY_URL",
+          "language": "Hindi",
+          "isActive": true
+        }
+      ]
+    }
+  }
+}

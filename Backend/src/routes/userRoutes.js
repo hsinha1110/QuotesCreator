@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  getUsers,
   getProfile,
   updateProfile,
   changePassword,
@@ -11,16 +12,35 @@ const {
 
 const upload = require("../middleware/upload");
 
-// Get profile
+// ======================================
+// ADMIN - GET ALL USERS
+// ======================================
+
+router.get("/", getUsers);
+
+router.get("/:id", getProfile);
+// ======================================
+// GET SINGLE USER
+// ======================================
+
 router.get("/:id", getProfile);
 
-// Update profile + image
+// ======================================
+// UPDATE PROFILE
+// ======================================
+
 router.put("/:id", upload.single("profileImage"), updateProfile);
 
-// Change password
+// ======================================
+// CHANGE PASSWORD
+// ======================================
+
 router.put("/:id/password", changePassword);
 
-// Delete account
+// ======================================
+// DELETE USER
+// ======================================
+
 router.delete("/:id", deleteAccount);
 
 module.exports = router;

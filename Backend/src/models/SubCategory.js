@@ -6,6 +6,7 @@ const subcategorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
+      index: true,
     },
 
     name: {
@@ -18,11 +19,6 @@ const subcategorySchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
-    },
-
-    image: {
-      type: String,
-      required: true,
     },
 
     translations: {
@@ -46,6 +42,4 @@ subcategorySchema.index(
   },
 );
 
-const Subcategory = mongoose.model("Subcategory", subcategorySchema);
-
-module.exports = Subcategory;
+module.exports = mongoose.model("Subcategory", subcategorySchema);

@@ -1,27 +1,24 @@
 const express = require("express");
-const upload = require("../middleware/upload");
 
-const {
-  createSubcategory,
-  getSubcategories,
-  getSubcategoriesByCategory,
-  getSubcategory,
-  updateSubcategory,
-  deleteSubcategory,
-} = require("../controllers/subcategoryController");
+const subcategoryController = require("../controllers/subcategoryController");
+
+console.log("SUBCATEGORY CONTROLLER:", subcategoryController);
 
 const router = express.Router();
 
-router.post("/", upload.single("image"), createSubcategory);
+router.post("/", subcategoryController.createSubcategory);
 
-router.get("/", getSubcategories);
+router.get("/", subcategoryController.getSubcategories);
 
-router.get("/category/:categoryId", getSubcategoriesByCategory);
+router.get(
+  "/category/:categoryId",
+  subcategoryController.getSubcategoriesByCategory,
+);
 
-router.get("/:id", getSubcategory);
+router.get("/:id", subcategoryController.getSubcategory);
 
-router.put("/:id", upload.single("image"), updateSubcategory);
+router.put("/:id", subcategoryController.updateSubcategory);
 
-router.delete("/:id", deleteSubcategory);
+router.delete("/:id", subcategoryController.deleteSubcategory);
 
 module.exports = router;

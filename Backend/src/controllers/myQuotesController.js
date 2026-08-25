@@ -1,4 +1,4 @@
-const Quote = require("../models/Quotes");
+const Quote = require("../models/Quote");
 
 // ===============================
 // GET MY QUOTES

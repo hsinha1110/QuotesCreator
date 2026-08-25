@@ -57,9 +57,9 @@ app.use("/api/collections", collectionRoutes);
 app.use("/api/downloads", downloadRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ai", aiRoutes);
+
 // My Quotes
 app.use("/api/my-quotes", myQuotesRoutes);
 app.use("/api/stickers", stickerRoutes);
-
 app.use("/api/notifications", notificationRoutes);
 module.exports = app;

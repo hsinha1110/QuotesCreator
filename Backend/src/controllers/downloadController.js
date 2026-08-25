@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const Download = require("../models/Download");
-const Quote = require("../models/Quotes");
+const Quote = require("../models/Quote");
 
 // ======================================
 // ADD DOWNLOAD

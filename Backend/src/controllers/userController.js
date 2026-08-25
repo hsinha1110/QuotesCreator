@@ -328,9 +328,92 @@ const deleteAccount = async (req, res) => {
     });
   }
 };
+// ======================================
+// GET ALL USERS - ADMIN
+// ======================================
 
+const getUsers = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      search = "",
+      language = "",
+    } = req.query;
+
+    const pageNumber = Math.max(Number(page), 1);
+    const limitNumber = Math.min(
+      Math.max(Number(limit), 1),
+      100
+    );
+
+    const skip =
+      (pageNumber - 1) * limitNumber;
+
+    const filter = {};
+
+    // Search name/email
+    if (search.trim()) {
+      filter.$or = [
+        {
+          name: {
+            $regex: search.trim(),
+            $options: "i",
+          },
+        },
+        {
+          email: {
+            $regex: search.trim(),
+            $options: "i",
+          },
+        },
+      ];
+    }
+
+    // Language filter
+    if (language.trim()) {
+      filter.language = language.trim();
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNumber)
+        .lean(),
+
+      User.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+
+      page: pageNumber,
+
+      limit: limitNumber,
+
+      total,
+
+      totalPages: Math.ceil(
+        total / limitNumber
+      ),
+
+      users,
+    });
+  } catch (error) {
+    console.error("Get Users Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to get users",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   getProfile,
+  getUsers,
   updateProfile,
   changePassword,
   deleteAccount,

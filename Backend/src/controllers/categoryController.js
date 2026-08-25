@@ -1,9 +1,9 @@
 const Category = require("../models/Category");
-const cloudinary = require("../config/cloudinary");
+const Quote = require("../models/Quote");
 
-// ======================================
+// ==========================================
 // ALLOWED LANGUAGES
-// ======================================
+// ==========================================
 
 const allowedLanguages = [
   "English",
@@ -16,52 +16,31 @@ const allowedLanguages = [
   "Italian",
 ];
 
-// ======================================
-// CLOUDINARY UPLOAD
-// ======================================
+// ==========================================
+// GET LOCALIZED NAME
+// ==========================================
 
-const uploadToCloudinary = (fileBuffer) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: "QuotesCreator/categories",
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      },
-    );
+const getLocalizedName = (item, language) => {
+  const translations = item.translations || {};
 
-    stream.end(fileBuffer);
-  });
+  if (language === "English") {
+    return translations.English || item.name;
+  }
+
+  if (language === "Hindi") {
+    return translations.Hindi || item.name;
+  }
+
+  return translations[language] || item.name;
 };
 
-// ======================================
-// CREATE CATEGORY
-// ======================================
+// ==========================================
+// CREATE
+// ==========================================
 
 const createCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
-
-    let translations = {};
-
-    if (req.body.translations) {
-      try {
-        translations =
-          typeof req.body.translations === "string"
-            ? JSON.parse(req.body.translations)
-            : req.body.translations;
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid translations JSON",
-        });
-      }
-    }
+    const { name, description, translations } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -70,138 +49,14 @@ const createCategory = async (req, res) => {
       });
     }
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Category image is required",
-      });
-    }
+    let parsedTranslations = {};
 
-    const existingCategory = await Category.findOne({
-      name: name.trim(),
-    });
-
-    if (existingCategory) {
-      return res.status(409).json({
-        success: false,
-        message: "Category already exists",
-      });
-    }
-
-    const result = await uploadToCloudinary(req.file.buffer);
-
-    const category = await Category.create({
-      name: name.trim(),
-      image: result.secure_url,
-      description: description?.trim() || "",
-      translations,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Category created successfully",
-      category,
-    });
-  } catch (error) {
-    console.error("Create Category Error:", error);
-
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "Category already exists",
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create category",
-      error: error.message,
-    });
-  }
-};
-
-// ======================================
-// GET ALL CATEGORIES
-// ======================================
-
-const getCategories = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-
-    const skip = (page - 1) * limit;
-
-    const total = await Category.countDocuments();
-
-    const categories = await Category.find()
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    res.status(200).json({
-      success: true,
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-      categories,
-    });
-  } catch (error) {
-    console.error("Get Categories Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to get categories",
-      error: error.message,
-    });
-  }
-};
-
-// ======================================
-// GET SINGLE CATEGORY
-// ======================================
-
-const getCategory = async (req, res) => {
-  try {
-    const category = await Category.findById(req.params.id);
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      category,
-    });
-  } catch (error) {
-    console.error("Get Category Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to get category",
-      error: error.message,
-    });
-  }
-};
-
-// ======================================
-// UPDATE CATEGORY
-// ======================================
-const updateCategory = async (req, res) => {
-  try {
-    const { name, description } = req.body;
-
-    let translations;
-
-    if (req.body.translations) {
+    if (translations) {
       try {
-        translations =
-          typeof req.body.translations === "string"
-            ? JSON.parse(req.body.translations)
-            : req.body.translations;
+        parsedTranslations =
+          typeof translations === "string"
+            ? JSON.parse(translations)
+            : translations;
       } catch (error) {
         return res.status(400).json({
           success: false,
@@ -210,6 +65,197 @@ const updateCategory = async (req, res) => {
       }
     }
 
+    const existing = await Category.findOne({
+      name: name.trim(),
+    });
+
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: "Category already exists",
+      });
+    }
+
+    const category = await Category.create({
+      name: name.trim(),
+
+      image: null,
+
+      translations: parsedTranslations,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Category created successfully",
+      category,
+    });
+  } catch (error) {
+    console.error("Create Category Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create category",
+      error: error.message,
+    });
+  }
+};
+
+// ==========================================
+// GET ALL
+// ==========================================
+const getCategories = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit, 10) || 10, 1),
+      100,
+    );
+
+    const language = req.query.language || "Hindi";
+
+    const skip = (page - 1) * limit;
+
+    // ================================
+    // TOTAL CATEGORIES
+    // ================================
+
+    const total = await Category.countDocuments();
+
+    // ================================
+    // CATEGORIES
+    // ================================
+
+    const categories = await Category.find()
+      .sort({
+        createdAt: -1,
+      })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // ================================
+    // ADD QUOTES
+    // ================================
+
+    const categoriesWithQuotes = await Promise.all(
+      categories.map(async (category) => {
+        const quotes = await Quote.find({
+          categoryId: category._id,
+          isDraft: false,
+        })
+          .sort({
+            createdAt: -1,
+          })
+          .lean();
+
+        const formattedQuotes = quotes.map((quote) => ({
+          _id: quote._id,
+
+          // ORIGINAL QUOTE
+          qu_text: quote.text,
+
+          author: quote.author,
+
+          language: quote.language,
+
+          // LANGUAGE DISPLAY
+          displayText:
+            language === "English"
+              ? quote.translations?.English || quote.text
+              : quote.text,
+        }));
+
+        return {
+          ...category,
+
+          displayName: category.translations?.[language] || category.name,
+
+          displayLanguage: language,
+
+          quotes: formattedQuotes,
+        };
+      }),
+    );
+
+    // ================================
+    // RESPONSE
+    // ================================
+
+    return res.status(200).json({
+      success: true,
+
+      page,
+
+      limit,
+
+      total,
+
+      totalPages: Math.ceil(total / limit),
+
+      language,
+
+      categories: categoriesWithQuotes,
+    });
+  } catch (error) {
+    console.error("Get Categories Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get categories",
+      error: error.message,
+    });
+  }
+};
+
+// ==========================================
+// GET SINGLE
+// ==========================================
+
+const getCategory = async (req, res) => {
+  try {
+    let language = req.query.language || "Hindi";
+
+    if (!allowedLanguages.includes(language)) {
+      language = "Hindi";
+    }
+
+    const category = await Category.findById(req.params.id).lean();
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    category.name = getLocalizedName(category, language);
+
+    category.language = language;
+
+    return res.status(200).json({
+      success: true,
+      category,
+    });
+  } catch (error) {
+    console.error("Get Category Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get category",
+      error: error.message,
+    });
+  }
+};
+
+// ==========================================
+// UPDATE
+// ==========================================
+
+const updateCategory = async (req, res) => {
+  try {
+    const { name, translations } = req.body;
+
     const category = await Category.findById(req.params.id);
 
     if (!category) {
@@ -219,7 +265,6 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    // Name
     if (name !== undefined) {
       if (!name.trim()) {
         return res.status(400).json({
@@ -230,7 +275,9 @@ const updateCategory = async (req, res) => {
 
       const duplicate = await Category.findOne({
         name: name.trim(),
-        _id: { $ne: req.params.id },
+        _id: {
+          $ne: req.params.id,
+        },
       });
 
       if (duplicate) {
@@ -243,32 +290,29 @@ const updateCategory = async (req, res) => {
       category.name = name.trim();
     }
 
-    // Description
-    if (description !== undefined) {
-      category.description = description.trim();
-    }
+    if (translations) {
+      let parsed;
 
-    // Translations
-    if (translations !== undefined) {
-      if (typeof translations !== "object" || Array.isArray(translations)) {
+      try {
+        parsed =
+          typeof translations === "string"
+            ? JSON.parse(translations)
+            : translations;
+      } catch (error) {
         return res.status(400).json({
           success: false,
-          message: "Translations must be an object",
+          message: "Invalid translations JSON",
         });
       }
 
-      category.translations = translations;
+      category.translations = parsed;
     }
 
-    // Image
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer);
-      category.image = result.secure_url;
-    }
+    // Image intentionally ignored
 
     await category.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Category updated successfully",
       category,
@@ -276,16 +320,17 @@ const updateCategory = async (req, res) => {
   } catch (error) {
     console.error("Update Category Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to update category",
       error: error.message,
     });
   }
 };
-// ======================================
-// DELETE CATEGORY
-// ======================================
+
+// ==========================================
+// DELETE
+// ==========================================
 
 const deleteCategory = async (req, res) => {
   try {
@@ -298,14 +343,14 @@ const deleteCategory = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Category deleted successfully",
     });
   } catch (error) {
     console.error("Delete Category Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to delete category",
       error: error.message,

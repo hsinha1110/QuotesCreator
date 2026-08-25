@@ -1,0 +1,16 @@
+{
+  "languages": {
+    "en": {
+      "code": "en",
+      "name": "English",
+      "nativeName": "English",
+      "isActive": true
+    },
+    "hi": {
+      "code": "hi",
+      "name": "Hindi",
+      "nativeName": "हिन्दी",
+      "isActive": true
+    }
+  }
+}
