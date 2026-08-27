@@ -13,6 +13,7 @@ const aiRoutes = require("./routes/aiRoutes");
 const myQuotesRoutes = require("./routes/myQuotesRoutes");
 const stickerRoutes = require("./routes/stickerRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const bulkQuoteRoutes = require("./src/routes/bulkQuoteRoutes");
 
 const app = express();
 
@@ -29,7 +30,7 @@ app.get("/", (req, res) => {
 // AUTH
 // ===============================
 app.use("/api/auth", authRoutes);
-
+app.use("/api/admin", bulkQuoteRoutes);
 // ===============================
 // CATEGORIES
 // ===============================

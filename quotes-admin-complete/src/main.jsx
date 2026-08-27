@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   LayoutDashboard,
@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Sticker,
   Send,
+  Upload,
   Languages,
   CheckCircle2,
   AlertCircle,
@@ -30,16 +31,7 @@ import {
 import "./styles.css";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
-const LANGUAGES = [
-  "English",
-  "Hindi",
-  "Spanish",
-  "French",
-  "German",
-  "Arabic",
-  "Portuguese",
-  "Italian",
-];
+const LANGUAGES = ["English", "Hindi"];
 const STICKER_TYPES = ["popular", "emoji", "shape", "quote"];
 
 async function request(path, options = {}) {
@@ -62,6 +54,45 @@ function rows(data, key) {
 }
 function total(data, fallback) {
   return Number(data.total ?? data.pagination?.total ?? fallback);
+}
+
+// ==========================================
+// LOCALIZATION HELPERS
+// ==========================================
+
+function localizedName(item, language) {
+  if (!item) return "—";
+
+  return (
+    item.translations?.[language] ||
+    (item.displayLanguage === language ? item.displayName : "") ||
+    item.translations?.English ||
+    item.name ||
+    "—"
+  );
+}
+
+function localizedDescription(item, language) {
+  if (!item) return "";
+
+  return (
+    item.descriptionTranslations?.[language] ||
+    (item.displayLanguage === language ? item.displayDescription : "") ||
+    item.description ||
+    ""
+  );
+}
+
+function localizedQuote(item, language) {
+  if (!item) return "";
+
+  return (
+    item.translations?.[language] ||
+    (item.displayLanguage === language ? item.displayText : "") ||
+    item.text ||
+    item.qu_text ||
+    ""
+  );
 }
 
 async function fetchAll(endpoint, key, extra = "") {
@@ -244,9 +275,9 @@ function UsersPage({ items, reload, flash }) {
   );
 }
 
-function SettingsPage({ data }) {
+function SettingsPage({ data, language, setLanguage }) {
   const defaultSettings = {
-    defaultLanguage: "Hindi",
+    defaultLanguage: language || "Hindi",
     quotesPerPage: 20,
     allowUserQuotes: true,
     autoPublishQuotes: false,
@@ -257,7 +288,7 @@ function SettingsPage({ data }) {
     quoteTranslation: true,
     dailyNotification: true,
     notificationTime: "09:00",
-    notificationLanguage: "Hindi",
+    notificationLanguage: language || "Hindi",
     notificationImage: true,
   };
 
@@ -269,10 +300,19 @@ function SettingsPage({ data }) {
 
     if (stored) {
       try {
+        const parsed = JSON.parse(stored);
+        const savedLanguage = parsed.defaultLanguage || language || "Hindi";
+
         setSettings({
           ...defaultSettings,
-          ...JSON.parse(stored),
+          ...parsed,
+          defaultLanguage: savedLanguage,
+          notificationLanguage: parsed.notificationLanguage || savedLanguage,
         });
+
+        if (savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
       } catch (error) {
         console.error("Settings parse error:", error);
       }
@@ -287,8 +327,47 @@ function SettingsPage({ data }) {
     setSaved(false);
   };
 
+  const handleLanguageChange = (newLanguage) => {
+    if (!LANGUAGES.includes(newLanguage)) return;
+
+    setLanguage(newLanguage);
+
+    setSettings((prev) => ({
+      ...prev,
+      defaultLanguage: newLanguage,
+      notificationLanguage: newLanguage,
+    }));
+
+    const stored = localStorage.getItem("quotes_admin_settings");
+    let current = {};
+
+    try {
+      current = stored ? JSON.parse(stored) : {};
+    } catch {
+      current = {};
+    }
+
+    localStorage.setItem(
+      "quotes_admin_settings",
+      JSON.stringify({
+        ...defaultSettings,
+        ...current,
+        defaultLanguage: newLanguage,
+        notificationLanguage: newLanguage,
+      }),
+    );
+  };
+
   const saveSettings = () => {
-    localStorage.setItem("quotes_admin_settings", JSON.stringify(settings));
+    const finalSettings = {
+      ...settings,
+      defaultLanguage: language,
+    };
+
+    localStorage.setItem(
+      "quotes_admin_settings",
+      JSON.stringify(finalSettings),
+    );
 
     setSaved(true);
 
@@ -338,7 +417,7 @@ function SettingsPage({ data }) {
               Default Quote Language
               <select
                 value={settings.defaultLanguage}
-                onChange={(e) => update("defaultLanguage", e.target.value)}
+                onChange={(e) => handleLanguageChange(e.target.value)}
               >
                 {LANGUAGES.map((language) => (
                   <option key={language} value={language}>
@@ -577,6 +656,22 @@ function SettingToggle({ title, description, value, set }) {
 function App() {
   const [page, setPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+
+  const [language, setLanguage] = useState(() => {
+    try {
+      const stored = localStorage.getItem("quotes_admin_settings");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (LANGUAGES.includes(parsed.defaultLanguage)) {
+          return parsed.defaultLanguage;
+        }
+      }
+    } catch (error) {
+      console.error("Initial language load error:", error);
+    }
+
+    return "Hindi";
+  });
   const [data, setData] = useState({
     categories: [],
     subcategories: [],
@@ -587,19 +682,23 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState(null);
 
-  const loadAll = async () => {
+  const loadAll = async (selectedLanguage = language) => {
     setLoading(true);
 
     try {
+      const languageQuery = `&language=${encodeURIComponent(selectedLanguage)}`;
+
       const [categories, subcategories, quotes, stickers, users] =
         await Promise.all([
-          fetchAll("/categories", "categories"),
+          fetchAll("/categories", "categories", languageQuery),
 
-          fetchAll("/subcategories", "subcategories"),
+          fetchAll("/subcategories", "subcategories", languageQuery),
 
-          fetchAll("/quotes", "quotes"),
+          fetchAll("/quotes", "quotes", languageQuery),
 
-          request("/stickers").then((d) => rows(d, "stickers")),
+          request(
+            `/stickers?language=${encodeURIComponent(selectedLanguage)}`,
+          ).then((d) => rows(d, "stickers")),
 
           fetchAll("/users", "users"),
         ]);
@@ -621,8 +720,15 @@ function App() {
     }
   };
 
+  const handleLanguageChange = async (newLanguage) => {
+    if (!LANGUAGES.includes(newLanguage)) return;
+
+    setLanguage(newLanguage);
+    await loadAll(newLanguage);
+  };
+
   useEffect(() => {
-    loadAll();
+    loadAll(language);
   }, []);
 
   const flash = (type, text) => {
@@ -727,7 +833,7 @@ function App() {
             <span>Quotes Creator / {title(page)}</span>
           </div>
           <div className="headerRight">
-            <button className="refresh" onClick={loadAll}>
+            <button className="refresh" onClick={() => loadAll(language)}>
               <RefreshCw className={loading ? "spin" : ""} />
             </button>
             <div className="avatar">A</div>
@@ -758,13 +864,19 @@ function App() {
 
         {page === "dashboard" && <Dashboard data={data} go={setPage} />}
         {page === "categories" && (
-          <Categories items={data.categories} reload={loadAll} flash={flash} />
+          <Categories
+            items={data.categories}
+            language={language}
+            reload={() => loadAll(language)}
+            flash={flash}
+          />
         )}
         {page === "subcategories" && (
           <Subcategories
             items={data.subcategories}
             categories={data.categories}
-            reload={loadAll}
+            language={language}
+            reload={() => loadAll(language)}
             flash={flash}
           />
         )}
@@ -773,19 +885,34 @@ function App() {
             items={data.quotes}
             categories={data.categories}
             subcategories={data.subcategories}
-            reload={loadAll}
+            language={language}
+            reload={() => loadAll(language)}
             flash={flash}
           />
         )}
         {page === "stickers" && (
-          <Stickers items={data.stickers} reload={loadAll} flash={flash} />
+          <Stickers
+            items={data.stickers}
+            reload={() => loadAll(language)}
+            flash={flash}
+          />
         )}
         {page === "ai" && <AIQuote flash={flash} />}
         {page === "notifications" && <Notifications flash={flash} />}
         {page === "users" && (
-          <UsersPage items={data.users || []} reload={loadAll} flash={flash} />
+          <UsersPage
+            items={data.users || []}
+            reload={() => loadAll(language)}
+            flash={flash}
+          />
         )}
-        {page === "settings" && <SettingsPage data={data} />}
+        {page === "settings" && (
+          <SettingsPage
+            data={data}
+            language={language}
+            setLanguage={handleLanguageChange}
+          />
+        )}
       </main>
     </div>
   );
@@ -936,18 +1063,23 @@ function Toolbar({ title, search, setSearch, add, children }) {
   );
 }
 
-function Categories({ items, reload, flash }) {
+function Categories({ items, language, reload, flash }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [page, setPage] = useState(1);
+
+  const [bulkFile, setBulkFile] = useState(null);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkResult, setBulkResult] = useState(null);
+  const bulkInputRef = useRef(null);
 
   const PAGE_SIZE = 10;
 
   const empty = {
     name: "",
     description: "",
-    translations: { English: "" },
+    translations: { English: "", Hindi: "" },
     image: null,
   };
 
@@ -955,15 +1087,20 @@ function Categories({ items, reload, flash }) {
 
   // Search
   const filtered = useMemo(() => {
-    return items.filter((x) =>
-      (x.name || "").toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [items, search]);
+    const query = search.trim().toLowerCase();
+
+    return items.filter((x) => {
+      const name = localizedName(x, language).toLowerCase();
+      const description = localizedDescription(x, language).toLowerCase();
+
+      return !query || name.includes(query) || description.includes(query);
+    });
+  }, [items, search, language]);
 
   // Search change hone par page 1
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, language]);
 
   // Total pages
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -1063,11 +1200,13 @@ function Categories({ items, reload, flash }) {
 
               {/* Content */}
               <div className="cardBody">
-                <h3>{c.name}</h3>
+                <h3>{localizedName(c, language)}</h3>
 
-                <p>{c.description || "No description"}</p>
+                <p>{localizedDescription(c, language) || "No description"}</p>
 
-                <small>English: {c.translations?.English || "—"}</small>
+                <small>
+                  {language}: {localizedName(c, language)}
+                </small>
 
                 <small>ID: {c._id}</small>
               </div>
@@ -1083,6 +1222,7 @@ function Categories({ items, reload, flash }) {
                     translations: {
                       ...c.translations,
                       English: c.translations?.English || "",
+                      Hindi: c.translations?.Hindi || "",
                     },
                     image: null,
                   });
@@ -1177,6 +1317,20 @@ function Categories({ items, reload, flash }) {
               }
             />
 
+            <Field
+              label="Hindi Translation"
+              value={form.translations.Hindi || ""}
+              set={(v) =>
+                setForm({
+                  ...form,
+                  translations: {
+                    ...form.translations,
+                    Hindi: v,
+                  },
+                })
+              }
+            />
+
             {/* Image optional */}
             <FileField
               label="Category Image (optional)"
@@ -1197,7 +1351,7 @@ function Categories({ items, reload, flash }) {
   );
 }
 
-function Subcategories({ items, categories, reload, flash }) {
+function Subcategories({ items, categories, language, reload, flash }) {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [open, setOpen] = useState(false);
@@ -1212,6 +1366,7 @@ function Subcategories({ items, categories, reload, flash }) {
     description: "",
     translations: {
       English: "",
+      Hindi: "",
     },
     image: null,
   };
@@ -1223,18 +1378,21 @@ function Subcategories({ items, categories, reload, flash }) {
   // ==============================
 
   const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
     return items.filter((s) => {
       const matchesCategory =
         !categoryFilter ||
         String(s.categoryId?._id || s.categoryId) === String(categoryFilter);
 
-      const matchesSearch = (s.name || "")
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const name = localizedName(s, language).toLowerCase();
+      const description = localizedDescription(s, language).toLowerCase();
+      const matchesSearch =
+        !query || name.includes(query) || description.includes(query);
 
       return matchesCategory && matchesSearch;
     });
-  }, [items, search, categoryFilter]);
+  }, [items, search, categoryFilter, language]);
 
   // ==============================
   // RESET PAGE WHEN FILTER CHANGES
@@ -1242,7 +1400,7 @@ function Subcategories({ items, categories, reload, flash }) {
 
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter]);
+  }, [search, categoryFilter, language]);
 
   // ==============================
   // TOTAL PAGES
@@ -1274,10 +1432,105 @@ function Subcategories({ items, categories, reload, flash }) {
   // CATEGORY NAME
   // ==============================
 
-  const catName = (s) =>
-    s.categoryId?.name ||
-    categories.find((c) => String(c._id) === String(s.categoryId))?.name ||
-    "—";
+  const catName = (s) => {
+    const category = s.categoryId?._id
+      ? s.categoryId
+      : categories.find((c) => String(c._id) === String(s.categoryId));
+
+    return localizedName(category, language);
+  };
+
+  // ==============================
+  // BULK CSV UPLOAD
+  // ==============================
+
+  const handleBulkUpload = async () => {
+    if (!bulkFile) {
+      flash("error", "Please select a CSV file");
+      return;
+    }
+
+    const isCsv =
+      bulkFile.type === "text/csv" ||
+      bulkFile.name.toLowerCase().endsWith(".csv");
+
+    if (!isCsv) {
+      flash("error", "Please select a valid CSV file");
+      return;
+    }
+
+    try {
+      setBulkUploading(true);
+      setBulkResult(null);
+
+      const formData = new FormData();
+      formData.append("file", bulkFile);
+
+      const response = await request("/quotes/bulk-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      console.log("BULK UPLOAD RESPONSE:", response);
+
+      // Supports both flat and summary-wrapped backend responses.
+      const summary = response?.summary || {};
+
+      const totalRows = Number(
+        response?.totalRows ?? summary?.totalRows ?? summary?.total ?? 0,
+      );
+
+      const inserted = Number(
+        response?.inserted ?? summary?.inserted ?? summary?.created ?? 0,
+      );
+
+      const failed = Number(response?.failed ?? summary?.failed ?? 0);
+
+      const errors = Array.isArray(response?.errors)
+        ? response.errors
+        : Array.isArray(summary?.errors)
+          ? summary.errors
+          : [];
+
+      setBulkResult({
+        total: totalRows,
+        prepared: Number(response?.prepared ?? summary?.prepared ?? inserted),
+        created: inserted,
+        skipped: Number(response?.skipped ?? summary?.skipped ?? 0),
+        failed,
+        errors,
+      });
+
+      await reload();
+
+      if (failed > 0 && inserted > 0) {
+        flash(
+          "success",
+          `Upload completed. ${inserted} quotes added, ${failed} rows failed.`,
+        );
+      } else if (failed > 0) {
+        flash("error", `Upload failed. ${failed} rows failed.`);
+      } else {
+        flash("success", `Upload completed. ${inserted} quotes added.`);
+      }
+
+      setBulkFile(null);
+
+      if (bulkInputRef.current) {
+        bulkInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Bulk upload error:", error);
+      setBulkResult(null);
+      flash("error", error.message || "Bulk upload failed");
+    } finally {
+      setBulkUploading(false);
+    }
+  };
+
+  // ==============================
+  // BULK CSV UPLOAD
+  // ==============================
 
   // ==============================
   // SAVE
@@ -1368,7 +1621,7 @@ function Subcategories({ items, categories, reload, flash }) {
 
           {categories.map((c) => (
             <option key={c._id} value={c._id}>
-              {c.name}
+              {localizedName(c, language)}
             </option>
           ))}
         </select>
@@ -1399,15 +1652,17 @@ function Subcategories({ items, categories, reload, flash }) {
               </div>
 
               <div className="cardBody">
-                <h3>{s.name}</h3>
+                <h3>{localizedName(s, language)}</h3>
 
                 <p>
                   Category: <b>{catName(s)}</b>
                 </p>
 
-                <p>{s.description || "No description"}</p>
+                <p>{localizedDescription(s, language) || "No description"}</p>
 
-                <small>English: {s.translations?.English || "—"}</small>
+                <small>
+                  {language}: {localizedName(s, language)}
+                </small>
 
                 <small>ID: {s._id}</small>
               </div>
@@ -1425,6 +1680,7 @@ function Subcategories({ items, categories, reload, flash }) {
 
                     translations: {
                       English: s.translations?.English || "",
+                      Hindi: s.translations?.Hindi || "",
                     },
 
                     image: null,
@@ -1502,7 +1758,7 @@ function Subcategories({ items, categories, reload, flash }) {
               >
                 {categories.map((c) => (
                   <option key={c._id} value={c._id}>
-                    {c.name}
+                    {localizedName(c, language)}
                   </option>
                 ))}
               </select>
@@ -1545,6 +1801,20 @@ function Subcategories({ items, categories, reload, flash }) {
               }
             />
 
+            <Field
+              label="Hindi Translation"
+              value={form.translations.Hindi || ""}
+              set={(v) =>
+                setForm({
+                  ...form,
+                  translations: {
+                    ...form.translations,
+                    Hindi: v,
+                  },
+                })
+              }
+            />
+
             <FileField
               label="Image (optional)"
               set={(f) =>
@@ -1563,7 +1833,14 @@ function Subcategories({ items, categories, reload, flash }) {
     </section>
   );
 }
-function Quotes({ items, categories, subcategories, reload, flash }) {
+function Quotes({
+  items,
+  categories,
+  subcategories,
+  language: appLanguage,
+  reload,
+  flash,
+}) {
   const [search, setSearch] = useState("");
 
   const [language, setLanguage] = useState("");
@@ -1584,6 +1861,77 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
 
   const [page, setPage] = useState(1);
 
+  // ==============================
+  // BULK CSV UPLOAD
+  // ==============================
+  const [bulkFile, setBulkFile] = useState(null);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkResult, setBulkResult] = useState(null);
+  const bulkInputRef = useRef(null);
+
+  const handleBulkUpload = async () => {
+    if (!bulkFile) {
+      flash("error", "Please select a CSV file");
+      return;
+    }
+
+    const isCsv =
+      bulkFile.type === "text/csv" ||
+      bulkFile.name.toLowerCase().endsWith(".csv");
+
+    if (!isCsv) {
+      flash("error", "Please select a valid CSV file");
+      return;
+    }
+
+    try {
+      setBulkUploading(true);
+      setBulkResult(null);
+
+      const formData = new FormData();
+      formData.append("file", bulkFile);
+
+      const response = await request("/quotes/bulk-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const summary = response?.summary || {};
+
+      const inserted = Number(
+        response?.inserted ?? summary?.inserted ?? summary?.created ?? 0,
+      );
+
+      const failed = Number(response?.failed ?? summary?.failed ?? 0);
+
+      setBulkResult({
+        total: Number(response?.totalRows ?? summary?.totalRows ?? 0),
+        created: inserted,
+        failed,
+        errors: response?.errors || summary?.errors || [],
+      });
+
+      await reload();
+
+      if (failed > 0) {
+        flash("error", `${inserted} quotes added, ${failed} rows failed`);
+      } else {
+        flash("success", `${inserted} quotes uploaded successfully`);
+      }
+
+      setBulkFile(null);
+
+      if (bulkInputRef.current) {
+        bulkInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Bulk upload error:", error);
+      flash("error", error.message || "Bulk upload failed");
+    } finally {
+      setBulkUploading(false);
+    }
+  };
+
   const PAGE_SIZE = 10;
 
   const empty = {
@@ -1591,10 +1939,11 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
     subcategoryId: "",
     text: "",
     author: "Unknown",
-    language: "Hindi",
+    language: appLanguage || "Hindi",
 
     translations: {
       English: "",
+      Hindi: "",
     },
 
     isDraft: false,
@@ -1610,11 +1959,16 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
 
   const filtered = useMemo(() => {
     return items.filter((q) => {
-      const searchText =
-        (q.text || "").toLowerCase().includes(search.toLowerCase()) ||
-        (q.author || "").toLowerCase().includes(search.toLowerCase());
+      const localizedText = localizedQuote(q, appLanguage).toLowerCase();
+      const rawText = (q.text || q.qu_text || "").toLowerCase();
+      const query = search.trim().toLowerCase();
 
-      const matchesSearch = !search || searchText;
+      const searchText =
+        localizedText.includes(query) ||
+        rawText.includes(query) ||
+        (q.author || "").toLowerCase().includes(query);
+
+      const matchesSearch = !query || searchText;
 
       const matchesLanguage = !language || q.language === language;
 
@@ -1639,7 +1993,16 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
         matchesSource
       );
     });
-  }, [items, search, language, catFilter, subFilter, draft, source]);
+  }, [
+    items,
+    search,
+    language,
+    appLanguage,
+    catFilter,
+    subFilter,
+    draft,
+    source,
+  ]);
 
   // ==============================
   // RESET PAGE
@@ -1679,20 +2042,25 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
   // CATEGORY NAME
   // ==============================
 
-  const catName = (q) =>
-    q.categoryId?.name ||
-    categories.find((c) => String(c._id) === String(q.categoryId))?.name ||
-    "—";
+  const catName = (q) => {
+    const category = q.categoryId?._id
+      ? q.categoryId
+      : categories.find((c) => String(c._id) === String(q.categoryId));
+
+    return localizedName(category, appLanguage);
+  };
 
   // ==============================
   // SUBCATEGORY NAME
   // ==============================
 
-  const subName = (q) =>
-    q.subcategoryId?.name ||
-    subcategories.find((s) => String(s._id) === String(q.subcategoryId))
-      ?.name ||
-    "—";
+  const subName = (q) => {
+    const subcategory = q.subcategoryId?._id
+      ? q.subcategoryId
+      : subcategories.find((s) => String(s._id) === String(q.subcategoryId));
+
+    return localizedName(subcategory, appLanguage);
+  };
 
   // ==============================
   // SAVE
@@ -1781,6 +2149,7 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
 
       translations: {
         English: q.translations?.English || "",
+        Hindi: q.translations?.Hindi || "",
       },
 
       isDraft: !!q.isDraft,
@@ -1826,7 +2195,7 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
 
             {categories.map((c) => (
               <option key={c._id} value={c._id}>
-                {c.name}
+                {localizedName(c, appLanguage)}
               </option>
             ))}
           </select>
@@ -1846,7 +2215,7 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
               )
               .map((s) => (
                 <option key={s._id} value={s._id}>
-                  {s.name}
+                  {localizedName(s, appLanguage)}
                 </option>
               ))}
           </select>
@@ -1873,15 +2242,60 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
           </div>
 
           <button
+            className="secondary"
+            type="button"
+            onClick={() => bulkInputRef.current?.click()}
+            disabled={bulkUploading}
+          >
+            <Upload />
+            {bulkFile ? "Change CSV" : "Select CSV"}
+          </button>
+
+          <input
+            ref={bulkInputRef}
+            id="bulkQuoteCsv"
+            type="file"
+            accept=".csv,text/csv"
+            style={{ display: "none" }}
+            disabled={bulkUploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setBulkFile(file);
+              setBulkResult(null);
+            }}
+          />
+
+          {bulkFile && (
+            <button
+              className="primary"
+              type="button"
+              onClick={handleBulkUpload}
+              disabled={bulkUploading}
+            >
+              {bulkUploading ? (
+                <>
+                  <RefreshCw className="spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload />
+                  Upload CSV
+                </>
+              )}
+            </button>
+          )}
+
+          <button
             className="primary"
+            type="button"
             onClick={() => {
               setEditing(null);
-
               setForm({
                 ...empty,
                 categoryId: categories[0]?._id || "",
               });
-
+              setBulkResult(null);
               setOpen(true);
             }}
           >
@@ -1917,6 +2331,67 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
           {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
         </span>
       </div>
+
+      {bulkFile && (
+        <div className="countLine">
+          Selected CSV: <strong>{bulkFile.name}</strong>
+        </div>
+      )}
+
+      {bulkResult && (
+        <div className="panel">
+          <div className="panelTitle">
+            <div>
+              <h2>Bulk Upload Result</h2>
+              <p>Import summary from the quotes bulk-upload endpoint.</p>
+            </div>
+            <Upload />
+          </div>
+
+          <div className="summary">
+            <div>
+              <b>{bulkResult.total}</b>
+              <span>Total Rows</span>
+            </div>
+            <div>
+              <b>{bulkResult.prepared}</b>
+              <span>Prepared</span>
+            </div>
+            <div>
+              <b>{bulkResult.created}</b>
+              <span>Created</span>
+            </div>
+            <div>
+              <b>{bulkResult.skipped}</b>
+              <span>Skipped</span>
+            </div>
+            <div>
+              <b>{bulkResult.failed}</b>
+              <span>Failed</span>
+            </div>
+          </div>
+
+          {bulkResult.errors?.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <strong>Import errors</strong>
+              <ul>
+                {bulkResult.errors.slice(0, 20).map((item, index) => (
+                  <li key={`${item?.row ?? "unknown"}-${index}`}>
+                    Row {item?.row ?? "?"}:{" "}
+                    {item?.error || item?.message || "Unknown error"}
+                  </li>
+                ))}
+              </ul>
+
+              {bulkResult.errors.length > 20 && (
+                <small>
+                  Showing first 20 errors out of {bulkResult.errors.length}.
+                </small>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TABLE */}
 
@@ -1961,7 +2436,9 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
               ) : (
                 paginatedQuotes.map((q) => (
                   <tr key={q._id}>
-                    <td className="quoteText">{q.text}</td>
+                    <td className="quoteText">
+                      {localizedQuote(q, appLanguage)}
+                    </td>
 
                     <td>{q.author || "Unknown"}</td>
 
@@ -1988,7 +2465,11 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
                     <td>{q.views ?? 0}</td>
 
                     <td>
-                      {q.translations?.English ? <Languages size={16} /> : "—"}
+                      {q.translations?.[appLanguage] ? (
+                        <Languages size={16} />
+                      ) : (
+                        "—"
+                      )}
                     </td>
 
                     <td>
@@ -2070,7 +2551,7 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
               >
                 {categories.map((c) => (
                   <option key={c._id} value={c._id}>
-                    {c.name}
+                    {localizedName(c, appLanguage)}
                   </option>
                 ))}
               </select>
@@ -2091,7 +2572,7 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
 
                 {formSubs.map((s) => (
                   <option key={s._id} value={s._id}>
-                    {s.name}
+                    {localizedName(s, appLanguage)}
                   </option>
                 ))}
               </select>
@@ -2153,6 +2634,20 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
               }
             />
 
+            <Field
+              label="Hindi Translation"
+              value={form.translations.Hindi || ""}
+              set={(v) =>
+                setForm({
+                  ...form,
+                  translations: {
+                    ...form.translations,
+                    Hindi: v,
+                  },
+                })
+              }
+            />
+
             <label className="check">
               <input
                 type="checkbox"
@@ -2209,7 +2704,7 @@ function Quotes({ items, categories, subcategories, reload, flash }) {
           <div className="detailQuote">
             {view.image && <img src={view.image} alt="" />}
 
-            <blockquote>{view.text}</blockquote>
+            <blockquote>{localizedQuote(view, appLanguage)}</blockquote>
 
             <p>
               <b>Author:</b> {view.author}
@@ -2320,9 +2815,9 @@ function Stickers({ items, reload, flash }) {
       <div className="stickerGrid">
         {filtered.map((s) => (
           <div className="stickerCard" key={s._id}>
-            <img src={s.image} />
+            <img src={s.image} alt={s.name || "Sticker"} />
             <div>
-              <h3>{s.name}</h3>
+              <h3>{s.name || "Sticker"}</h3>
               <Badge>{s.type}</Badge>
               <p>
                 Order: {s.sortOrder} · {s.isActive ? "Active" : "Inactive"}
@@ -2605,17 +3100,6 @@ function Modal({ title, close, children }) {
         {children}
       </div>
     </div>
-  );
-}
-function Unavailable({ title, text }) {
-  return (
-    <section className="content">
-      <div className="empty">
-        <Settings />
-        <h2>{title}</h2>
-        <p>{text}</p>
-      </div>
-    </section>
   );
 }
 

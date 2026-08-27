@@ -15,17 +15,11 @@ const connectDB = require("./src/config/db");
 // ======================================
 
 const authRoutes = require("./src/routes/authRoutes");
-
 const notificationRoutes = require("./src/routes/notificationRoutes");
-
 const categoryRoutes = require("./src/routes/categoryRoutes");
-
 const subcategoryRoutes = require("./src/routes/subcategoryRoutes");
-
 const quotesRoutes = require("./src/routes/quotesRoutes");
-
 const aiRoutes = require("./src/routes/aiRoutes");
-
 const userRoutes = require("./src/routes/userRoutes");
 
 // ======================================
@@ -36,7 +30,6 @@ let stickerRoutes = null;
 
 try {
   stickerRoutes = require("./src/routes/stickerRoutes");
-
   console.log("Sticker routes loaded");
 } catch (error) {
   console.log("Sticker routes not found - skipping /api/stickers");
@@ -62,9 +55,7 @@ app.use(
   cors({
     origin: true,
     credentials: true,
-
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
@@ -136,10 +127,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// ======================================
-// API HEALTH CHECK
-// ======================================
-
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -155,7 +142,6 @@ app.get("/api/health", (req, res) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-
     message: `Route not found: ${req.method} ${req.originalUrl}`,
   });
 });
@@ -170,7 +156,6 @@ app.use((error, req, res, next) => {
 
   res.status(error.status || 500).json({
     success: false,
-
     message: error.message || "Internal server error",
   });
 });
@@ -183,50 +168,37 @@ const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
   console.log("");
-
   console.log("====================================");
-
   console.log("       QUOTES API SERVER");
-
   console.log("====================================");
-
   console.log(`Server: http://localhost:${PORT}`);
-
   console.log("");
-
   console.log("Routes:");
+  console.log("  POST   /api/auth/register");
+  console.log("  POST   /api/auth/login");
 
-  console.log("  POST /api/auth/register");
-
-  console.log("  POST /api/auth/login");
-
-  console.log("  GET  /api/users");
-
-  console.log("  GET  /api/users/:id");
-
-  console.log("  PUT  /api/users/:id");
-
-  console.log("  PUT  /api/users/:id/password");
-
+  console.log("  GET    /api/users");
+  console.log("  GET    /api/users/:id");
+  console.log("  PUT    /api/users/:id");
+  console.log("  PUT    /api/users/:id/password");
   console.log("  DELETE /api/users/:id");
 
-  console.log("  GET  /api/categories");
+  console.log("  GET    /api/categories");
+  console.log("  GET    /api/subcategories");
 
-  console.log("  GET  /api/subcategories");
+  console.log("  GET    /api/quotes");
+  console.log("  POST   /api/quotes");
+  console.log("  PUT    /api/quotes/:id");
+  console.log("  DELETE /api/quotes/:id");
 
-  console.log("  GET  /api/quotes");
-
-  console.log("  GET  /api/notifications");
-
-  console.log("  POST /api/ai/generate");
-
+  console.log("  GET    /api/notifications");
+  console.log("  POST   /api/ai/generate");
   if (stickerRoutes) {
-    console.log("  GET  /api/stickers");
+    console.log("  GET    /api/stickers");
   } else {
     console.log("  /api/stickers -> NOT CONFIGURED");
   }
 
   console.log("====================================");
-
   console.log("");
 });

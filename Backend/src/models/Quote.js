@@ -33,16 +33,7 @@ const quoteSchema = new mongoose.Schema(
 
     language: {
       type: String,
-      enum: [
-        "English",
-        "Hindi",
-        "Spanish",
-        "French",
-        "German",
-        "Arabic",
-        "Portuguese",
-        "Italian",
-      ],
+      enum: ["English", "Hindi"],
       default: "Hindi",
     },
 
@@ -94,6 +85,4 @@ quoteSchema.index({
   language: 1,
 });
 
-const Quote = mongoose.model("Quote", quoteSchema);
-
-module.exports = Quote;
+module.exports = mongoose.model("Quote", quoteSchema);

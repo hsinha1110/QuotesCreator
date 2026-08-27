@@ -1,72 +1,193 @@
 const Category = require("../models/Category");
-const Quote = require("../models/Quote");
 
-// ==========================================
+// ======================================================
 // ALLOWED LANGUAGES
-// ==========================================
+// ======================================================
 
-const allowedLanguages = [
-  "English",
-  "Hindi",
-  "Spanish",
-  "French",
-  "German",
-  "Arabic",
-  "Portuguese",
-  "Italian",
-];
+const ALLOWED_LANGUAGES = ["English", "Hindi"];
 
-// ==========================================
-// GET LOCALIZED NAME
-// ==========================================
+const DEFAULT_LANGUAGE = "Hindi";
 
-const getLocalizedName = (item, language) => {
-  const translations = item.translations || {};
+// ======================================================
+// NORMALIZE LANGUAGE
+// ======================================================
 
-  if (language === "English") {
-    return translations.English || item.name;
+const normalizeLanguage = (language) => {
+  if (!language) {
+    return DEFAULT_LANGUAGE;
   }
 
-  if (language === "Hindi") {
-    return translations.Hindi || item.name;
-  }
+  const value = String(language).trim();
 
-  return translations[language] || item.name;
+  // Case-insensitive support
+  const found = ALLOWED_LANGUAGES.find(
+    (item) => item.toLowerCase() === value.toLowerCase(),
+  );
+
+  return found || DEFAULT_LANGUAGE;
 };
 
-// ==========================================
-// CREATE
-// ==========================================
+// ======================================================
+// GET TRANSLATION VALUE
+// ======================================================
+
+const getTranslation = (translations, language) => {
+  if (!translations) {
+    return "";
+  }
+
+  // Mongoose Map
+  if (typeof translations.get === "function") {
+    return translations.get(language) || "";
+  }
+
+  // Normal object
+  return translations[language] || "";
+};
+
+// ======================================================
+// GET LOCALIZED CATEGORY NAME
+// ======================================================
+
+const getLocalizedName = (category, language) => {
+  const selectedLanguage = normalizeLanguage(language);
+
+  const translatedName = getTranslation(
+    category.translations,
+    selectedLanguage,
+  );
+
+  if (translatedName) {
+    return translatedName;
+  }
+
+  // Fallback to canonical name
+  return category.name;
+};
+
+// ======================================================
+// CLEAN TRANSLATIONS
+// ONLY ENGLISH + HINDI
+// ======================================================
+
+const cleanTranslations = (translations) => {
+  if (!translations) {
+    return {};
+  }
+
+  let parsedTranslations;
+
+  try {
+    parsedTranslations =
+      typeof translations === "string"
+        ? JSON.parse(translations)
+        : translations;
+  } catch (error) {
+    throw new Error("Invalid translations JSON");
+  }
+
+  if (
+    typeof parsedTranslations !== "object" ||
+    Array.isArray(parsedTranslations) ||
+    parsedTranslations === null
+  ) {
+    throw new Error("Translations must be an object");
+  }
+
+  const cleaned = {};
+
+  // ------------------------------------------
+  // English
+  // ------------------------------------------
+
+  if (
+    parsedTranslations.English !== undefined &&
+    parsedTranslations.English !== null &&
+    String(parsedTranslations.English).trim() !== ""
+  ) {
+    cleaned.English = String(parsedTranslations.English).trim();
+  }
+
+  // ------------------------------------------
+  // Hindi
+  // ------------------------------------------
+
+  if (
+    parsedTranslations.Hindi !== undefined &&
+    parsedTranslations.Hindi !== null &&
+    String(parsedTranslations.Hindi).trim() !== ""
+  ) {
+    cleaned.Hindi = String(parsedTranslations.Hindi).trim();
+  }
+
+  return cleaned;
+};
+
+// ======================================================
+// CREATE CATEGORY
+// POST /api/categories
+// ======================================================
 
 const createCategory = async (req, res) => {
   try {
-    const { name, description, translations } = req.body;
+    const { name, translations } = req.body;
 
-    if (!name || !name.trim()) {
+    // ------------------------------------------
+    // Validate name
+    // ------------------------------------------
+
+    if (!name || !String(name).trim()) {
       return res.status(400).json({
         success: false,
         message: "Category name is required",
       });
     }
 
-    let parsedTranslations = {};
+    const categoryName = String(name).trim();
 
-    if (translations) {
-      try {
-        parsedTranslations =
-          typeof translations === "string"
-            ? JSON.parse(translations)
-            : translations;
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid translations JSON",
-        });
-      }
+    // ------------------------------------------
+    // Clean translations
+    // ------------------------------------------
+
+    let parsedTranslations;
+
+    try {
+      parsedTranslations = cleanTranslations(translations);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
     }
 
+    // ------------------------------------------
+    // English translation fallback
+    // ------------------------------------------
+
+    if (!parsedTranslations.English) {
+      parsedTranslations.English = categoryName;
+    }
+
+    // ------------------------------------------
+    // Hindi fallback
+    //
+    // If Hindi is not supplied, keep English
+    // as fallback rather than storing undefined.
+    // ------------------------------------------
+
+    if (!parsedTranslations.Hindi) {
+      parsedTranslations.Hindi = categoryName;
+    }
+
+    // ------------------------------------------
+    // Duplicate check
+    // ------------------------------------------
+
     const existing = await Category.findOne({
-      name: name.trim(),
+      name: {
+        $regex: `^${escapeRegex(categoryName)}$`,
+        $options: "i",
+      },
     });
 
     if (existing) {
@@ -76,8 +197,12 @@ const createCategory = async (req, res) => {
       });
     }
 
+    // ------------------------------------------
+    // Create
+    // ------------------------------------------
+
     const category = await Category.create({
-      name: name.trim(),
+      name: categoryName,
 
       image: null,
 
@@ -86,7 +211,9 @@ const createCategory = async (req, res) => {
 
     return res.status(201).json({
       success: true,
+
       message: "Category created successfully",
+
       category,
     });
   } catch (error) {
@@ -94,17 +221,29 @@ const createCategory = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to create category",
+
       error: error.message,
     });
   }
 };
 
-// ==========================================
-// GET ALL
-// ==========================================
+// ======================================================
+// GET ALL CATEGORIES
+//
+// GET /api/categories
+// GET /api/categories?page=1&limit=10
+// GET /api/categories?page=1&limit=10&language=Hindi
+// GET /api/categories?page=1&limit=10&language=English
+// ======================================================
+
 const getCategories = async (req, res) => {
   try {
+    // ------------------------------------------
+    // Pagination
+    // ------------------------------------------
+
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
 
     const limit = Math.min(
@@ -112,19 +251,23 @@ const getCategories = async (req, res) => {
       100,
     );
 
-    const language = req.query.language || "Hindi";
-
     const skip = (page - 1) * limit;
 
-    // ================================
-    // TOTAL CATEGORIES
-    // ================================
+    // ------------------------------------------
+    // Language
+    // ------------------------------------------
+
+    const language = normalizeLanguage(req.query.language);
+
+    // ------------------------------------------
+    // Total
+    // ------------------------------------------
 
     const total = await Category.countDocuments();
 
-    // ================================
-    // CATEGORIES
-    // ================================
+    // ------------------------------------------
+    // Get paginated categories
+    // ------------------------------------------
 
     const categories = await Category.find()
       .sort({
@@ -134,53 +277,45 @@ const getCategories = async (req, res) => {
       .limit(limit)
       .lean();
 
-    // ================================
-    // ADD QUOTES
-    // ================================
+    // ------------------------------------------
+    // Format categories
+    // ------------------------------------------
 
-    const categoriesWithQuotes = await Promise.all(
-      categories.map(async (category) => {
-        const quotes = await Quote.find({
-          categoryId: category._id,
-          isDraft: false,
-        })
-          .sort({
-            createdAt: -1,
-          })
-          .lean();
+    const formattedCategories = categories.map((category) => {
+      const english = getTranslation(category.translations, "English");
 
-        const formattedQuotes = quotes.map((quote) => ({
-          _id: quote._id,
+      const hindi = getTranslation(category.translations, "Hindi");
 
-          // ORIGINAL QUOTE
-          qu_text: quote.text,
+      return {
+        _id: category._id,
 
-          author: quote.author,
+        // Canonical/original name
+        name: category.name,
 
-          language: quote.language,
+        // Selected language
+        displayName: getLocalizedName(category, language),
 
-          // LANGUAGE DISPLAY
-          displayText:
-            language === "English"
-              ? quote.translations?.English || quote.text
-              : quote.text,
-        }));
+        displayLanguage: language,
 
-        return {
-          ...category,
+        image: category.image || null,
 
-          displayName: category.translations?.[language] || category.name,
+        translations: {
+          English: english || category.name,
 
-          displayLanguage: language,
+          Hindi: hindi || category.name,
+        },
 
-          quotes: formattedQuotes,
-        };
-      }),
-    );
+        createdAt: category.createdAt,
 
-    // ================================
-    // RESPONSE
-    // ================================
+        updatedAt: category.updatedAt,
+      };
+    });
+
+    // ------------------------------------------
+    // Pagination information
+    // ------------------------------------------
+
+    const totalPages = Math.ceil(total / limit);
 
     return res.status(200).json({
       success: true,
@@ -191,34 +326,40 @@ const getCategories = async (req, res) => {
 
       total,
 
-      totalPages: Math.ceil(total / limit),
+      totalPages,
+
+      hasNextPage: page < totalPages,
+
+      hasPreviousPage: page > 1,
 
       language,
 
-      categories: categoriesWithQuotes,
+      categories: formattedCategories,
     });
   } catch (error) {
     console.error("Get Categories Error:", error);
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to get categories",
+
       error: error.message,
     });
   }
 };
 
-// ==========================================
-// GET SINGLE
-// ==========================================
+// ======================================================
+// GET SINGLE CATEGORY
+//
+// GET /api/categories/:id
+// GET /api/categories/:id?language=Hindi
+// GET /api/categories/:id?language=English
+// ======================================================
 
 const getCategory = async (req, res) => {
   try {
-    let language = req.query.language || "Hindi";
-
-    if (!allowedLanguages.includes(language)) {
-      language = "Hindi";
-    }
+    const language = normalizeLanguage(req.query.language);
 
     const category = await Category.findById(req.params.id).lean();
 
@@ -229,28 +370,53 @@ const getCategory = async (req, res) => {
       });
     }
 
-    category.name = getLocalizedName(category, language);
+    const english = getTranslation(category.translations, "English");
 
-    category.language = language;
+    const hindi = getTranslation(category.translations, "Hindi");
 
     return res.status(200).json({
       success: true,
-      category,
+
+      category: {
+        _id: category._id,
+
+        name: category.name,
+
+        displayName: getLocalizedName(category, language),
+
+        displayLanguage: language,
+
+        image: category.image || null,
+
+        translations: {
+          English: english || category.name,
+
+          Hindi: hindi || category.name,
+        },
+
+        createdAt: category.createdAt,
+
+        updatedAt: category.updatedAt,
+      },
     });
   } catch (error) {
     console.error("Get Category Error:", error);
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to get category",
+
       error: error.message,
     });
   }
 };
 
-// ==========================================
-// UPDATE
-// ==========================================
+// ======================================================
+// UPDATE CATEGORY
+//
+// PUT /api/categories/:id
+// ======================================================
 
 const updateCategory = async (req, res) => {
   try {
@@ -261,20 +427,33 @@ const updateCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({
         success: false,
+
         message: "Category not found",
       });
     }
 
+    // ------------------------------------------
+    // Update name
+    // ------------------------------------------
+
     if (name !== undefined) {
-      if (!name.trim()) {
+      const categoryName = String(name).trim();
+
+      if (!categoryName) {
         return res.status(400).json({
           success: false,
+
           message: "Category name cannot be empty",
         });
       }
 
+      // Check duplicate
       const duplicate = await Category.findOne({
-        name: name.trim(),
+        name: {
+          $regex: `^${escapeRegex(categoryName)}$`,
+          $options: "i",
+        },
+
         _id: {
           $ne: req.params.id,
         },
@@ -283,38 +462,73 @@ const updateCategory = async (req, res) => {
       if (duplicate) {
         return res.status(409).json({
           success: false,
+
           message: "Category already exists",
         });
       }
 
-      category.name = name.trim();
+      category.name = categoryName;
     }
 
-    if (translations) {
-      let parsed;
+    // ------------------------------------------
+    // Update translations
+    // ------------------------------------------
+
+    if (translations !== undefined) {
+      let parsedTranslations;
 
       try {
-        parsed =
-          typeof translations === "string"
-            ? JSON.parse(translations)
-            : translations;
+        parsedTranslations = cleanTranslations(translations);
       } catch (error) {
         return res.status(400).json({
           success: false,
-          message: "Invalid translations JSON",
+          message: error.message,
         });
       }
 
-      category.translations = parsed;
+      // English fallback
+      if (!parsedTranslations.English) {
+        parsedTranslations.English = category.name;
+      }
+
+      // Hindi fallback
+      if (!parsedTranslations.Hindi) {
+        parsedTranslations.Hindi = category.name;
+      }
+
+      category.translations = parsedTranslations;
     }
 
-    // Image intentionally ignored
+    // ------------------------------------------
+    // If translations were not sent,
+    // make sure both languages exist.
+    // ------------------------------------------
+
+    if (translations === undefined) {
+      const currentEnglish = getTranslation(category.translations, "English");
+
+      const currentHindi = getTranslation(category.translations, "Hindi");
+
+      const updatedTranslations = {};
+
+      updatedTranslations.English = currentEnglish || category.name;
+
+      updatedTranslations.Hindi = currentHindi || category.name;
+
+      category.translations = updatedTranslations;
+    }
+
+    // ------------------------------------------
+    // Save
+    // ------------------------------------------
 
     await category.save();
 
     return res.status(200).json({
       success: true,
+
       message: "Category updated successfully",
+
       category,
     });
   } catch (error) {
@@ -322,15 +536,19 @@ const updateCategory = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to update category",
+
       error: error.message,
     });
   }
 };
 
-// ==========================================
-// DELETE
-// ==========================================
+// ======================================================
+// DELETE CATEGORY
+//
+// DELETE /api/categories/:id
+// ======================================================
 
 const deleteCategory = async (req, res) => {
   try {
@@ -339,12 +557,14 @@ const deleteCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({
         success: false,
+
         message: "Category not found",
       });
     }
 
     return res.status(200).json({
       success: true,
+
       message: "Category deleted successfully",
     });
   } catch (error) {
@@ -352,11 +572,25 @@ const deleteCategory = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to delete category",
+
       error: error.message,
     });
   }
 };
+
+// ======================================================
+// ESCAPE REGEX
+// ======================================================
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// ======================================================
+// EXPORT
+// ======================================================
 
 module.exports = {
   createCategory,

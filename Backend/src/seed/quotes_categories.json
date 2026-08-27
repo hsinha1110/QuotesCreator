@@ -2,7 +2,7 @@
   "categories": {
     "attitude": {
       "name": "Attitude",
-      "imageUrl": "",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/aziz-acharki-U3C79SeHa7k-unsplash%201-100kb.jpg?alt=media&token=d88ea4a4-a229-4232-a3a7-c40d6d99d76a",
       "isActive": true,
       "quotes": [
         {
@@ -12,18 +12,102 @@
             "Hindi": "आपका दृष्टिकोण आपकी दिशा तय करता है।"
           },
           "author": "Unknown",
-          "imageUrl": "CLOUDINARY_URL",
+          "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/aziz-acharki-U3C79SeHa7k-unsplash%201-100kb.jpg?alt=media&token=d88ea4a4-a229-4232-a3a7-c40d6d99d76a",
           "language": "Hindi",
           "isActive": true
-        },
+        }
+      ]
+    },
+
+    "breakup": {
+      "name": "Breakup",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-gabby-k-5874711.jpg?alt=media&token=51c3f320-6645-474d-8275-4f497ac9f43e",
+      "isActive": true,
+      "quotes": [
         {
-          "text": "सकारात्मक सोच आपका पूरा जीवन बदल सकती है।",
+          "text": "कुछ रिश्ते खत्म होकर भी हमें बहुत कुछ सिखा जाते हैं।",
           "translations": {
-            "English": "A positive attitude can change your entire life.",
-            "Hindi": "सकारात्मक सोच आपका पूरा जीवन बदल सकती है।"
+            "English": "Some relationships end but leave us with valuable lessons.",
+            "Hindi": "कुछ रिश्ते खत्म होकर भी हमें बहुत कुछ सिखा जाते हैं।"
           },
           "author": "Unknown",
-          "imageUrl": "CLOUDINARY_URL",
+          "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-gabby-k-5874711.jpg?alt=media&token=51c3f320-6645-474d-8275-4f497ac9f43e",
+          "language": "Hindi",
+          "isActive": true
+        }
+      ]
+    },
+
+    "family": {
+      "name": "Family",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-dmitry-rodionov-30680349.jpg?alt=media&token=3a95c0e9-9e2e-4567-a0ed-36f10b8e193a",
+      "isActive": true,
+      "quotes": [
+        {
+          "text": "परिवार वह जगह है जहाँ जिंदगी की सबसे खूबसूरत यादें बनती हैं।",
+          "translations": {
+            "English": "Family is where the most beautiful memories of life are made.",
+            "Hindi": "परिवार वह जगह है जहाँ जिंदगी की सबसे खूबसूरत यादें बनती हैं।"
+          },
+          "author": "Unknown",
+          "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-dmitry-rodionov-30680349.jpg?alt=media&token=3a95c0e9-9e2e-4567-a0ed-36f10b8e193a",
+          "language": "Hindi",
+          "isActive": true
+        }
+      ]
+    },
+
+    "friendship": {
+      "name": "Friendship",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-gulsahaydgn-20367715.jpg?alt=media&token=c368d1d4-924b-4ce4-951d-390376c35806",
+      "isActive": true,
+      "quotes": [
+        {
+          "text": "सच्चा दोस्त वही है जो मुश्किल समय में भी आपका साथ न छोड़े।",
+          "translations": {
+            "English": "A true friend is someone who never leaves your side in difficult times.",
+            "Hindi": "सच्चा दोस्त वही है जो मुश्किल समय में भी आपका साथ न छोड़े।"
+          },
+          "author": "Unknown",
+          "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-gulsahaydgn-20367715.jpg?alt=media&token=c368d1d4-924b-4ce4-951d-390376c35806",
+          "language": "Hindi",
+          "isActive": true
+        }
+      ]
+    },
+
+    "funny": {
+      "name": "Funny",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-lucasandrade-14122088.jpg?alt=media&token=7f9fc0ea-cfac-4c14-b2cb-154f58b017d9",
+      "isActive": true,
+      "quotes": [
+        {
+          "text": "जिंदगी छोटी है, इसलिए हर दिन थोड़ा हँसना जरूरी है।",
+          "translations": {
+            "English": "Life is short, so laughing a little every day is important.",
+            "Hindi": "जिंदगी छोटी है, इसलिए हर दिन थोड़ा हँसना जरूरी है।"
+          },
+          "author": "Unknown",
+          "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-lucasandrade-14122088.jpg?alt=media&token=7f9fc0ea-cfac-4c14-b2cb-154f58b017d9",
+          "language": "Hindi",
+          "isActive": true
+        }
+      ]
+    },
+
+    "happiness": {
+      "name": "Happiness",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-gulsahaydgn-20367801.jpg?alt=media&token=6757069e-cc51-4f74-8556-562001609864",
+      "isActive": true,
+      "quotes": [
+        {
+          "text": "खुशी बाहर नहीं, हमारे अपने नजरिए में छिपी होती है।",
+          "translations": {
+            "English": "Happiness is not outside; it lies within our own perspective.",
+            "Hindi": "खुशी बाहर नहीं, हमारे अपने नजरिए में छिपी होती है।"
+          },
+          "author": "Unknown",
+          "imageUrl": "https://firebasestorage.googleapis.com/v0/b/quotescreator-ebcb6.firebasestorage.app/o/jpeg-optimizer_pexels-gulsahaydgn-20367801.jpg?alt=media&token=6757069e-cc51-4f74-8556-562001609864",
           "language": "Hindi",
           "isActive": true
         }
