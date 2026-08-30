@@ -5,167 +5,265 @@ import {
   getMessaging,
   getToken,
   onMessage,
-  requestPermission,
+  registerDeviceForRemoteMessages,
+  onTokenRefresh,
 } from '@react-native-firebase/messaging';
 
-import notifee, {
-  AndroidImportance,
-  AndroidStyle,
-} from '@notifee/react-native';
+import notifee, { AndroidImportance } from '@notifee/react-native';
+
+import { requestNotifications, RESULTS } from 'react-native-permissions';
+
+import Config from 'react-native-config';
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import RoutesNavigators from '@/navigations/RoutesNavigators';
 
+GoogleSignin.configure({
+  webClientId: Config.GOOGLE_WEB_CLIENT_ID,
+});
+
 const App = () => {
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
+    let unsubscribeMessage: (() => void) | undefined;
 
-    const initializeNotifications = async () => {
+    let unsubscribeTokenRefresh: (() => void) | undefined;
+
+    // ==========================================
+    // FCM SETUP
+    // ==========================================
+
+    const setupNotifications = async () => {
       try {
+        console.log('================================');
+
+        console.log('🔥 FCM SETUP STARTED');
+
+        console.log('================================');
+
         const messaging = getMessaging();
 
-        // ======================================
+        // ==========================================
         // ANDROID 13+ NOTIFICATION PERMISSION
-        // ======================================
+        // ==========================================
 
-        if (Platform.OS === 'android' && Platform.Version >= 33) {
-          const permission = await PermissionsAndroid.request(
+        if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
+          console.log('🤖 REQUESTING ANDROID NOTIFICATION PERMISSION');
+
+          const result = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
           );
 
-          console.log('🔔 Android notification permission:', permission);
+          console.log('🔔 Android Notification Permission:', result);
+
+          if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('❌ Android notification permission denied');
+
+            // FCM token ke liye yahan return nahi kar rahe.
+            // Token generation continue ho sakta hai.
+          } else {
+            console.log('✅ Android notification permission granted');
+          }
         }
 
-        // ======================================
-        // FCM PERMISSION
-        // ======================================
+        // ==========================================
+        // iOS NOTIFICATION PERMISSION
+        // ==========================================
 
-        const authStatus = await requestPermission(messaging);
+        if (Platform.OS === 'ios') {
+          console.log('🍎 REQUESTING iOS NOTIFICATION PERMISSION');
 
-        console.log('🔥 FCM permission status:', authStatus);
+          const { status } = await requestNotifications([
+            'alert',
+            'badge',
+            'sound',
+          ]);
 
-        // ======================================
+          console.log('🍎 iOS Notification Permission:', status);
+
+          if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+            console.log('❌ iOS notification permission denied');
+          }
+        }
+
+        // ==========================================
+        // REGISTER DEVICE FOR REMOTE MESSAGES
+        // ==========================================
+
+        console.log('🔥 REGISTERING DEVICE FOR REMOTE MESSAGES');
+
+        await registerDeviceForRemoteMessages(messaging);
+
+        console.log('✅ REMOTE MESSAGES REGISTERED');
+
+        // ==========================================
         // ANDROID NOTIFICATION CHANNEL
-        // ======================================
+        // ==========================================
 
         if (Platform.OS === 'android') {
           const channelId = await notifee.createChannel({
             id: 'quotes',
+
             name: 'Quotes Notifications',
+
             importance: AndroidImportance.HIGH,
+
+            vibration: true,
+
             sound: 'default',
           });
 
-          console.log('🔔 Notification channel:', channelId);
+          console.log('🔔 Notification Channel:', channelId);
         }
 
-        // ======================================
+        // ==========================================
         // GET FCM TOKEN
-        // ======================================
+        // ==========================================
 
-        const token = await getToken(messaging);
+        console.log('================================');
 
-        console.log('🔥 FCM TOKEN:', token);
+        console.log('🔥 STEP 1: ABOUT TO GET FCM TOKEN');
 
-        // ======================================
-        // FOREGROUND MESSAGE LISTENER
-        // ======================================
+        console.log('================================');
 
-        unsubscribe = onMessage(messaging, async remoteMessage => {
-          try {
-            console.log('🔥 FOREGROUND FCM:', remoteMessage);
+        try {
+          const token = await getToken(messaging);
 
-            // ======================================
-            // TITLE
-            // ======================================
+          console.log('🔥 STEP 2: GET TOKEN COMPLETED');
 
-            const title = String(
-              remoteMessage.notification?.title ??
-                remoteMessage.data?.title ??
-                'Quotes',
-            );
+          console.log('================================');
 
-            // ======================================
-            // BODY
-            // ======================================
+          console.log('🔥🔥🔥 FCM TOKEN 🔥🔥🔥');
 
-            const body = String(
-              remoteMessage.notification?.body ??
-                remoteMessage.data?.body ??
-                '',
-            );
+          console.log('TOKEN:', token);
+
+          console.log('================================');
+
+          if (!token) {
+            console.log('❌ FCM TOKEN EMPTY');
+          } else {
+            console.log('✅ FCM TOKEN RECEIVED SUCCESSFULLY');
 
             // ======================================
-            // IMAGE
+            // BACKEND TOKEN REGISTRATION
             // ======================================
 
-            const image = String(
-              remoteMessage.notification?.android?.imageUrl ??
-                remoteMessage.data?.image ??
-                '',
-            );
+            // Yahan baad me backend API call karna:
+            //
+            // await registerDeviceToken(token);
+          }
+        } catch (error: any) {
+          console.log('❌ GET FCM TOKEN ERROR:', error);
 
-            console.log('🔔 Notification title:', title);
+          console.log('❌ FCM ERROR CODE:', error?.code);
 
-            console.log('🔔 Notification body:', body);
+          console.log('❌ FCM ERROR MESSAGE:', error?.message);
+        }
 
-            console.log('🔔 Notification image:', image);
+        // ==========================================
+        // TOKEN REFRESH
+        // ==========================================
 
-            // ======================================
-            // DISPLAY LOCAL NOTIFICATION
-            // ======================================
+        unsubscribeTokenRefresh = onTokenRefresh(messaging, async newToken => {
+          console.log('================================');
 
+          console.log('🔥 FCM TOKEN REFRESHED');
+
+          console.log('NEW TOKEN:', newToken);
+
+          console.log('================================');
+
+          // Backend ko updated token bhejna:
+          //
+          // await registerDeviceToken(newToken);
+        });
+
+        // ==========================================
+        // FOREGROUND MESSAGE
+        // ==========================================
+
+        unsubscribeMessage = onMessage(messaging, async remoteMessage => {
+          console.log('================================');
+
+          console.log('🔥 FOREGROUND FCM MESSAGE');
+
+          console.log('MESSAGE:', remoteMessage);
+
+          console.log('================================');
+
+          const title = String(
+            remoteMessage.notification?.title ??
+              remoteMessage.data?.title ??
+              'Quotes',
+          );
+
+          const body = String(
+            remoteMessage.notification?.body ?? remoteMessage.data?.body ?? '',
+          );
+
+          // ======================================
+          // ANDROID
+          // ======================================
+
+          if (Platform.OS === 'android') {
             await notifee.displayNotification({
               title,
-              body,
 
-              data: Object.fromEntries(
-                Object.entries(remoteMessage.data ?? {}).map(([key, value]) => [
-                  key,
-                  String(value),
-                ]),
-              ),
+              body,
 
               android: {
                 channelId: 'quotes',
+
                 importance: AndroidImportance.HIGH,
-                sound: 'default',
 
                 pressAction: {
                   id: 'default',
                 },
-
-                // ONLY BIG IMAGE
-                ...(image
-                  ? {
-                      style: {
-                        type: AndroidStyle.BIGPICTURE,
-                        picture: image,
-                      },
-                    }
-                  : {}),
               },
             });
+          }
 
-            console.log('✅ Notification displayed successfully');
-          } catch (error) {
-            console.log('❌ Foreground notification error:', error);
+          // ======================================
+          // iOS
+          // ======================================
+
+          if (Platform.OS === 'ios') {
+            await notifee.displayNotification({
+              title,
+
+              body,
+
+              ios: {
+                sound: 'default',
+              },
+            });
           }
         });
-      } catch (error) {
-        console.log('❌ Notification initialization error:', error);
+
+        console.log('================================');
+
+        console.log('✅ FCM SETUP COMPLETED');
+
+        console.log('================================');
+      } catch (error: any) {
+        console.log('❌ FCM SETUP ERROR:', error);
+
+        console.log('❌ FCM ERROR CODE:', error?.code);
+
+        console.log('❌ FCM ERROR MESSAGE:', error?.message);
       }
     };
 
-    initializeNotifications();
+    setupNotifications();
 
-    // ======================================
+    // ==========================================
     // CLEANUP
-    // ======================================
+    // ==========================================
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      unsubscribeMessage?.();
+
+      unsubscribeTokenRefresh?.();
     };
   }, []);
 

@@ -2,12 +2,30 @@ const express = require("express");
 
 const router = express.Router();
 
-const { register, login } = require("../controllers/authController");
+const {
+  register,
+  login,
+  socialLogin,
+} = require("../controllers/authController");
 
-const upload = require("../middleware/upload");
+const imageUpload = require("../middleware/imageUpload");
 
-router.post("/register", upload.single("profileImage"), register);
+// ======================================
+// REGISTER
+// ======================================
+
+router.post("/register", imageUpload.single("profileImage"), register);
+
+// ======================================
+// LOGIN
+// ======================================
 
 router.post("/login", login);
+
+// ======================================
+// GOOGLE / FACEBOOK LOGIN
+// ======================================
+
+router.post("/social-login", socialLogin);
 
 module.exports = router;

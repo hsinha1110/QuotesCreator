@@ -1,25 +1,29 @@
-# Resolve react_native_pods.rb with node to allow for hoisting
-require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve(
-    "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-  )', __dir__]).strip
+ENV['RCT_USE_PREBUILT_RNCORE'] = '0'
 
-platform :ios, min_ios_version_supported
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve("react-native/scripts/react_native_pods.rb", {paths: [__dirname]})'
+], __dir__).strip
+
+platform :ios, '15.1'
 prepare_react_native_project!
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
+use_frameworks! :linkage => :dynamic
+
+pre_install do |installer|
+  installer.pod_targets.each do |target|
+    if target.respond_to?(:platform_name) && target.platform_name == :ios
+      target.build_settings.each do |config_name, setting|
+        setting['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+      end
+    end
+  end
 end
 
 target 'QuotesCreator' do
   config = use_native_modules!
-
+  
   use_react_native!(
     :path => config[:reactNativePath],
-    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
@@ -28,7 +32,33 @@ target 'QuotesCreator' do
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
     )
+    
+    # 1. Disable Sandboxing on Main App Targets (Fixes rsync Sandbox Deny)
+    installer.aggregate_targets.each do |aggregate_target|
+      aggregate_target.user_project.targets.each do |target|
+        target.build_configurations.each do |config|
+          config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+        end
+      end
+    end
+
+    # 2. Fix Pod targets (Deployment target, Module Verifier, and leveldb fixes)
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+        config.build_settings['CLANG_ENABLE_MODULE_VERIFIER'] = 'NO'
+        config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+        config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+      end
+
+      if target.name == 'leveldb-library'
+        target.build_configurations.each do |config|
+          config.build_settings['USE_HEADERMAP'] = 'NO'
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++14'
+          config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+        end
+      end
+    end
   end
 end

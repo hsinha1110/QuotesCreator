@@ -43,14 +43,32 @@ const quoteSchema = new mongoose.Schema(
       default: {},
     },
 
+    // ==========================================
+    // ENGAGEMENT
+    // ==========================================
+
     views: {
       type: Number,
       default: 0,
     },
 
+    likes: {
+      type: Number,
+      default: 0,
+    },
+
+    // ==========================================
+    // STATUS
+    // ==========================================
+
     isDraft: {
       type: Boolean,
       default: false,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
     },
 
     source: {
@@ -83,6 +101,18 @@ quoteSchema.index({
 
 quoteSchema.index({
   language: 1,
+});
+
+// Latest
+quoteSchema.index({
+  language: 1,
+  createdAt: -1,
+});
+
+// Popular
+quoteSchema.index({
+  language: 1,
+  likes: -1,
 });
 
 module.exports = mongoose.model("Quote", quoteSchema);

@@ -1,233 +1,83 @@
 const mongoose = require("mongoose");
+
 const { getMessaging } = require("firebase-admin/messaging");
 
+const NotificationToken = require("../models/NotificationTokens");
 const Notification = require("../models/Notification");
+const Quote = require("../models/Quote");
 
-// Firebase Admin initialize
+// Firebase initialize
 require("../config/firebase");
 
 const allowedLanguages = ["English", "Hindi"];
 
-// ======================================
-// LANGUAGE CONTENT
-// ======================================
+// =====================================================
+// GET QUOTE TEXT
+// =====================================================
 
-const notificationContent = {
-  English: {
-    title: "Today's Thought",
-    body: "Keep working hard, success will surely come.",
-    image:
-      "https://res.cloudinary.com/dxd249q5q/image/upload/v1787467299/QuotesCreator/subcategories/qhhrfbwohda1f0em8yvo.jpg",
-  },
-
-  Hindi: {
-    title: "आज का विचार",
-    body: "मेहनत करते रहो, सफलता जरूर मिलेगी।",
-    image:
-      "https://res.cloudinary.com/dxd249q5q/image/upload/v1787467299/QuotesCreator/subcategories/qhhrfbwohda1f0em8yvo.jpg",
-  },
-};
-
-// ======================================
-// SEND DAILY NOTIFICATION
-// ======================================
-
-const sendNotification = async (req, res) => {
-  try {
-    console.log("================================");
-    console.log("Starting notification broadcast...");
-    console.log("================================");
-
-    let totalDevices = 0;
-    let totalSuccess = 0;
-    let totalFailed = 0;
-
-    const languageResults = {};
-
-    // ======================================
-    // ENGLISH + HINDI
-    // ======================================
-
-    for (const language of allowedLanguages) {
-      console.log(`\nProcessing language: ${language}`);
-
-      const content = notificationContent[language];
-
-      // ======================================
-      // FIND DEVICES
-      // ======================================
-
-      const devices = await Notification.find({
-        language,
-        isActive: true,
-        fcmToken: {
-          $exists: true,
-          $ne: "",
-        },
-      });
-
-      console.log(`${language} devices found:`, devices.length);
-
-      if (!devices.length) {
-        languageResults[language] = {
-          devices: 0,
-          success: 0,
-          failed: 0,
-        };
-
-        continue;
-      }
-
-      // ======================================
-      // GET TOKENS
-      // ======================================
-
-      const tokens = devices.map((device) => device.fcmToken).filter(Boolean);
-
-      if (!tokens.length) {
-        languageResults[language] = {
-          devices: 0,
-          success: 0,
-          failed: 0,
-        };
-
-        continue;
-      }
-
-      totalDevices += tokens.length;
-
-      console.log(
-        `Sending ${language} notification to ${tokens.length} devices`,
-      );
-
-      // ======================================
-      // FCM MESSAGE
-      // ======================================
-
-      const message = {
-        tokens,
-
-        notification: {
-          title: content.title,
-          body: content.body,
-
-          ...(content.image
-            ? {
-                imageUrl: content.image,
-              }
-            : {}),
-        },
-
-        data: {
-          title: String(content.title),
-          body: String(content.body),
-          image: String(content.image || ""),
-          language: String(language),
-          type: "daily_quote",
-        },
-
-        android: {
-          priority: "high",
-
-          notification: {
-            channelId: "quotes",
-            sound: "default",
-
-            ...(content.image
-              ? {
-                  imageUrl: content.image,
-                }
-              : {}),
-          },
-        },
-      };
-
-      // ======================================
-      // SEND
-      // ======================================
-
-      const response = await getMessaging().sendEachForMulticast(message);
-
-      console.log(`${language} Success:`, response.successCount);
-
-      console.log(`${language} Failed:`, response.failureCount);
-
-      totalSuccess += response.successCount;
-      totalFailed += response.failureCount;
-
-      // ======================================
-      // FAILED TOKENS
-      // ======================================
-
-      response.responses.forEach((result, index) => {
-        if (!result.success) {
-          console.log(`FCM Failed [${language}]`);
-
-          console.log("Token:", tokens[index]);
-
-          console.log("Code:", result.error?.code);
-
-          console.log("Message:", result.error?.message);
-        }
-      });
-
-      languageResults[language] = {
-        devices: tokens.length,
-        success: response.successCount,
-        failed: response.failureCount,
-      };
-    }
-
-    // ======================================
-    // FINAL RESPONSE
-    // ======================================
-
-    console.log("\n================================");
-    console.log("FCM BROADCAST COMPLETE");
-    console.log("Total Devices:", totalDevices);
-    console.log("Total Success:", totalSuccess);
-    console.log("Total Failed:", totalFailed);
-    console.log("================================");
-
-    return res.status(200).json({
-      success: true,
-      message: "Notifications sent successfully",
-
-      totalDevices,
-
-      totalSuccess,
-
-      totalFailed,
-
-      languages: languageResults,
-    });
-  } catch (error) {
-    console.error("Send Notification Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to send notifications",
-      error: error.message,
-    });
+const getQuoteText = (quote, language) => {
+  // Direct language
+  if (quote.language === language && quote.text) {
+    return String(quote.text);
   }
+
+  // Mongoose Map
+  if (quote.translations && typeof quote.translations.get === "function") {
+    const translatedText = quote.translations.get(language);
+
+    if (translatedText) {
+      return String(translatedText);
+    }
+  }
+
+  // Normal object
+  if (quote.translations && typeof quote.translations === "object") {
+    const translatedText = quote.translations[language];
+
+    if (translatedText) {
+      return String(translatedText);
+    }
+  }
+
+  return "";
 };
 
-// ======================================
+// =====================================================
 // REGISTER / UPDATE DEVICE
-// ======================================
+// =====================================================
 
 const registerDevice = async (req, res) => {
   try {
-    const { userId, fcmToken, platform, language = "English" } = req.body || {};
+    const {
+      userId = null,
+      fcmToken,
+      platform,
+      language = "English",
+    } = req.body || {};
 
-    // ======================================
+    console.log("====================================");
+    console.log("🔥 REGISTER DEVICE");
+    console.log("userId:", userId);
+    console.log("platform:", platform);
+    console.log("language:", language);
+    console.log("FCM token:", fcmToken);
+    console.log("====================================");
+
+    // ==========================================
     // VALIDATION
-    // ======================================
+    // ==========================================
 
-    if (!fcmToken || !platform) {
+    if (!fcmToken || !fcmToken.trim()) {
       return res.status(400).json({
         success: false,
-        message: "fcmToken and platform are required",
+        message: "fcmToken is required",
+      });
+    }
+
+    if (!platform) {
+      return res.status(400).json({
+        success: false,
+        message: "platform is required",
       });
     }
 
@@ -238,17 +88,21 @@ const registerDevice = async (req, res) => {
       });
     }
 
-    if (!allowedLanguages.includes(language)) {
+    // ==========================================
+    // LANGUAGE
+    // ==========================================
+
+    if (!["English", "Hindi"].includes(language)) {
       return res.status(400).json({
         success: false,
         message: "Invalid language",
-        allowedLanguages,
+        allowedLanguages: ["English", "Hindi"],
       });
     }
 
-    // ======================================
-    // USER ID VALIDATION
-    // ======================================
+    // ==========================================
+    // USER ID
+    // ==========================================
 
     if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -257,67 +111,71 @@ const registerDevice = async (req, res) => {
       });
     }
 
-    // ======================================
-    // FIND EXISTING TOKEN
-    // ======================================
+    const token = fcmToken.trim();
 
-    let notification = await Notification.findOne({
-      fcmToken,
+    // ==========================================
+    // FIND TOKEN
+    // ==========================================
+
+    let device = await NotificationToken.findOne({
+      fcmToken: token,
     });
 
-    // ======================================
-    // UPDATE DEVICE
-    // ======================================
+    // ==========================================
+    // UPDATE EXISTING DEVICE
+    // ==========================================
 
-    if (notification) {
-      notification.userId = userId || null;
+    if (device) {
+      device.userId = userId || null;
+      device.platform = platform;
+      device.language = language;
+      device.isActive = true;
+      device.lastUsedAt = new Date();
 
-      notification.platform = platform;
+      await device.save();
 
-      notification.language = language;
-
-      notification.isActive = true;
-
-      notification.lastUsedAt = new Date();
-
-      await notification.save();
-
-      console.log("Device updated:", language);
+      console.log("✅ DEVICE UPDATED");
+      console.log("Device ID:", device._id);
+      console.log("Language:", device.language);
 
       return res.status(200).json({
         success: true,
         message: "Device updated successfully",
-        notification,
+        device,
       });
     }
 
-    // ======================================
+    // ==========================================
     // CREATE DEVICE
-    // ======================================
+    // ==========================================
 
-    notification = await Notification.create({
+    device = await NotificationToken.create({
       userId: userId || null,
-
-      fcmToken,
-
+      fcmToken: token,
       platform,
-
       language,
-
       isActive: true,
-
       lastUsedAt: new Date(),
     });
 
-    console.log("Device registered:", language);
+    console.log("✅ DEVICE REGISTERED");
+    console.log("Device ID:", device._id);
+    console.log("Language:", device.language);
 
     return res.status(201).json({
       success: true,
       message: "Device registered successfully",
-      notification,
+      device,
     });
   } catch (error) {
-    console.error("Register Device Error:", error);
+    console.error("❌ REGISTER DEVICE ERROR:", error);
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "FCM token already registered",
+      });
+    }
 
     return res.status(500).json({
       success: false,
@@ -327,9 +185,9 @@ const registerDevice = async (req, res) => {
   }
 };
 
-// ======================================
+// =====================================================
 // GET USER DEVICES
-// ======================================
+// =====================================================
 
 const getUserDevices = async (req, res) => {
   try {
@@ -342,7 +200,7 @@ const getUserDevices = async (req, res) => {
       });
     }
 
-    const devices = await Notification.find({
+    const devices = await NotificationToken.find({
       userId,
       isActive: true,
     }).sort({
@@ -355,7 +213,7 @@ const getUserDevices = async (req, res) => {
       devices,
     });
   } catch (error) {
-    console.error("Get User Devices Error:", error);
+    console.error("❌ Get User Devices Error:", error);
 
     return res.status(500).json({
       success: false,
@@ -365,33 +223,37 @@ const getUserDevices = async (req, res) => {
   }
 };
 
-// ======================================
+// =====================================================
 // DEACTIVATE DEVICE
-// ======================================
+// =====================================================
 
 const deactivateDevice = async (req, res) => {
   try {
     const { fcmToken } = req.body || {};
 
-    if (!fcmToken) {
+    if (!fcmToken || !fcmToken.trim()) {
       return res.status(400).json({
         success: false,
         message: "fcmToken is required",
       });
     }
 
-    const notification = await Notification.findOneAndUpdate(
-      { fcmToken },
+    const device = await NotificationToken.findOneAndUpdate(
       {
-        isActive: false,
-        lastUsedAt: new Date(),
+        fcmToken: fcmToken.trim(),
+      },
+      {
+        $set: {
+          isActive: false,
+          lastUsedAt: new Date(),
+        },
       },
       {
         new: true,
       },
     );
 
-    if (!notification) {
+    if (!device) {
       return res.status(404).json({
         success: false,
         message: "Device not found",
@@ -403,7 +265,7 @@ const deactivateDevice = async (req, res) => {
       message: "Device deactivated successfully",
     });
   } catch (error) {
-    console.error("Deactivate Device Error:", error);
+    console.error("❌ Deactivate Device Error:", error);
 
     return res.status(500).json({
       success: false,
@@ -413,13 +275,443 @@ const deactivateDevice = async (req, res) => {
   }
 };
 
-// ======================================
+// =====================================================
+// SEND DAILY QUOTE
+// =====================================================
+const sendNotification = async (req, res) => {
+  try {
+    console.log("\n====================================");
+    console.log("🔥 SEND NOTIFICATION STARTED");
+    console.log("====================================");
+
+    const {
+      title = "Today's Thought",
+      body = "Keep working hard, success will surely come.",
+      language = "English",
+      type = "general",
+      image = "",
+    } = req.body || {};
+
+    console.log("🔥 TITLE:", title);
+    console.log("🔥 BODY:", body);
+    console.log("🔥 LANGUAGE:", language);
+
+    // ==========================================
+    // GET ACTIVE DEVICES
+    // ==========================================
+
+    const devices = await NotificationToken.find({
+      language,
+      isActive: true,
+      fcmToken: {
+        $exists: true,
+        $type: "string",
+        $ne: "",
+      },
+    });
+
+    console.log("🔥 ACTIVE DEVICES:", devices.length);
+
+    if (!devices.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No active devices found",
+      });
+    }
+
+    // ==========================================
+    // UNIQUE TOKENS
+    // ==========================================
+
+    const tokens = [
+      ...new Set(
+        devices.map((device) => device.fcmToken?.trim()).filter(Boolean),
+      ),
+    ];
+
+    console.log("🔥 UNIQUE FCM TOKENS:", tokens.length);
+
+    if (!tokens.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No valid FCM tokens found",
+      });
+    }
+
+    // ==========================================
+    // SAVE NOTIFICATION HISTORY
+    // ==========================================
+
+    const userIds = [
+      ...new Set(
+        devices
+          .map((device) => (device.userId ? device.userId.toString() : null))
+          .filter(Boolean),
+      ),
+    ];
+
+    console.log("🔥 USERS:", userIds.length);
+
+    if (userIds.length) {
+      const notifications = userIds.map((userId) => ({
+        userId,
+        title,
+        body,
+        type,
+
+        data: {
+          language,
+          image,
+        },
+
+        isRead: false,
+      }));
+
+      await Notification.insertMany(notifications);
+
+      console.log("✅ NOTIFICATION HISTORY SAVED:", notifications.length);
+    }
+
+    // ==========================================
+    // FCM MESSAGE
+    // ==========================================
+
+    const message = {
+      tokens,
+
+      notification: {
+        title,
+        body,
+      },
+
+      data: {
+        title: String(title),
+        body: String(body),
+        language: String(language),
+        type: String(type),
+        image: String(image || ""),
+      },
+
+      android: {
+        priority: "high",
+
+        notification: {
+          channelId: "quotes",
+          sound: "default",
+        },
+      },
+
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+            badge: 1,
+          },
+        },
+      },
+    };
+
+    // ==========================================
+    // IMAGE
+    // ==========================================
+
+    if (image) {
+      message.notification.imageUrl = image;
+
+      message.android.notification.imageUrl = image;
+
+      message.apns.fcmOptions = {
+        imageUrl: image,
+      };
+    }
+
+    // ==========================================
+    // SEND FCM
+    // ==========================================
+
+    console.log("🔥 SENDING FCM TO:", tokens.length, "DEVICES");
+
+    const response = await getMessaging().sendEachForMulticast(message);
+
+    console.log("🔥 FCM SUCCESS:", response.successCount);
+
+    console.log("❌ FCM FAILED:", response.failureCount);
+
+    // ==========================================
+    // INVALID TOKEN CLEANUP
+    // ==========================================
+
+    for (let i = 0; i < response.responses.length; i++) {
+      const result = response.responses[i];
+
+      if (!result.success) {
+        const failedToken = tokens[i];
+
+        console.log("❌ FCM TOKEN FAILED:", failedToken);
+
+        console.log("❌ FCM ERROR:", result.error?.code, result.error?.message);
+
+        if (
+          result.error?.code ===
+            "messaging/registration-token-not-registered" ||
+          result.error?.code === "messaging/invalid-registration-token"
+        ) {
+          await NotificationToken.deleteOne({
+            fcmToken: failedToken,
+          });
+
+          console.log("🗑️ Invalid FCM token deleted");
+        }
+      }
+    }
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return res.status(200).json({
+      success: true,
+
+      message: "Notification sent",
+
+      totalDevices: tokens.length,
+
+      successCount: response.successCount,
+
+      failureCount: response.failureCount,
+    });
+  } catch (error) {
+    console.error("\n❌ SEND NOTIFICATION ERROR:");
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send notification",
+      error: error.message,
+    });
+  }
+};
+
+// =====================================================
+// GET NOTIFICATIONS
+// =====================================================
+
+const getNotifications = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const notifications = await Notification.find({
+      userId,
+    })
+      .sort({
+        createdAt: -1,
+      })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      total: notifications.length,
+      notifications,
+    });
+  } catch (error) {
+    console.error("❌ Get Notifications Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get notifications",
+      error: error.message,
+    });
+  }
+};
+
+// =====================================================
+// GET UNREAD COUNT
+// =====================================================
+
+const getUnreadCount = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const count = await Notification.countDocuments({
+      userId,
+      isRead: false,
+    });
+
+    return res.status(200).json({
+      success: true,
+      count,
+    });
+  } catch (error) {
+    console.error("❌ Get Unread Count Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get unread count",
+      error: error.message,
+    });
+  }
+};
+
+// =====================================================
+// MARK SINGLE AS READ
+// =====================================================
+
+const markNotificationAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid notification ID",
+      });
+    }
+
+    const notification = await Notification.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isRead: true,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification marked as read",
+      notification,
+    });
+  } catch (error) {
+    console.error("❌ Mark Read Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to mark notification as read",
+      error: error.message,
+    });
+  }
+};
+
+// =====================================================
+// MARK ALL AS READ
+// =====================================================
+
+const markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const result = await Notification.updateMany(
+      {
+        userId,
+        isRead: false,
+      },
+      {
+        $set: {
+          isRead: true,
+        },
+      },
+    );
+
+    return res.status(200).json({
+      success: true,
+
+      message: "All notifications marked as read",
+
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("❌ Mark All Read Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to mark all notifications as read",
+      error: error.message,
+    });
+  }
+};
+
+// =====================================================
+// DELETE NOTIFICATION
+// =====================================================
+
+const deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid notification ID",
+      });
+    }
+
+    const notification = await Notification.findByIdAndDelete(id);
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ Delete Notification Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete notification",
+      error: error.message,
+    });
+  }
+};
+
+// =====================================================
 // EXPORT
-// ======================================
+// =====================================================
 
 module.exports = {
-  sendNotification,
   registerDevice,
   getUserDevices,
   deactivateDevice,
+  sendNotification,
+  getNotifications,
+  getUnreadCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
 };

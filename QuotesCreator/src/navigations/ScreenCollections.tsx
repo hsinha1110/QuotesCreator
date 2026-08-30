@@ -1,17 +1,10 @@
 import * as Screens from '@/screens/index';
 import Routes from '@/navigations/Routes';
-// ======================================
-// AUTH STACK
-// ======================================
 
 export const authStack = [
   {
     name: Routes.SPLASH,
     component: Screens.Splash,
-  },
-  {
-    name: Routes.ONBOARDING,
-    component: Screens.OnBoarding,
   },
   {
     name: Routes.LOGIN,
@@ -27,19 +20,23 @@ export const authStack = [
   },
 ];
 
-// ======================================
-// DASHBOARD STACK
-// ======================================
-
 export const dashboardStack = [
   {
-    name: Routes.HOME,
-    component: Screens.Home,
+    name: Routes.BOTTOM_TAB_NAVIGATOR,
+    component: Screens.BottomTab,
+  },
+  {
+    name: Routes.CATEGORIES,
+    component: Screens.Categories,
+  },
+  {
+    name: Routes.SUB_CATEGORIES,
+    component: Screens.SubCategories,
+  },
+  {
+    name: Routes.QUOTES,
+    component: Screens.Quotes,
   },
 ];
-
-// ======================================
-// ALL STACKS
-// ======================================
 
 export const mergedStacks = [...dashboardStack, ...authStack];

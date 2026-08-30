@@ -2,33 +2,64 @@ const cron = require("node-cron");
 const { getMessaging } = require("firebase-admin/messaging");
 
 const Notification = require("../models/Notification");
+const Quote = require("../models/Quote");
 
 require("../config/firebase");
 
-const notificationContent = {
-  English: {
-    title: "Today's Thought",
-    body: "Keep working hard, success will surely come.",
-    image:
-      "https://res.cloudinary.com/dxd249q5q/image/upload/v1787467299/QuotesCreator/subcategories/qhhrfbwohda1f0em8yvo.jpg",
-  },
+// ======================================
+// GET RANDOM QUOTE
+// ======================================
 
-  Hindi: {
-    title: "आज का विचार",
-    body: "मेहनत करते रहो, सफलता जरूर मिलेगी।",
-    image:
-      "https://res.cloudinary.com/dxd249q5q/image/upload/v1787467299/QuotesCreator/subcategories/qhhrfbwohda1f0em8yvo.jpg",
-  },
+const getRandomQuote = async () => {
+  const result = await Quote.aggregate([
+    {
+      $match: {
+        isActive: true,
+      },
+    },
+    {
+      $sample: {
+        size: 1,
+      },
+    },
+  ]);
+
+  return result.length ? result[0] : null;
 };
+
+// ======================================
+// SEND NOTIFICATIONS
+// ======================================
 
 const sendDailyNotifications = async () => {
   try {
-    console.log("\n==============================");
+    console.log("\n================================");
     console.log("DAILY NOTIFICATION STARTED");
-    console.log("==============================");
+    console.log("================================");
+
+    // ----------------------------------
+    // Get one random quote
+    // ----------------------------------
+
+    const quote = await getRandomQuote();
+
+    if (!quote) {
+      console.log("❌ No active quote found");
+      return;
+    }
+
+    console.log("✅ Random quote selected:", quote._id);
+
+    // ----------------------------------
+    // English / Hindi
+    // ----------------------------------
 
     for (const language of ["English", "Hindi"]) {
-      const content = notificationContent[language];
+      console.log(`\nProcessing language: ${language}`);
+
+      // ----------------------------------
+      // Get devices
+      // ----------------------------------
 
       const devices = await Notification.find({
         language,
@@ -39,33 +70,76 @@ const sendDailyNotifications = async () => {
         },
       });
 
-      console.log(`${language} devices: ${devices.length}`);
+      console.log(
+        `${language} devices found: ${devices.length}`,
+      );
 
       if (!devices.length) {
         continue;
       }
 
-      const tokens = devices.map((device) => device.fcmToken).filter(Boolean);
+      // ----------------------------------
+      // Get unique FCM tokens
+      // ----------------------------------
+
+      const tokens = [
+        ...new Set(
+          devices
+            .map((device) => device.fcmToken)
+            .filter(Boolean),
+        ),
+      ];
+
+      console.log(
+        `${language} unique tokens: ${tokens.length}`,
+      );
 
       if (!tokens.length) {
         continue;
       }
 
+      // ----------------------------------
+      // Language specific content
+      // ----------------------------------
+
+      const title =
+        language === "Hindi"
+          ? "आज का विचार"
+          : "Today's Thought";
+
+      const body =
+        language === "Hindi"
+          ? quote.textHindi
+          : quote.textEnglish;
+
+      // ----------------------------------
+      // Dynamic image
+      // ----------------------------------
+
+      const image = quote.imageUrl || "";
+
+      console.log("Title:", title);
+      console.log("Body:", body);
+      console.log("Image:", image || "NO IMAGE");
+
+      // ----------------------------------
+      // Base FCM message
+      // ----------------------------------
+
       const message = {
         tokens,
 
         notification: {
-          title: content.title,
-          body: content.body,
-          imageUrl: content.image,
+          title: String(title),
+          body: String(body),
         },
 
         data: {
-          title: content.title,
-          body: content.body,
-          image: content.image,
-          language,
+          title: String(title),
+          body: String(body),
+          language: String(language),
           type: "daily_quote",
+          quoteId: String(quote._id),
         },
 
         android: {
@@ -74,61 +148,144 @@ const sendDailyNotifications = async () => {
           notification: {
             channelId: "quotes",
             sound: "default",
-            imageUrl: content.image,
           },
         },
       };
 
-      const response = await getMessaging().sendEachForMulticast(message);
+      // ----------------------------------
+      // IMAGE OPTIONAL
+      // ----------------------------------
 
-      console.log(
-        `${language}:`,
-        "Success =",
-        response.successCount,
-        "Failed =",
-        response.failureCount,
-      );
+      if (image) {
+        message.notification.imageUrl = String(image);
 
-      // ======================================
-      // REMOVE INVALID TOKENS
-      // ======================================
+        message.data.image = String(image);
 
-      for (let i = 0; i < response.responses.length; i++) {
-        const result = response.responses[i];
+        message.android.notification.imageUrl =
+          String(image);
+      }
 
-        if (!result.success) {
-          console.log("FCM Error:", result.error?.code);
+      // ----------------------------------
+      // FCM LIMIT = 500 TOKENS
+      // ----------------------------------
 
-          if (
-            result.error?.code ===
-              "messaging/registration-token-not-registered" ||
-            result.error?.code === "messaging/invalid-registration-token"
-          ) {
-            await Notification.deleteOne({
-              fcmToken: tokens[i],
-            });
+      const chunkSize = 500;
 
-            console.log("Invalid token removed from DB:", tokens[i]);
+      for (
+        let start = 0;
+        start < tokens.length;
+        start += chunkSize
+      ) {
+        const tokenChunk = tokens.slice(
+          start,
+          start + chunkSize,
+        );
+
+        const chunkMessage = {
+          ...message,
+          tokens: tokenChunk,
+        };
+
+        console.log(
+          `Sending ${language} notification to ${tokenChunk.length} devices`,
+        );
+
+        // ----------------------------------
+        // SEND FCM
+        // ----------------------------------
+
+        const response =
+          await getMessaging().sendEachForMulticast(
+            chunkMessage,
+          );
+
+        console.log(
+          `${language}: Success = ${response.successCount}`,
+        );
+
+        console.log(
+          `${language}: Failed = ${response.failureCount}`,
+        );
+
+        // ----------------------------------
+        // HANDLE FAILED TOKENS
+        // ----------------------------------
+
+        for (
+          let i = 0;
+          i < response.responses.length;
+          i++
+        ) {
+          const result = response.responses[i];
+
+          if (!result.success) {
+            const token = tokenChunk[i];
+
+            console.log(
+              "\n❌ FCM FAILED",
+            );
+
+            console.log(
+              "Token:",
+              token,
+            );
+
+            console.log(
+              "Code:",
+              result.error?.code,
+            );
+
+            console.log(
+              "Message:",
+              result.error?.message,
+            );
+
+            // ------------------------------
+            // Remove invalid tokens
+            // ------------------------------
+
+            if (
+              result.error?.code ===
+                "messaging/registration-token-not-registered" ||
+              result.error?.code ===
+                "messaging/invalid-registration-token"
+            ) {
+              await Notification.deleteMany({
+                fcmToken: token,
+              });
+
+              console.log(
+                "🗑️ Invalid token removed:",
+                token,
+              );
+            }
           }
         }
       }
     }
 
-    console.log("\n==============================");
+    console.log("\n================================");
     console.log("DAILY NOTIFICATION COMPLETED");
-    console.log("==============================\n");
+    console.log("================================\n");
   } catch (error) {
-    console.error("Daily notification error:", error);
+    console.error(
+      "❌ Daily notification error:",
+      error,
+    );
   }
 };
 
 // ======================================
-// EVERY DAY 10:00 AM INDIA TIME
+// DAILY 9:04 AM IST
 // ======================================
 
 cron.schedule(
-  "0 10 * * *",
+  "4 9 * * *",
   async () => {
+    console.log(
+      "⏰ Cron triggered at 9:04 AM IST",
+    );
+
     await sendDailyNotifications();
   },
   {
@@ -136,7 +293,13 @@ cron.schedule(
   },
 );
 
-console.log("Daily notification cron scheduled for 10:00 AM IST");
+console.log(
+  "Daily notification cron scheduled for 9:04 AM IST",
+);
+
+// ======================================
+// EXPORT
+// ======================================
 
 module.exports = {
   sendDailyNotifications,

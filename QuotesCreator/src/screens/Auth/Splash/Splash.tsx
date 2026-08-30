@@ -1,66 +1,92 @@
-import { View, Image, Text } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import LinearGradient from 'react-native-linear-gradient';
-import styles from './styles';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, Text, View } from 'react-native';
+
 import IMAGES from '@/assets/images';
 import Routes from '@/navigations/Routes';
 import { en } from '@/language';
-
+import styles from './styles';
 const Splash = ({ navigation }: any) => {
-  const [progress, setProgress] = useState(0);
-
-  // Progress loader
+  const activeDot = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    const duration = 2000;
-    const intervalTime = 20;
-    const increment = intervalTime / duration;
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(activeDot, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
 
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        const nextProgress = prev + increment;
+        Animated.timing(activeDot, {
+          toValue: 2,
+          duration: 500,
+          useNativeDriver: true,
+        }),
 
-        if (nextProgress >= 1) {
-          clearInterval(interval);
-          return 1;
-        }
+        Animated.timing(activeDot, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
 
-        return nextProgress;
-      });
-    }, intervalTime);
+    animation.start();
 
     return () => {
-      clearInterval(interval);
+      animation.stop();
     };
-  }, []);
+  }, [activeDot]);
 
-  // Loader complete hone ke baad navigation
+  // Splash ke baad onboarding
   useEffect(() => {
-    if (progress >= 1) {
-      navigation.replace(Routes.ONBOARDING);
-    }
-  }, [progress, navigation]);
+    const timer = setTimeout(() => {
+      navigation.replace(Routes.LOGIN);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
 
   return (
-    <LinearGradient
-      colors={['#3B1C85', '#4A249C', '#170E49']}
-      locations={[0, 0.45, 1]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.container}
-    >
-      <Image source={IMAGES.LOGO} style={styles.logo} />
-      <Text style={styles.slogan}>{en.SLOGAN}</Text>
-      <View style={styles.progressContainer}>
-        <View
-          style={[
-            styles.progress,
-            {
-              width: `${progress * 100}%`,
-            },
-          ]}
-        />
+    <View style={styles.container}>
+      {/* Logo */}
+      <Image source={IMAGES.LOGO} style={styles.logo} resizeMode="contain" />
+
+      {/* App Name */}
+      <Text style={styles.title}>
+        Quote<Text style={styles.highlight}>Creator</Text>
+      </Text>
+
+      <Text style={styles.subtitle}>{en.SLOGAN}</Text>
+
+      <View style={styles.pagination}>
+        {[0, 1, 2].map(index => {
+          const scale = activeDot.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [1, 1.5, 1],
+            extrapolate: 'clamp',
+          });
+
+          const opacity = activeDot.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [0.35, 1, 0.35],
+            extrapolate: 'clamp',
+          });
+
+          return (
+            <Animated.View
+              key={index}
+              style={[
+                styles.dot,
+                {
+                  transform: [{ scale }],
+                  opacity,
+                },
+              ]}
+            />
+          );
+        })}
       </View>
-    </LinearGradient>
+    </View>
   );
 };
 

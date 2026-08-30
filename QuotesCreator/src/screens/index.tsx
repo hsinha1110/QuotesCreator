@@ -1,7 +1,18 @@
 export { default as Splash } from '@/screens/Auth/Splash/Splash';
-export { default as OnBoarding } from '@/screens/Auth/OnBoarding/OnBoarding';
 export { default as Login } from '@/screens/Auth/Login/Login';
 export { default as Register } from '@/screens/Auth/Register/Register';
 export { default as Forgot } from '@/screens/Auth/Splash/Splash';
-
 export { default as Home } from '@/screens/Main/Home/Home';
+export { default as Explore } from '@/screens/Main/Explore/Explore';
+export { default as CreateQuotes } from '@/screens/Main/CreateQuotes/CreateQuotes';
+export { default as Favorites } from '@/screens/Main/Favorites/Favourites';
+export { default as Profile } from '@/screens/Main/Profile/Profile';
+export { default as Settings } from '@/screens/Main/Settings/Settings';
+export { default as Notifications } from '@/screens/Main/Notifications/Notifications';
+export { default as BottomTab } from '@/navigations/BottomTabNavigator';
+export { default as About } from '@/screens/Main/About/About';
+export { default as Templates } from '@/screens/Main/Templates/Templates';
+export { default as Downloads } from '@/screens/Main/Downloads/Downloads';
+export { default as Categories } from '@/screens/Main/Categories/Categories';
+export { default as SubCategories } from '@/screens/Main/SubCategories/SubCategories';
+export { default as Quotes } from '@/screens/Main/Quotes/Quotes';

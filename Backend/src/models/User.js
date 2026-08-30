@@ -16,28 +16,61 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // ==========================================
+    // PASSWORD
+    // ==========================================
+
     password: {
       type: String,
-      required: true,
       minlength: 6,
+      default: null,
     },
+
+    // ==========================================
+    // SOCIAL LOGIN
+    // ==========================================
+
+    firebaseUid: {
+      type: String,
+      default: null,
+      unique: true,
+      sparse: true,
+    },
+
+    provider: {
+      type: String,
+      enum: ["email", "google", "facebook"],
+      default: "email",
+    },
+
+    googleId: {
+      type: String,
+      default: null,
+    },
+
+    facebookId: {
+      type: String,
+      default: null,
+    },
+
+    // ==========================================
+    // PROFILE
+    // ==========================================
 
     profileImage: {
       type: String,
       default: null,
     },
 
+    // ==========================================
+    // LANGUAGE
+    // ==========================================
+
     language: {
       type: String,
       enum: [
         "English",
         "Hindi",
-        "Spanish",
-        "French",
-        "German",
-        "Arabic",
-        "Portuguese",
-        "Italian",
       ],
       default: "English",
     },

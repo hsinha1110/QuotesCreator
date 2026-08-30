@@ -5,44 +5,42 @@ const notificationSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null,
+      required: true,
+      index: true,
     },
 
-    fcmToken: {
+    title: {
       type: String,
       required: true,
       trim: true,
     },
 
-    platform: {
+    body: {
       type: String,
-      enum: ["android", "ios"],
       required: true,
+      trim: true,
     },
 
-    language: {
+    type: {
       type: String,
       enum: [
-        "English",
-        "Hindi",
-        "Spanish",
-        "French",
-        "German",
-        "Arabic",
-        "Portuguese",
-        "Italian",
+        "daily_quote",
+        "new_quote",
+        "new_template",
+        "announcement",
+        "general",
       ],
-      default: "English",
+      default: "general",
     },
 
-    isActive: {
+    data: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+
+    isRead: {
       type: Boolean,
-      default: true,
-    },
-
-    lastUsedAt: {
-      type: Date,
-      default: Date.now,
+      default: false,
     },
   },
   {
@@ -50,8 +48,16 @@ const notificationSchema = new mongoose.Schema(
   },
 );
 
-notificationSchema.index({ fcmToken: 1 }, { unique: true });
+notificationSchema.index({
+  userId: 1,
+  createdAt: -1,
+});
 
-const Notification = mongoose.model("Notification", notificationSchema);
+notificationSchema.index({
+  userId: 1,
+  isRead: 1,
+});
 
-module.exports = Notification;
+module.exports =
+  mongoose.models.Notification ||
+  mongoose.model("Notification", notificationSchema);

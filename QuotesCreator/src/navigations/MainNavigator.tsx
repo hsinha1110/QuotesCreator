@@ -1,25 +1,23 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { mergedStacks } from './ScreenCollections';
+import DrawerNavigator from './DrawerNavigator';
+import Routes from './Routes';
 
 const Stack = createNativeStackNavigator();
 
 const MainNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="Splash"
+      initialRouteName={Routes.BOTTOM_TAB_NAVIGATOR}
       screenOptions={{
         headerShown: false,
       }}
     >
-      {mergedStacks.map(item => (
-        <Stack.Screen
-          key={item.name}
-          name={item.name}
-          component={item.component}
-        />
-      ))}
+      <Stack.Screen
+        name={Routes.BOTTOM_TAB_NAVIGATOR}
+        component={DrawerNavigator}
+      />
     </Stack.Navigator>
   );
 };

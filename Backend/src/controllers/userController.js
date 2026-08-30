@@ -8,16 +8,7 @@ const cloudinary = require("../config/cloudinary");
 // ALLOWED LANGUAGES
 // ======================================
 
-const allowedLanguages = [
-  "English",
-  "Hindi",
-  "Spanish",
-  "French",
-  "German",
-  "Arabic",
-  "Portuguese",
-  "Italian",
-];
+const allowedLanguages = ["English", "Hindi"];
 
 // ======================================
 // CLOUDINARY UPLOAD
@@ -294,18 +285,28 @@ const changePassword = async (req, res) => {
 
 const deleteAccount = async (req, res) => {
   try {
-    const { id } = req.params;
+    // JWT middleware se user ID
+    const userId = req.user?.userId;
+
+    console.log("DELETE ACCOUNT USER ID:", userId);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
 
     // Validate ID
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid user ID",
       });
     }
 
-    // Delete user
-    const user = await User.findByIdAndDelete(id);
+    // Find user
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({
@@ -314,14 +315,20 @@ const deleteAccount = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    // ======================================
+    // DELETE USER
+    // ======================================
+
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({
       success: true,
       message: "Account deleted successfully",
     });
   } catch (error) {
     console.error("Delete Account Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to delete account",
       error: error.message,
@@ -334,21 +341,12 @@ const deleteAccount = async (req, res) => {
 
 const getUsers = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 20,
-      search = "",
-      language = "",
-    } = req.query;
+    const { page = 1, limit = 20, search = "", language = "" } = req.query;
 
     const pageNumber = Math.max(Number(page), 1);
-    const limitNumber = Math.min(
-      Math.max(Number(limit), 1),
-      100
-    );
+    const limitNumber = Math.min(Math.max(Number(limit), 1), 100);
 
-    const skip =
-      (pageNumber - 1) * limitNumber;
+    const skip = (pageNumber - 1) * limitNumber;
 
     const filter = {};
 
@@ -395,9 +393,7 @@ const getUsers = async (req, res) => {
 
       total,
 
-      totalPages: Math.ceil(
-        total / limitNumber
-      ),
+      totalPages: Math.ceil(total / limitNumber),
 
       users,
     });

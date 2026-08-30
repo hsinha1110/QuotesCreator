@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">QuotesCreator</string>
+    <string name="facebook_app_id">2515442405601619</string>
+    <string name="facebook_client_token">4a9f6a199753a8f7927f8d518cefeed3</string>
+    <string name="fb_login_protocol_scheme">
+        fb2515442405601619
+    </string>
 </resources>

@@ -1,0 +1,21 @@
+import api from '@/api/axiosinterceptors';
+
+import { METHODS, SERVICE_ROUTES } from '../constants';
+
+export const likeQuoteService = async (
+  quoteId: string,
+  token: string,
+) => {
+  const url = SERVICE_ROUTES.LIKE_QUOTES.replace(':id', quoteId);
+
+  const response = await api.request({
+    url,
+    method: METHODS.POST,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
+};
+
