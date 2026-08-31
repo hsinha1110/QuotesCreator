@@ -164,32 +164,6 @@ const Notifications = () => {
     }
   };
 
-  // =====================================================
-  // RIGHT SWIPE ACTION
-  // =====================================================
-
-  const renderRightActions = (id: string) => {
-    return (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={styles.deleteAction}
-        onPress={() => handleDeleteNotification(id)}
-      >
-        <Ionicons
-          name="trash-outline"
-          size={moderateScale(22)}
-          color={COLORS.white}
-        />
-
-        <Text style={styles.deleteActionText}>Delete</Text>
-      </TouchableOpacity>
-    );
-  };
-
-  // =====================================================
-  // FILTER
-  // =====================================================
-
   const filteredNotifications = useMemo(() => {
     if (activeTab === 'Unread') {
       return notifications.filter(item => !item.isRead);
@@ -198,45 +172,25 @@ const Notifications = () => {
     return notifications;
   }, [activeTab, notifications]);
 
-  // =====================================================
-  // UNREAD COUNT
-  // =====================================================
-
   const unreadCount = notifications.filter(item => !item.isRead).length;
-
-  // =====================================================
-  // RENDER
-  // =====================================================
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ================================================= */}
-      {/* HEADER */}
-      {/* ================================================= */}
-
       <Header
         title="Notifications"
         onMenuPress={() => {
           navigation.dispatch(DrawerActions.openDrawer());
         }}
-        rightIcon="options-outline"
+        rightIcon={'trash-outline'}
         onRightPress={() => {}}
         showNotification={false}
       />
-
-      {/* ================================================= */}
-      {/* TABS */}
-      {/* ================================================= */}
 
       <Tabs
         tabs={NotificationsTabs}
         activeTab={activeTab}
         onTabPress={handleTabPress}
       />
-
-      {/* ================================================= */}
-      {/* MARK ALL */}
-      {/* ================================================= */}
 
       {unreadCount > 0 && (
         <View style={styles.markAllContainer}>
@@ -247,10 +201,6 @@ const Notifications = () => {
           </TouchableOpacity>
         </View>
       )}
-
-      {/* ================================================= */}
-      {/* LIST */}
-      {/* ================================================= */}
 
       <FlatList
         data={filteredNotifications}
@@ -286,8 +236,6 @@ const Notifications = () => {
 
           return (
             <View>
-              {/* DATE HEADER */}
-
               {showDate && (
                 <View style={styles.dateContainer}>
                   <Text style={styles.dateText}>{dateLabel}</Text>
