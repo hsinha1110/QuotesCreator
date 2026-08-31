@@ -5,7 +5,7 @@ enum COLORS {
   white = '#FFFFFF',
   black = '#222222',
   grey = '#cfcfcf',
-  light_grey = '#faf7fe',
+  light_grey = '#ece7f1',
   red = '#E53935',
   textPrimary = '#FFFFFF',
   textSecondary = '#C8C0DF',

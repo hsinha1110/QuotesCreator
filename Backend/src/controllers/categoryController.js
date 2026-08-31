@@ -1,4 +1,6 @@
+const mongoose = require("mongoose");
 const Category = require("../models/Category");
+const Quote = require("../models/Quote");
 
 // ======================================================
 // ALLOWED LANGUAGES
@@ -31,6 +33,48 @@ const normalizeLanguage = (language) => {
 // GET TRANSLATION VALUE
 // ======================================================
 
+const getCategoriesWithQuoteCount = async (req, res) => {
+  try {
+    const categories = await Category.aggregate([
+      {
+        $lookup: {
+          from: "quotes",
+          localField: "_id",
+          foreignField: "categoryId",
+          as: "quotes",
+        },
+      },
+      {
+        $addFields: {
+          quoteCount: { $size: "$quotes" },
+        },
+      },
+      {
+        $project: {
+          quotes: 0,
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      categories,
+    });
+  } catch (error) {
+    console.error("Get Categories Quote Count Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get category quote count",
+      error: error.message,
+    });
+  }
+};
 const getTranslation = (translations, language) => {
   if (!translations) {
     return "";
@@ -237,83 +281,177 @@ const createCategory = async (req, res) => {
 // GET /api/categories?page=1&limit=10&language=Hindi
 // GET /api/categories?page=1&limit=10&language=English
 // ======================================================
+// ==========================================
+// GET SINGLE CATEGORY
+// ==========================================
 
-const getCategories = async (req, res) => {
+const getCategory = async (req, res) => {
   try {
-    // ------------------------------------------
-    // Pagination
-    // ------------------------------------------
+    const { id } = req.params;
+    const { language = "English" } = req.query;
 
-    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    // Validate ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category ID",
+      });
+    }
 
-    const limit = Math.min(
-      Math.max(parseInt(req.query.limit, 10) || 10, 1),
-      100,
-    );
+    // Find category
+    const category = await Category.findById(id).lean();
 
-    const skip = (page - 1) * limit;
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
 
-    // ------------------------------------------
-    // Language
-    // ------------------------------------------
+    // ==========================================
+    // QUOTE COUNT
+    // ==========================================
 
-    const language = normalizeLanguage(req.query.language);
+    const quoteCount = await Quote.countDocuments({
+      categoryId: category._id,
+      isActive: true,
+      isDraft: false,
+    });
 
-    // ------------------------------------------
-    // Total
-    // ------------------------------------------
+    // ==========================================
+    // DISPLAY NAME
+    // ==========================================
 
-    const total = await Category.countDocuments();
+    const languageKey = language === "Hindi" ? "Hindi" : "English";
 
-    // ------------------------------------------
-    // Get paginated categories
-    // ------------------------------------------
+    const translations = category.translations || {};
 
-    const categories = await Category.find()
-      .sort({
-        createdAt: -1,
-      })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const displayName =
+      translations[languageKey] || translations.English || category.name;
 
-    // ------------------------------------------
-    // Format categories
-    // ------------------------------------------
+    // ==========================================
+    // RESPONSE
+    // ==========================================
 
-    const formattedCategories = categories.map((category) => {
-      const english = getTranslation(category.translations, "English");
+    return res.status(200).json({
+      success: true,
 
-      const hindi = getTranslation(category.translations, "Hindi");
-
-      return {
+      category: {
         _id: category._id,
 
-        // Canonical/original name
         name: category.name,
 
-        // Selected language
-        displayName: getLocalizedName(category, language),
+        displayName,
 
         displayLanguage: language,
 
         image: category.image || null,
 
-        translations: {
-          English: english || category.name,
+        translations,
 
-          Hindi: hindi || category.name,
+        quoteCount,
+
+        createdAt: category.createdAt,
+
+        updatedAt: category.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("GET CATEGORY ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get category",
+      error: error.message,
+    });
+  }
+};
+const getCategories = async (req, res) => {
+  try {
+    let { page = 1, limit = 10, language = "English" } = req.query;
+
+    page = Math.max(Number(page), 1);
+    limit = Math.max(Number(limit), 1);
+
+    const skip = (page - 1) * limit;
+
+    const total = await Category.countDocuments();
+
+    const categories = await Category.find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const categoryIds = categories.map((category) => category._id);
+
+    // ==========================================
+    // GET QUOTE COUNTS
+    // ==========================================
+
+    const quoteCounts = await Quote.aggregate([
+      {
+        $match: {
+          categoryId: {
+            $in: categoryIds,
+          },
+          isActive: true,
+          isDraft: false,
         },
+      },
+
+      {
+        $group: {
+          _id: "$categoryId",
+          quoteCount: {
+            $sum: 1,
+          },
+        },
+      },
+    ]);
+
+    // ==========================================
+    // MAP COUNTS
+    // ==========================================
+
+    const countMap = new Map();
+
+    quoteCounts.forEach((item) => {
+      countMap.set(String(item._id), item.quoteCount);
+    });
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    const formattedCategories = categories.map((category) => {
+      const languageKey = language === "Hindi" ? "Hindi" : "English";
+
+      const displayName =
+        category.translations?.[languageKey] ||
+        category.translations?.English ||
+        category.name;
+
+      return {
+        _id: category._id,
+
+        name: category.name,
+
+        displayName,
+
+        displayLanguage: language,
+
+        image: category.image || null,
+
+        translations: category.translations || {},
+
+        quoteCount: countMap.get(String(category._id)) || 0,
 
         createdAt: category.createdAt,
 
         updatedAt: category.updatedAt,
       };
     });
-
-    // ------------------------------------------
-    // Pagination information
-    // ------------------------------------------
 
     const totalPages = Math.ceil(total / limit);
 
@@ -337,76 +475,11 @@ const getCategories = async (req, res) => {
       categories: formattedCategories,
     });
   } catch (error) {
-    console.error("Get Categories Error:", error);
+    console.error("GET CATEGORIES ERROR:", error);
 
     return res.status(500).json({
       success: false,
-
-      message: "Failed to get categories",
-
-      error: error.message,
-    });
-  }
-};
-
-// ======================================================
-// GET SINGLE CATEGORY
-//
-// GET /api/categories/:id
-// GET /api/categories/:id?language=Hindi
-// GET /api/categories/:id?language=English
-// ======================================================
-
-const getCategory = async (req, res) => {
-  try {
-    const language = normalizeLanguage(req.query.language);
-
-    const category = await Category.findById(req.params.id).lean();
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
-    }
-
-    const english = getTranslation(category.translations, "English");
-
-    const hindi = getTranslation(category.translations, "Hindi");
-
-    return res.status(200).json({
-      success: true,
-
-      category: {
-        _id: category._id,
-
-        name: category.name,
-
-        displayName: getLocalizedName(category, language),
-
-        displayLanguage: language,
-
-        image: category.image || null,
-
-        translations: {
-          English: english || category.name,
-
-          Hindi: hindi || category.name,
-        },
-
-        createdAt: category.createdAt,
-
-        updatedAt: category.updatedAt,
-      },
-    });
-  } catch (error) {
-    console.error("Get Category Error:", error);
-
-    return res.status(500).json({
-      success: false,
-
-      message: "Failed to get category",
-
+      message: "Failed to fetch categories",
       error: error.message,
     });
   }
@@ -594,8 +667,9 @@ function escapeRegex(value) {
 
 module.exports = {
   createCategory,
-  getCategories,
   getCategory,
+  getCategoriesWithQuoteCount,
+  getCategories,
   updateCategory,
   deleteCategory,
 };

@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     paddingTop: moderateScale(14),
     paddingBottom: moderateScale(12),
     borderRadius: moderateScale(18),
-    backgroundColor: COLORS.light_grey,
+    backgroundColor: COLORS.white,
     elevation: moderateScale(3),
     shadowColor: COLORS.black,
     shadowOffset: {

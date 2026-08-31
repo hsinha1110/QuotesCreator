@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { dailyNotificationsThunk } from '../thunk/dailyNotificationsThunk';
 import { NotificationState } from '@/types';
+import { readNotificationsThunk } from '../thunk/readNotificationsThunk';
+import { notificationHistoryByIdThunk } from '../thunk/notificationHistoryByIdThunk';
 
 const initialState: NotificationState = {
   notifications: [],
@@ -22,22 +24,35 @@ const notificationSlice = createSlice({
 
   extraReducers: builder => {
     builder
-      .addCase(dailyNotificationsThunk.pending, state => {
+
+      // GET NOTIFICATIONS
+      .addCase(notificationHistoryByIdThunk.pending, state => {
         state.isLoading = true;
-        state.error = null;
       })
 
-      .addCase(dailyNotificationsThunk.fulfilled, (state, action) => {
+      .addCase(notificationHistoryByIdThunk.fulfilled, (state, action) => {
         state.isLoading = false;
 
         state.notifications = action.payload?.notifications || [];
       })
 
-      .addCase(dailyNotificationsThunk.rejected, (state, action) => {
+      .addCase(notificationHistoryByIdThunk.rejected, (state, action) => {
         state.isLoading = false;
+        state.error = action.payload as string;
+      })
 
-        state.error =
-          (action.payload as string) || 'Failed to fetch notifications';
+      // READ SINGLE NOTIFICATION
+      .addCase(readNotificationsThunk.fulfilled, (state, action) => {
+        const notificationId = action.meta.arg;
+
+        state.notifications = state.notifications.map(notification =>
+          notification._id === notificationId
+            ? {
+                ...notification,
+                isRead: true,
+              }
+            : notification,
+        );
       });
   },
 });

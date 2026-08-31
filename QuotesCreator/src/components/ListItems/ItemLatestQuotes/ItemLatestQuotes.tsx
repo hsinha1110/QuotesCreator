@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Pressable } from 'react-native';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { moderateScale } from 'react-native-size-matters';
@@ -9,12 +9,22 @@ import COLORS from '@/constants/Colors';
 import { Quote } from '@/types';
 
 import styles from './styles';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/redux/store';
+import { toggleFavourite } from '@/redux/slices/favouriteSlice';
 
 type ItemLatestQuotesProps = {
   item: Quote;
 };
 
 const ItemLatestQuotes = ({ item }: ItemLatestQuotesProps) => {
+  const favourites = useSelector(
+    (state: RootState) => state.favourites.favourites || [],
+  );
+  const dispatch = useDispatch<AppDispatch>();
+  const isFavourite = favourites.some((fav: Quote) => fav._id === item._id);
+
+  console.log(isFavourite, '....isFavourite');
   return (
     <TouchableOpacity activeOpacity={0.8} style={styles.latestCard}>
       {/* QUOTE ICON */}
@@ -42,14 +52,16 @@ const ItemLatestQuotes = ({ item }: ItemLatestQuotesProps) => {
           activeOpacity={0.7}
           style={styles.latestActionButton}
           onPress={() => {
-            console.log('Favorite quote:', item._id);
+            console.log('Favorite quote:', item);
           }}
         >
-          <Ionicons
-            name="heart-outline"
-            size={moderateScale(20)}
-            color={COLORS.black}
-          />
+          <Pressable onPress={() => dispatch(toggleFavourite(item))}>
+            <Ionicons
+              name={isFavourite ? 'heart' : 'heart-outline'}
+              size={moderateScale(20)}
+              color={isFavourite ? COLORS.red : COLORS.black}
+            />
+          </Pressable>
         </TouchableOpacity>
 
         {/* SHARE */}

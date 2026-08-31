@@ -1,12 +1,13 @@
 import api from '@/api/axiosinterceptors';
+
 import { SERVICE_ROUTES } from '../constants';
-import { categoriesParams } from '@/types';
+import { CategoriesParams } from '@/types';
 
 export const categoriesService = async ({
   language,
   page,
   limit,
-}: categoriesParams) => {
+}: CategoriesParams) => {
   try {
     const response = await api.get(SERVICE_ROUTES.CATEGORIES, {
       params: {

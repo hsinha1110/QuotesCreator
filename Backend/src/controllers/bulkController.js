@@ -116,54 +116,52 @@ const bulkUploadQuotes = async (req, res) => {
         const finalCategoryHi = categoryHi || categoryEn;
 
         // =================================================
-        // FIND / CREATE CATEGORY
+        // CATEGORY KEY
         // =================================================
 
         const categoryKey = categoryEn.trim().toLowerCase();
 
         let category = categoryCache.get(categoryKey);
 
+        // =================================================
+        // FIND EXISTING CATEGORY
+        // =================================================
+
         if (!category) {
-          category = await Category.findOne({
-            $or: [
-              {
-                name: {
-                  $regex: `^${escapeRegex(categoryEn)}$`,
-                  $options: "i",
-                },
-              },
-              {
-                "translations.English": {
-                  $regex: `^${escapeRegex(categoryEn)}$`,
-                  $options: "i",
-                },
-              },
-              {
-                "translations.Hindi": finalCategoryHi,
-              },
-            ],
-          });
+          category = await findExistingCategory(categoryEn, finalCategoryHi);
         }
+
+        // =================================================
+        // CREATE CATEGORY ONLY IF NOT FOUND
+        // =================================================
 
         if (!category) {
           category = await Category.create({
-            name: categoryEn,
+            name: categoryEn.trim(),
             image: null,
 
             translations: {
-              English: categoryEn,
-              Hindi: finalCategoryHi,
+              English: categoryEn.trim(),
+              Hindi: finalCategoryHi.trim(),
             },
           });
 
-          console.log(`Category created: ${categoryEn}`);
+          console.log(
+            `🆕 CATEGORY CREATED: ${category.name} -> ${category._id}`,
+          );
         } else {
+          console.log(`✅ CATEGORY FOUND: ${category.name} -> ${category._id}`);
+
           await ensureCategoryTranslations(
             category,
-            categoryEn,
-            finalCategoryHi,
+            categoryEn.trim(),
+            finalCategoryHi.trim(),
           );
         }
+
+        // =================================================
+        // CACHE CATEGORY
+        // =================================================
 
         categoryCache.set(categoryKey, category);
 
@@ -223,32 +221,27 @@ const bulkUploadQuotes = async (req, res) => {
           const finalDescriptionEn = descriptionEn || "";
           const finalDescriptionHi = descriptionHi || "";
 
-          const subcategoryKey = `${category._id}_${subcategoryEn.trim().toLowerCase()}`;
+          // IMPORTANT:
+          // Category ID is part of cache key.
+          // This prevents same subcategory names
+          // from different categories mixing together.
+
+          const subcategoryKey = `${String(category._id)}_${subcategoryEn
+            .trim()
+            .toLowerCase()}`;
 
           subcategory = subcategoryCache.get(subcategoryKey);
 
-          if (!subcategory) {
-            subcategory = await Subcategory.findOne({
-              categoryId: category._id,
+          // =================================================
+          // FIND EXISTING SUBCATEGORY
+          // =================================================
 
-              $or: [
-                {
-                  name: {
-                    $regex: `^${escapeRegex(subcategoryEn)}$`,
-                    $options: "i",
-                  },
-                },
-                {
-                  "translations.English": {
-                    $regex: `^${escapeRegex(subcategoryEn)}$`,
-                    $options: "i",
-                  },
-                },
-                {
-                  "translations.Hindi": finalSubcategoryHi,
-                },
-              ],
-            });
+          if (!subcategory) {
+            subcategory = await findExistingSubcategory(
+              category._id,
+              subcategoryEn,
+              finalSubcategoryHi,
+            );
           }
 
           // =================================================
@@ -259,38 +252,41 @@ const bulkUploadQuotes = async (req, res) => {
             subcategory = await Subcategory.create({
               categoryId: category._id,
 
-              name: subcategoryEn,
+              name: subcategoryEn.trim(),
 
-              // English/base description
               description: finalDescriptionEn,
 
-              // Category/subcategory translations
               translations: {
-                English: subcategoryEn,
-                Hindi: finalSubcategoryHi,
+                English: subcategoryEn.trim(),
+                Hindi: finalSubcategoryHi.trim(),
               },
 
-              // Description translations
               descriptionTranslations: {
                 English: finalDescriptionEn,
                 Hindi: finalDescriptionHi,
               },
             });
 
-            console.log(`Subcategory created: ${subcategoryEn}`);
+            console.log(
+              `🆕 SUBCATEGORY CREATED: ${subcategoryEn} -> ${subcategory._id}`,
+            );
           } else {
-            // =================================================
-            // UPDATE EXISTING SUBCATEGORY
-            // =================================================
+            console.log(
+              `✅ SUBCATEGORY FOUND: ${subcategory.name} -> ${subcategory._id}`,
+            );
 
             await ensureSubcategoryTranslations(
               subcategory,
-              subcategoryEn,
-              finalSubcategoryHi,
+              subcategoryEn.trim(),
+              finalSubcategoryHi.trim(),
               finalDescriptionEn,
               finalDescriptionHi,
             );
           }
+
+          // =================================================
+          // CACHE SUBCATEGORY
+          // =================================================
 
           subcategoryCache.set(subcategoryKey, subcategory);
         }
@@ -329,6 +325,10 @@ const bulkUploadQuotes = async (req, res) => {
           throw new Error("Quote text is required. Use quote_en or quote_hi.");
         }
 
+        // =================================================
+        // FINAL TEXT
+        // =================================================
+
         const finalText = quoteEn || quoteHi || genericText;
 
         // =================================================
@@ -341,14 +341,20 @@ const bulkUploadQuotes = async (req, res) => {
         // LANGUAGE
         // =================================================
 
-        const language = quoteEn ? "English" : "Hindi";
+        let language = getValue(row, "language");
+
+        if (!language) {
+          language = quoteEn ? "English" : "Hindi";
+        }
+
+        language = normalizeLanguage(language);
 
         if (!ALLOWED_LANGUAGES.includes(language)) {
           throw new Error(`Invalid language: ${language}`);
         }
 
         // =================================================
-        // QUOTE TRANSLATIONS
+        // TRANSLATIONS
         // =================================================
 
         const translations = {};
@@ -371,7 +377,7 @@ const bulkUploadQuotes = async (req, res) => {
         );
 
         // =================================================
-        // DUPLICATE CHECK
+        // DUPLICATE CONDITIONS
         // =================================================
 
         const duplicateConditions = [];
@@ -398,6 +404,10 @@ const bulkUploadQuotes = async (req, res) => {
           throw new Error("Unable to check duplicate quote");
         }
 
+        // =================================================
+        // DUPLICATE QUERY
+        // =================================================
+
         const duplicateQuery = {
           categoryId: category._id,
 
@@ -408,11 +418,11 @@ const bulkUploadQuotes = async (req, res) => {
           duplicateQuery.subcategoryId = subcategory._id;
         }
 
-        const existingQuote = await Quote.findOne(duplicateQuery);
+        // =================================================
+        // CHECK EXISTING QUOTE
+        // =================================================
 
-        // =================================================
-        // DUPLICATE
-        // =================================================
+        const existingQuote = await Quote.findOne(duplicateQuery);
 
         if (existingQuote) {
           duplicates.push({
@@ -434,8 +444,14 @@ const bulkUploadQuotes = async (req, res) => {
         // PREPARE QUOTE
         // =================================================
 
-        quotes.push({
+        const quoteData = {
+          // IMPORTANT:
+          // Always use CURRENT MongoDB category ID
+
           categoryId: category._id,
+
+          // IMPORTANT:
+          // Always use CURRENT MongoDB subcategory ID
 
           subcategoryId: subcategory?._id || null,
 
@@ -451,12 +467,37 @@ const bulkUploadQuotes = async (req, res) => {
 
           views: 0,
 
+          likes: 0,
+
           isDraft: !isActive,
 
+          isActive,
+
           source: "admin",
-        });
+        };
+
+        console.log("====================================");
+
+        console.log(`ROW ${rowNumber} QUOTE`);
+
+        console.log("CATEGORY:", category.name);
+
+        console.log("CATEGORY ID:", String(category._id));
+
+        console.log("SUBCATEGORY:", subcategory?.name || null);
+
+        console.log(
+          "SUBCATEGORY ID:",
+          subcategory?._id ? String(subcategory._id) : null,
+        );
+
+        console.log("LANGUAGE:", language);
+
+        console.log("====================================");
+
+        quotes.push(quoteData);
       } catch (error) {
-        console.error(`Row ${rowNumber} failed:`, error.message);
+        console.error(`❌ Row ${rowNumber} failed:`, error.message);
 
         errors.push({
           row: rowNumber,
@@ -469,14 +510,14 @@ const bulkUploadQuotes = async (req, res) => {
     }
 
     // =================================================
-    // INSERT NEW QUOTES
+    // INSERT QUOTES
     // =================================================
 
     let insertedCount = 0;
 
     if (quotes.length > 0) {
       const inserted = await Quote.insertMany(quotes, {
-        ordered: true,
+        ordered: false,
       });
 
       insertedCount = inserted.length;
@@ -508,6 +549,10 @@ const bulkUploadQuotes = async (req, res) => {
 
       failed: errors.length,
 
+      categoriesProcessed: categoryCache.size,
+
+      subcategoriesProcessed: subcategoryCache.size,
+
       errors,
 
       duplicateRows: duplicates,
@@ -515,7 +560,7 @@ const bulkUploadQuotes = async (req, res) => {
   } catch (error) {
     console.error("====================================");
 
-    console.error("BULK UPLOAD ERROR:", error);
+    console.error("❌ BULK UPLOAD ERROR:", error);
 
     console.error("====================================");
 
@@ -530,6 +575,111 @@ const bulkUploadQuotes = async (req, res) => {
     });
   }
 };
+
+// =====================================================
+// FIND EXISTING CATEGORY
+// =====================================================
+
+async function findExistingCategory(english, hindi) {
+  const englishName = english.trim();
+
+  const hindiName = hindi.trim();
+
+  // 1. Exact English name
+
+  let category = await Category.findOne({
+    name: {
+      $regex: `^${escapeRegex(englishName)}$`,
+      $options: "i",
+    },
+  });
+
+  if (category) {
+    return category;
+  }
+
+  // 2. English translation
+
+  category = await Category.findOne({
+    "translations.English": {
+      $regex: `^${escapeRegex(englishName)}$`,
+      $options: "i",
+    },
+  });
+
+  if (category) {
+    return category;
+  }
+
+  // 3. Hindi translation
+
+  if (hindiName) {
+    category = await Category.findOne({
+      "translations.Hindi": {
+        $regex: `^${escapeRegex(hindiName)}$`,
+        $options: "i",
+      },
+    });
+  }
+
+  return category;
+}
+
+// =====================================================
+// FIND EXISTING SUBCATEGORY
+// =====================================================
+
+async function findExistingSubcategory(categoryId, english, hindi) {
+  const englishName = english.trim();
+
+  const hindiName = hindi.trim();
+
+  // IMPORTANT:
+  // categoryId must ALWAYS be included.
+
+  let subcategory = await Subcategory.findOne({
+    categoryId,
+
+    name: {
+      $regex: `^${escapeRegex(englishName)}$`,
+      $options: "i",
+    },
+  });
+
+  if (subcategory) {
+    return subcategory;
+  }
+
+  // English translation
+
+  subcategory = await Subcategory.findOne({
+    categoryId,
+
+    "translations.English": {
+      $regex: `^${escapeRegex(englishName)}$`,
+      $options: "i",
+    },
+  });
+
+  if (subcategory) {
+    return subcategory;
+  }
+
+  // Hindi translation
+
+  if (hindiName) {
+    subcategory = await Subcategory.findOne({
+      categoryId,
+
+      "translations.Hindi": {
+        $regex: `^${escapeRegex(hindiName)}$`,
+        $options: "i",
+      },
+    });
+  }
+
+  return subcategory;
+}
 
 // =====================================================
 // CATEGORY TRANSLATIONS
@@ -564,7 +714,7 @@ async function ensureCategoryTranslations(category, english, hindi) {
 }
 
 // =====================================================
-// SUBCATEGORY TRANSLATIONS + DESCRIPTION
+// SUBCATEGORY TRANSLATIONS
 // =====================================================
 
 async function ensureSubcategoryTranslations(
@@ -577,7 +727,7 @@ async function ensureSubcategoryTranslations(
   let changed = false;
 
   // =================================================
-  // SUBCATEGORY NAME TRANSLATIONS
+  // NAME TRANSLATIONS
   // =================================================
 
   if (!subcategory.translations) {
@@ -711,6 +861,26 @@ function normalizeHeader(header) {
 }
 
 // =====================================================
+// NORMALIZE LANGUAGE
+// =====================================================
+
+function normalizeLanguage(language) {
+  const value = String(language || "")
+    .trim()
+    .toLowerCase();
+
+  if (value === "english" || value === "en") {
+    return "English";
+  }
+
+  if (value === "hindi" || value === "hi") {
+    return "Hindi";
+  }
+
+  return language;
+}
+
+// =====================================================
 // PARSE BOOLEAN
 // =====================================================
 
@@ -748,6 +918,8 @@ function removeFile(filePath) {
   try {
     if (filePath && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
+
+      console.log("🗑️ CSV FILE REMOVED:", filePath);
     }
   } catch (error) {
     console.error("Could not remove uploaded CSV:", error.message);

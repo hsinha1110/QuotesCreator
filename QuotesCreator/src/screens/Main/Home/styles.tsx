@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     paddingTop: moderateScale(14),
     paddingBottom: moderateScale(14),
     borderRadius: moderateScale(20),
-    backgroundColor: COLORS.light_grey,
+    backgroundColor: COLORS.white,
     position: 'relative',
     elevation: moderateScale(3),
     shadowColor: COLORS.black,

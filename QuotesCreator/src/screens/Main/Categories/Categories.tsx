@@ -1,93 +1,77 @@
-import React, { useEffect, useState } from 'react';
-
-import { FlatList, View, ActivityIndicator } from 'react-native';
-
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { useSelector } from 'react-redux';
 import { goBack, navigate } from '@/utils/NavigationUtils';
-
+import { RootState } from '@/redux/store';
+import { useAppDispatch } from '@/redux/hooks';
+import { categoriesThunk } from '@/redux/thunk/categoriesThunk';
+import { Category } from '@/types';
+import ItemCategories from '@/components/ListItems/ItemCategories/ItemCategories';
+import styles from './styles';
+import COLORS from '@/constants/Colors';
 import Header from '@/components/Header/Header';
 import CustomDrawer from '@/components/CustomDrawer/CustomDrawer';
 
 import Routes from '@/navigations/Routes';
-
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { useAppDispatch } from '@/redux/hooks';
-
-import { categoriesThunk } from '@/redux/thunk/categoriesThunk';
-
-import { Category } from '@/types';
-
-import ItemCategories from '@/components/ListItems/ItemCategories/ItemCategories';
-
-import styles from './styles';
-import COLORS from '@/constants/Colors';
-
 const Categories = () => {
   const dispatch = useAppDispatch();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
-
-  const categories = useSelector(
-    (state: RootState) => state.categories.categories,
+  const loadingRef = useRef(false);
+  const { categories, page, hasNextPage, isLoading, language } = useSelector(
+    (state: RootState) => state.categories,
   );
-
-  const page = useSelector((state: RootState) => state.categories.page);
-
-  const hasNextPage = useSelector(
-    (state: RootState) => state.categories.hasNextPage,
-  );
-
-  const isLoading = useSelector(
-    (state: RootState) => state.categories.isLoading,
-  );
-
-  // ==========================================
-  // FIRST LOAD
-  // ==========================================
 
   useEffect(() => {
     if (categories.length === 0) {
+      console.log('LOADING FIRST PAGE');
       dispatch(
         categoriesThunk({
-          language: 'English',
+          language,
           page: 1,
           limit: 10,
         }),
       );
     }
-  }, [dispatch, categories.length]);
+  }, [dispatch, categories.length, language]);
 
   const handleLoadMore = async () => {
-    if (isLoading || isLoadingMore || !hasNextPage) {
+    if (loadingRef.current || isLoading || !hasNextPage) {
       return;
     }
     const nextPage = page + 1;
-    console.log('LOADING CATEGORY PAGE:', nextPage);
+    console.log('CALLING CATEGORY PAGE:', nextPage);
+
     try {
+      loadingRef.current = true;
       setIsLoadingMore(true);
-      const startTime = Date.now();
-      await dispatch(
+
+      const response = await dispatch(
         categoriesThunk({
-          language: 'English',
+          language,
           page: nextPage,
           limit: 10,
         }),
       ).unwrap();
 
-      // Minimum 1.5 second loader
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(1500 - elapsedTime, 0);
-
-      if (remainingTime > 0) {
-        await new Promise((resolve: any) => setTimeout(resolve, remainingTime));
-      }
+      console.log('PAGE RESPONSE:', response);
     } catch (error) {
       console.log('LOAD MORE CATEGORIES ERROR:', error);
     } finally {
+      loadingRef.current = false;
       setIsLoadingMore(false);
+
+      console.log('LOAD MORE FINISHED');
     }
+  };
+  const handleSubCategories = (category: Category) => {
+    console.log('SELECTED CATEGORY:', category);
+
+    navigate(Routes.SUB_CATEGORIES, {
+      categoryId: category._id,
+      categoryName: category.displayName,
+    });
   };
   const closeDrawer = () => {
     setDrawerVisible(false);
@@ -100,10 +84,10 @@ const Categories = () => {
     <SafeAreaView style={styles.container}>
       <Header
         title="Categories"
-        icon="arrow-back-outline"
+        icon="chevron-back"
         onMenuPress={goBack}
         showNotification={false}
-        rightIcon="search-outline"
+        rightIcon="search"
         onRightPress={handleSearch}
       />
 
@@ -113,19 +97,29 @@ const Categories = () => {
         keyExtractor={item => item._id}
         renderItem={({ item }) => (
           <View style={styles.categoryItem}>
-            <ItemCategories item={item} fullWidth={true} />
+            <ItemCategories
+              item={item}
+              fullWidth={true}
+              onPress={() => handleSubCategories(item)}
+            />
           </View>
         )}
         contentContainerStyle={styles.categoryList}
         ItemSeparatorComponent={() => <View style={styles.categorySeparator} />}
         onEndReached={handleLoadMore}
-        onEndReachedThreshold={1}
+        onEndReachedThreshold={0.2}
         ListFooterComponent={
-          isLoading && page > 1 ? (
+          isLoadingMore ? (
             <View style={styles.footerLoader}>
               <ActivityIndicator size="large" color={COLORS.accent} />
             </View>
-          ) : undefined
+          ) : (
+            <View
+              style={{
+                height: 30,
+              }}
+            />
+          )
         }
       />
 

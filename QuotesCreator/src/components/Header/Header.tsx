@@ -5,6 +5,7 @@ import { HeaderProps } from '@/types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLORS from '@/constants/Colors';
 import styles from './styles';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 const Header = ({
   title,

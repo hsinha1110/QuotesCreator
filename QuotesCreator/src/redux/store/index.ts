@@ -19,6 +19,9 @@ import categoriesReducer from '@/redux/slices/categoriesSlice';
 import latestQuotesReducer from '@/redux/slices/latestQuotesSlice';
 import popularReducer from '@/redux/slices/popularSlice';
 import deleteAccountReducer from '@/redux/slices/deleteAccountSlice';
+import quotesReducer from '@/redux/slices/quotesSlice';
+import subCategoriesReducer from '@/redux/slices/subCategories';
+import favouritesReducer from '@/redux/slices/favouriteSlice';
 const authPersistConfig = {
   key: 'auth',
   storage: AsyncStorage,
@@ -34,6 +37,9 @@ export const store = configureStore({
     latestQuotes: latestQuotesReducer,
     popularQuotes: popularReducer,
     deleteAccount: deleteAccountReducer,
+    quotes: quotesReducer,
+    subCategories: subCategoriesReducer,
+    favourites: favouritesReducer,
   },
 
   middleware: getDefaultMiddleware =>

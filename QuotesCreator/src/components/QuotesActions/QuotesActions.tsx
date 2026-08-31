@@ -11,12 +11,13 @@ const QuoteActions = ({
   onFavoritePress,
   onSharePress,
   favoriteSize = moderateScale(22),
-  isLiked = false,
-  likes,
+  isFavorite = false,
+  likes = 0,
+  showLikes,
 }: QuoteActionsProps) => {
   return (
     <View style={styles.actions}>
-      {/* LIKE / UNLIKE */}
+      {/* FAVOURITE */}
       <TouchableOpacity
         activeOpacity={0.7}
         style={styles.actionButton}
@@ -24,13 +25,12 @@ const QuoteActions = ({
       >
         <View style={styles.likeContainer}>
           <Ionicons
-            name={isLiked ? 'heart' : 'heart-outline'}
+            name={isFavorite ? 'heart' : 'heart-outline'}
             size={favoriteSize}
-            color={isLiked ? COLORS.red : COLORS.black}
+            color={isFavorite ? COLORS.red : COLORS.black}
           />
 
-          {/* COUNT ALWAYS SHOW */}
-          <Text style={styles.likesText}>{likes}</Text>
+          {showLikes && <Text style={styles.likesText}>{likes}</Text>}
         </View>
       </TouchableOpacity>
 

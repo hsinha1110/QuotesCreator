@@ -1,3 +1,4 @@
+import { RouteProp } from '@react-navigation/native';
 import { TextInputProps } from 'react-native';
 
 export interface InputComponentProps extends TextInputProps {
@@ -11,7 +12,26 @@ export interface AuthFooterProps {
   linkText: string;
   onPress: () => void;
 }
+export type TabItem = {
+  key: string;
+  title: string;
+};
+export type SubCategoriesParams = {
+  categoryId: string;
+  categoryName: string;
+};
 
+export type SubCategoriesRouteProp = RouteProp<
+  {
+    SubCategories: SubCategoriesParams;
+  },
+  'SubCategories'
+>;
+export interface TabsProps {
+  tabs: TabItem[];
+  activeTab: string;
+  onTabPress: (key: string) => void;
+}
 export interface ButtonProps {
   title: string;
   onPress: () => void;
@@ -48,6 +68,7 @@ export type QuoteActionsProps = {
   isFavorite?: boolean;
   isLiked?: boolean;
   likes?: number;
+  showLikes?: number;
 };
 
 export interface LoginPayload {
@@ -102,6 +123,8 @@ export type NotificationItem = {
   title: string;
   body: string;
   type: string;
+  text: string;
+
   data?: {
     language?: string;
     image?: string;
@@ -151,12 +174,19 @@ export type Quote = {
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  displayText: string;
 };
 
 export type DailyQuote = {
+  _id: string;
   title: string;
-  body: string;
+  text: string;
+  language: 'English' | 'Hindi';
+  author?: string;
+  categoryId?: string;
+  image?: string;
   createdAt?: string;
+  updatedAt?: string;
 };
 
 export type DailyQuoteCardProps = {
@@ -164,7 +194,6 @@ export type DailyQuoteCardProps = {
   onFavoritePress?: () => void;
   onSharePress?: () => void;
 };
-
 export type SectionHeaderProps = {
   title: string;
   onViewAllPress?: () => void;
@@ -185,9 +214,13 @@ export interface Category {
   _id: string;
   name: string;
   displayName: string;
-  displayLanguage: Language;
+  displayLanguage: string;
   image: string | null;
-  translations: CategoryTranslation;
+  translations: {
+    English: string;
+    Hindi: string;
+  };
+  quoteCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -211,6 +244,7 @@ export type ItemLatestQuotesProps = {
 export type ItemCategoriesProps = {
   item: Category;
   fullWidth?: boolean;
+  onPress: () => void;
 };
 
 export type ItemPopularProps = {
@@ -275,3 +309,88 @@ export interface DeleteAccountState {
   error: string | null;
   message: string | null;
 }
+export interface GetQuotesParams {
+  categoryId?: string;
+  subcategoryId?: string;
+  page?: number;
+  limit?: number;
+  language?: 'English' | 'Hindi';
+}
+
+export interface subCategoriesParams {
+  categoryId?: string;
+  subcategoryId?: string;
+  page?: number;
+  limit?: number;
+  language?: 'English' | 'Hindi';
+}
+
+export interface GetQuotesParams {
+  categoryId?: string;
+  subcategoryId?: string;
+  page?: number;
+  limit?: number;
+  language?: 'English' | 'Hindi';
+}
+export interface QuotesState {
+  quotes: Quote[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  language: 'English' | 'Hindi';
+  loading: boolean;
+  error: string | null;
+}
+
+export interface SubCategory {
+  _id: string;
+
+  categoryId: string;
+
+  name: string;
+
+  displayName: string;
+  displayText: string;
+  displayLanguage: 'English' | 'Hindi';
+
+  translations?: {
+    English?: string;
+    Hindi?: string;
+  };
+
+  quoteCount: number;
+
+  createdAt?: string;
+
+  updatedAt?: string;
+}
+
+export interface SubCategoriesState {
+  subcategories: SubCategory[];
+
+  page: number;
+
+  limit: number;
+
+  total: number;
+
+  totalPages: number;
+
+  hasNextPage: boolean;
+
+  hasPreviousPage: boolean;
+
+  language: 'English' | 'Hindi';
+
+  loading: boolean;
+
+  error: string | null;
+}
+
+export type ItemFavouritesProps = {
+  item: Quote;
+  onShare?: (item: Quote) => void;
+};

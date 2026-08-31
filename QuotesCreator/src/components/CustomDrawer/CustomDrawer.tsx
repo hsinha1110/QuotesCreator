@@ -27,33 +27,108 @@ import Routes from '@/navigations/Routes';
 import { navigate } from '@/utils/NavigationUtils';
 
 import { useAuth } from '@/context/AuthContext';
+
 import { CustomDrawerProps, MenuItemProps } from '@/types';
+
 import COLORS from '@/constants/Colors';
+
 const { width, height } = Dimensions.get('window');
+
 const DRAWER_WIDTH = width * 0.78;
+
+// =====================================================
+// ACTIVE ROUTE
+// =====================================================
 
 const getActiveRouteName = (
   state: NavigationState | PartialState<NavigationState>,
 ): string => {
   const route = state.routes[state.index ?? 0];
+
   if (route.state) {
     return getActiveRouteName(route.state);
   }
+
   return route.name;
 };
 
+// =====================================================
+// DRAWER
+// =====================================================
+
 const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
-  const { logout } = useAuth();
-  const { user } = useSelector((state: RootState) => state.auth);
-  const currentRoute = useNavigationState(state => {
-    return getActiveRouteName(state);
-  });
-  console.log('CURRENT DRAWER ROUTE:', currentRoute);
+
+  // =====================================================
+  // AUTH
+  // =====================================================
+
+  const { logout, user: firebaseUser } = useAuth();
+
+  // =====================================================
+  // REDUX USER
+  // MongoDB user is stored here after social login
+  // =====================================================
+
+  const reduxUser = useSelector((state: RootState) => state.auth.user);
+
+  // =====================================================
+  // NOTIFICATIONS
+  // =====================================================
 
   const notifications = useSelector(
     (state: RootState) => state.notifications.notifications || [],
   );
+
+  // =====================================================
+  // CURRENT USER
+  //
+  // MongoDB/Redux user = PRIMARY
+  // Firebase user = FALLBACK
+  // =====================================================
+
+  const currentUser = {
+    id: reduxUser?.id || firebaseUser?.uid || '',
+
+    name: reduxUser?.name || firebaseUser?.displayName || 'User',
+
+    email: reduxUser?.email || firebaseUser?.email || '',
+
+    profileImage: reduxUser?.profileImage || firebaseUser?.photoURL || null,
+  };
+
+  // =====================================================
+  // ACTIVE ROUTE
+  // =====================================================
+
+  const currentRoute = useNavigationState(state => {
+    return getActiveRouteName(state);
+  });
+
+  // =====================================================
+  // DEBUG
+  // =====================================================
+
+  console.log('================================');
+  console.log('🔥 DRAWER CURRENT USER');
+  console.log('================================');
+
+  console.log('Redux User:', reduxUser);
+
+  console.log('Firebase User:', {
+    uid: firebaseUser?.uid,
+    email: firebaseUser?.email,
+    name: firebaseUser?.displayName,
+    photoURL: firebaseUser?.photoURL,
+  });
+
+  console.log('Final Current User:', currentUser);
+
+  console.log('Current Route:', currentRoute);
+
+  // =====================================================
+  // DRAWER ANIMATION
+  // =====================================================
 
   useEffect(() => {
     Animated.spring(translateX, {
@@ -64,37 +139,43 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
     }).start();
   }, [visible, translateX]);
 
-  // ===================================================
+  // =====================================================
   // NAVIGATION
-  // ===================================================
+  // =====================================================
 
   const handleNavigation = (route: string) => {
     onClose();
+
+    if (!route) {
+      return;
+    }
 
     setTimeout(() => {
       navigate(route);
     }, 150);
   };
 
-  // ===================================================
+  // =====================================================
   // LOGOUT
-  // ===================================================
+  // =====================================================
 
   const handleLogout = async () => {
     onClose();
 
     try {
+      console.log('🔥 DRAWER LOGOUT STARTED');
+
       await logout();
 
-      console.log('🔥 DRAWER LOGOUT SUCCESS');
+      console.log('✅ DRAWER LOGOUT SUCCESS');
     } catch (error) {
       console.log('❌ DRAWER LOGOUT ERROR:', error);
     }
   };
 
-  // ===================================================
+  // =====================================================
   // MENU ITEM
-  // ===================================================
+  // =====================================================
 
   const MenuItem = ({
     icon,
@@ -104,8 +185,10 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
     badge,
   }: MenuItemProps) => {
     const active = currentRoute === route;
+
     const isActive =
       active || (activeRoute !== undefined && currentRoute === activeRoute);
+
     return (
       <TouchableOpacity
         activeOpacity={0.75}
@@ -140,14 +223,43 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
       </TouchableOpacity>
     );
   };
+
+  // =====================================================
+  // HIDDEN
+  // =====================================================
+
   if (!visible) {
     return null;
   }
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <View style={styles.overlay}>
+      {/* BACKDROP */}
+
       <Pressable style={styles.backdrop} onPress={onClose} />
-      <Animated.View style={styles.drawer}>
+
+      {/* DRAWER */}
+
+      <Animated.View
+        style={[
+          styles.drawer,
+          {
+            transform: [
+              {
+                translateX,
+              },
+            ],
+          },
+        ]}
+      >
+        {/* ================================================= */}
+        {/* HEADER */}
+        {/* ================================================= */}
+
         <View style={styles.header}>
           <View style={styles.logoBox}>
             <Ionicons name="sparkles" size={22} color={COLORS.white} />
@@ -163,44 +275,63 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
             <Ionicons name="close" size={21} color={COLORS.black} />
           </TouchableOpacity>
         </View>
+
+        {/* ================================================= */}
+        {/* PROFILE */}
+        {/* ================================================= */}
+
         <TouchableOpacity
           activeOpacity={0.8}
           style={styles.profileCard}
           onPress={() => handleNavigation(Routes.PROFILE)}
         >
-          {user?.profileImage ? (
+          {/* PROFILE IMAGE */}
+
+          {currentUser.profileImage ? (
             <Image
               source={{
-                uri: user.profileImage,
+                uri: currentUser.profileImage,
               }}
               style={styles.profileImage}
             />
           ) : (
             <View style={styles.profilePlaceholder}>
               <Text style={styles.profileLetter}>
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                {currentUser.name?.charAt(0)?.toUpperCase() || 'U'}
               </Text>
             </View>
           )}
 
+          {/* PROFILE DATA */}
+
           <View style={styles.profileContent}>
             <Text style={styles.profileName} numberOfLines={1}>
-              {user?.name || 'User'}
+              {currentUser.name}
             </Text>
 
             <Text style={styles.profileEmail} numberOfLines={1}>
-              {user?.email || ''}
+              {currentUser.email}
             </Text>
           </View>
 
           <Ionicons name="chevron-forward" size={17} color="#9D98A6" />
         </TouchableOpacity>
+
+        {/* ================================================= */}
+        {/* MAIN MENU */}
+        {/* ================================================= */}
+
         <Text style={styles.sectionTitle}>MAIN MENU</Text>
+
+        {/* HOME */}
+
         <MenuItem
           icon={currentRoute === Routes.HOME ? 'home' : 'home-outline'}
           title="Home"
           route={Routes.HOME}
         />
+
+        {/* CATEGORIES */}
 
         <MenuItem
           icon={currentRoute === Routes.CATEGORIES ? 'grid' : 'grid-outline'}
@@ -220,13 +351,11 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           route={Routes.CREATE_QUOTES}
         />
 
-        {/* MY CREATIONS */}
-
         {/* FAVORITES */}
 
         <MenuItem
           icon={currentRoute === Routes.FAVORITES ? 'heart' : 'heart-outline'}
-          title="Favorites"
+          title="Favourites"
           route={Routes.FAVORITES}
         />
 
@@ -248,15 +377,15 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           route={Routes.DOWNLOADS}
         />
 
-        {/* =========================================== */}
+        {/* ================================================= */}
         {/* DIVIDER */}
-        {/* =========================================== */}
+        {/* ================================================= */}
 
         <View style={styles.divider} />
 
-        {/* =========================================== */}
+        {/* ================================================= */}
         {/* NOTIFICATIONS */}
-        {/* =========================================== */}
+        {/* ================================================= */}
 
         <MenuItem
           icon={
@@ -269,9 +398,9 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           badge={notifications.length}
         />
 
-        {/* =========================================== */}
+        {/* ================================================= */}
         {/* PREFERENCES */}
-        {/* =========================================== */}
+        {/* ================================================= */}
 
         <Text style={styles.sectionTitle}>PREFERENCES</Text>
 
@@ -280,18 +409,13 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
         <MenuItem
           icon="language-outline"
           title="Language"
-          route={''}
-          activeRoute={''}
+          route=""
+          activeRoute=""
         />
 
         {/* THEME */}
 
-        <MenuItem
-          icon="moon-outline"
-          title="Theme"
-          route={''}
-          activeRoute={''}
-        />
+        <MenuItem icon="moon-outline" title="Theme" route="" activeRoute="" />
 
         {/* SETTINGS */}
 
@@ -303,15 +427,15 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           route={Routes.SETTINGS}
         />
 
-        {/* =========================================== */}
+        {/* ================================================= */}
         {/* SPACER */}
-        {/* =========================================== */}
+        {/* ================================================= */}
 
         <View style={styles.spacer} />
 
-        {/* =========================================== */}
+        {/* ================================================= */}
         {/* LOGOUT */}
-        {/* =========================================== */}
+        {/* ================================================= */}
 
         <TouchableOpacity
           activeOpacity={0.75}
@@ -325,21 +449,15 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        {/* =========================================== */}
+        {/* ================================================= */}
         {/* VERSION */}
-        {/* =========================================== */}
+        {/* ================================================= */}
 
         <Text style={styles.version}>QuoteCreator • v1.0.0</Text>
       </Animated.View>
     </View>
   );
 };
-
-// =====================================================
-// EXPORT
-// =====================================================
-
-export default CustomDrawer;
 
 // =====================================================
 // STYLES
@@ -648,3 +766,5 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 });
+
+export default CustomDrawer;

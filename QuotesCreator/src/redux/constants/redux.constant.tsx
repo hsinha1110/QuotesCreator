@@ -15,11 +15,17 @@ export const ASYNC_ROUTES = {
   MARK_NOTIFICATION_AS_READ: 'markNotificationAsRead',
   MARK_ALL_NOTIFICATIONS_AS_READ: 'markAllNotificationsAsRead',
   DELETE_NOTIFICATION: 'deleteNotification',
+  DAILY_QUOTE: 'dailyQuotes',
   ME: 'deleteMyAccount',
   LATEST: 'latestQuotes',
   POPULAR: 'popularQuotes',
   LIKE_QUOTES: 'like',
   UNLIKE_QUOTES: 'unlike',
+  SUB_CATEGORIES: 'subCategories',
+  QUOTES: 'quotes',
+  NOTIFICATIONS_HISTORY_BY_ID: 'notificationsHistory',
+  READ_NOTIFICATIONS: 'readNotifications',
+  DELETE_NOTIFICATIONS: 'deleteNotifications',
 } as const;
 
 //==================== Thunk Status =====================

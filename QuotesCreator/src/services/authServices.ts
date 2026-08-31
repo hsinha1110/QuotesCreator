@@ -2,9 +2,7 @@ import {
   getAuth,
   signInWithCredential,
   signOut,
-  fetchSignInMethodsForEmail,
   linkWithCredential,
-  unlink,
   GoogleAuthProvider,
   FacebookAuthProvider,
 } from '@react-native-firebase/auth';
@@ -21,20 +19,11 @@ import {
 const auth = getAuth();
 
 // =====================================================
-// GET FACEBOOK PROFILE
+// FACEBOOK PROFILE
 // =====================================================
 
 const getFacebookProfile = async () => {
-  return new Promise<{
-    id: string;
-    name?: string;
-    email?: string;
-    picture?: {
-      data?: {
-        url?: string;
-      };
-    };
-  } | null>((resolve, reject) => {
+  return new Promise<any>((resolve, reject) => {
     const request = new GraphRequest(
       '/me',
       {
@@ -47,26 +36,13 @@ const getFacebookProfile = async () => {
       (error, result) => {
         if (error) {
           console.log('❌ FACEBOOK GRAPH ERROR:', error);
-
           reject(error);
-
           return;
         }
 
-        console.log('🔥 FACEBOOK GRAPH PROFILE:', result);
+        console.log('🔥 FACEBOOK PROFILE:', result);
 
-        resolve(
-          result as {
-            id: string;
-            name?: string;
-            email?: string;
-            picture?: {
-              data?: {
-                url?: string;
-              };
-            };
-          },
-        );
+        resolve(result);
       },
     );
 
@@ -75,18 +51,18 @@ const getFacebookProfile = async () => {
 };
 
 // =====================================================
-// GET FACEBOOK CREDENTIAL
+// FACEBOOK CREDENTIAL
 // =====================================================
 
 const getFacebookCredential = async () => {
   try {
     console.log('🔥 GETTING FACEBOOK CREDENTIAL');
 
-    // Previous Facebook SDK session logout
+    // Clear old Facebook session
     try {
       await LoginManager.logOut();
     } catch (error) {
-      console.log('Previous Facebook logout:', error);
+      console.log('⚠️ Previous Facebook logout:', error);
     }
 
     // Facebook login
@@ -99,9 +75,7 @@ const getFacebookCredential = async () => {
 
     if (result.isCancelled) {
       const error: any = new Error('Facebook login cancelled');
-
       error.code = 'SIGN_IN_CANCELLED';
-
       throw error;
     }
 
@@ -111,15 +85,34 @@ const getFacebookCredential = async () => {
       throw new Error('Facebook access token not received');
     }
 
-    const credential = FacebookAuthProvider.credential(
-      accessTokenData.accessToken,
-    );
+    const accessToken = accessTokenData.accessToken;
 
-    console.log('✅ FACEBOOK CREDENTIAL CREATED');
+    const credential = FacebookAuthProvider.credential(accessToken);
+
+    // Get Facebook profile
+    let profile: any = null;
+
+    try {
+      profile = await getFacebookProfile();
+    } catch (error) {
+      console.log('⚠️ FACEBOOK PROFILE ERROR:', error);
+    }
+
+    const email = profile?.email?.trim()?.toLowerCase();
+
+    console.log('🔥 FACEBOOK EMAIL:', email);
+
+    if (!email) {
+      throw new Error(
+        'Facebook email not available. Please allow email permission.',
+      );
+    }
 
     return {
       credential,
-      accessToken: accessTokenData.accessToken,
+      accessToken,
+      profile,
+      email,
     };
   } catch (error: any) {
     console.log('❌ FACEBOOK CREDENTIAL ERROR:', error?.code, error?.message);
@@ -129,7 +122,7 @@ const getFacebookCredential = async () => {
 };
 
 // =====================================================
-// GET GOOGLE CREDENTIAL
+// GOOGLE CREDENTIAL
 // =====================================================
 
 const getGoogleCredential = async () => {
@@ -144,10 +137,6 @@ const getGoogleCredential = async () => {
 
     console.log('🔥 GOOGLE RESPONSE:', googleResponse);
 
-    // -------------------------------------------------
-    // CANCELLED
-    // -------------------------------------------------
-
     if (googleResponse.type === 'cancelled') {
       const error: any = new Error('Google login cancelled');
 
@@ -155,10 +144,6 @@ const getGoogleCredential = async () => {
 
       throw error;
     }
-
-    // -------------------------------------------------
-    // TOKEN
-    // -------------------------------------------------
 
     const idToken = googleResponse.data?.idToken;
 
@@ -168,11 +153,18 @@ const getGoogleCredential = async () => {
 
     const credential = GoogleAuthProvider.credential(idToken);
 
-    console.log('✅ GOOGLE CREDENTIAL CREATED');
+    const email = googleResponse.data?.user?.email?.trim()?.toLowerCase();
+
+    console.log('🔥 GOOGLE EMAIL:', email);
+
+    if (!email) {
+      throw new Error('Google email not available');
+    }
 
     return {
       credential,
       googleResponse,
+      email,
     };
   } catch (error: any) {
     console.log('❌ GOOGLE CREDENTIAL ERROR:', error?.code, error?.message);
@@ -191,50 +183,58 @@ export const googleLogin = async () => {
     console.log('🔥 GOOGLE LOGIN STARTED');
     console.log('================================');
 
-    // =================================================
-    // GOOGLE CREDENTIAL
-    // =================================================
+    // -----------------------------------------------
+    // 1. Get Google credential
+    // -----------------------------------------------
 
-    const { credential: googleCredential, googleResponse } =
+    const { credential: googleCredential, email: googleEmail } =
       await getGoogleCredential();
-
-    const googleEmail = googleResponse.data?.user?.email?.trim().toLowerCase();
 
     console.log('🔥 GOOGLE EMAIL:', googleEmail);
 
-    if (!googleEmail) {
-      throw new Error('Google email not available');
-    }
-
-    // =================================================
-    // CHECK EXISTING FIREBASE PROVIDERS
-    // =================================================
-
-    let methods: string[] = [];
+    // -----------------------------------------------
+    // 2. Normal Google login
+    // -----------------------------------------------
 
     try {
-      methods = await fetchSignInMethodsForEmail(auth, googleEmail);
-    } catch (error) {
-      console.log('⚠️ PROVIDER CHECK ERROR:', error);
-    }
+      const userCredential = await signInWithCredential(auth, googleCredential);
 
-    console.log('🔥 EXISTING FIREBASE PROVIDERS:', methods);
+      console.log('✅ GOOGLE FIREBASE LOGIN SUCCESS');
 
-    // =================================================
-    // FACEBOOK ACCOUNT ALREADY EXISTS
-    // =================================================
+      console.log('🔥 FIREBASE UID:', userCredential.user.uid);
 
-    if (methods.includes('facebook.com')) {
-      console.log('🔵 FACEBOOK PROVIDER FOUND');
+      return userCredential;
+    } catch (error: any) {
+      console.log('⚠️ GOOGLE LOGIN ERROR:', error?.code, error?.message);
+
+      // Only handle provider conflict
+      if (error?.code !== 'auth/account-exists-with-different-credential') {
+        throw error;
+      }
+
+      console.log('🟡 GOOGLE ACCOUNT CONFLICT');
+
+      console.log('🟢 EXISTING FACEBOOK ACCOUNT WILL BE USED');
 
       // -----------------------------------------------
-      // Get Facebook credential
+      // 3. Login Facebook account
       // -----------------------------------------------
 
-      const { credential: facebookCredential } = await getFacebookCredential();
+      const { credential: facebookCredential, email: facebookEmail } =
+        await getFacebookCredential();
 
       // -----------------------------------------------
-      // Login existing Facebook Firebase account
+      // 4. Make sure same email
+      // -----------------------------------------------
+
+      if (facebookEmail !== googleEmail) {
+        throw new Error('Google and Facebook email addresses are different.');
+      }
+
+      console.log('✅ GOOGLE + FACEBOOK EMAIL MATCH');
+
+      // -----------------------------------------------
+      // 5. Login existing Facebook Firebase user
       // -----------------------------------------------
 
       const facebookUserCredential = await signInWithCredential(
@@ -242,47 +242,47 @@ export const googleLogin = async () => {
         facebookCredential,
       );
 
-      console.log('✅ EXISTING FACEBOOK FIREBASE USER LOGIN SUCCESS');
-
       const firebaseUser = facebookUserCredential.user;
 
-      // -----------------------------------------------
-      // IMPORTANT
-      // Link Google FIRST
-      // -----------------------------------------------
+      console.log('✅ EXISTING FACEBOOK USER LOGIN SUCCESS');
 
-      await linkWithCredential(firebaseUser, googleCredential);
-
-      console.log('✅ GOOGLE PROVIDER LINKED');
+      console.log('🔥 EXISTING FIREBASE UID:', firebaseUser.uid);
 
       // -----------------------------------------------
-      // Now unlink Facebook
+      // 6. LINK GOOGLE
       // -----------------------------------------------
 
       try {
-        await unlink(firebaseUser, 'facebook.com');
+        await linkWithCredential(firebaseUser, googleCredential);
 
-        console.log('✅ FACEBOOK PROVIDER UNLINKED');
-      } catch (error: any) {
-        console.log('⚠️ FACEBOOK UNLINK ERROR:', error?.code, error?.message);
+        console.log('✅ GOOGLE PROVIDER LINKED');
+      } catch (linkError: any) {
+        console.log(
+          '⚠️ GOOGLE LINK ERROR:',
+          linkError?.code,
+          linkError?.message,
+        );
+
+        if (linkError?.code !== 'auth/provider-already-linked') {
+          throw linkError;
+        }
+
+        console.log('ℹ️ GOOGLE ALREADY LINKED');
       }
 
-      console.log('✅ GOOGLE LOGIN COMPLETED USING EXISTING ACCOUNT');
+      // -----------------------------------------------
+      // IMPORTANT:
+      // DO NOT UNLINK FACEBOOK
+      // -----------------------------------------------
+
+      console.log('🎉 GOOGLE + FACEBOOK LINKED');
+
+      console.log('🔥 SAME FIREBASE UID:', firebaseUser.uid);
 
       return facebookUserCredential;
     }
-
-    // =================================================
-    // NORMAL GOOGLE LOGIN
-    // =================================================
-
-    const userCredential = await signInWithCredential(auth, googleCredential);
-
-    console.log('✅ GOOGLE FIREBASE LOGIN SUCCESS');
-
-    return userCredential;
   } catch (error: any) {
-    console.log('❌ GOOGLE LOGIN ERROR:', error?.code, error?.message);
+    console.log('❌ GOOGLE LOGIN FINAL ERROR:', error?.code, error?.message);
 
     throw error;
   }
@@ -298,112 +298,17 @@ export const facebookLogin = async () => {
     console.log('🔥 FACEBOOK LOGIN STARTED');
     console.log('================================');
 
-    // =================================================
-    // FACEBOOK CREDENTIAL
-    // =================================================
+    const { credential: facebookCredential } = await getFacebookCredential();
 
-    const { credential: facebookCredential, accessToken } =
-      await getFacebookCredential();
-
-    // =================================================
-    // GET FACEBOOK EMAIL
-    // =================================================
-
-    let facebookEmail: string | null = null;
-
-    try {
-      const profile = await getFacebookProfile();
-
-      facebookEmail = profile?.email?.trim().toLowerCase() ?? null;
-
-      console.log('🔥 FACEBOOK EMAIL:', facebookEmail);
-    } catch (error) {
-      console.log('⚠️ FACEBOOK PROFILE ERROR:', error);
-    }
-
-    // =================================================
-    // IF EMAIL NOT AVAILABLE
-    // =================================================
-
-    if (!facebookEmail) {
-      throw new Error(
-        'Facebook account email not available. Please make sure Facebook email permission is enabled.',
-      );
-    }
-
-    // =================================================
-    // CHECK EXISTING FIREBASE PROVIDERS
-    // =================================================
-
-    let methods: string[] = [];
-
-    try {
-      methods = await fetchSignInMethodsForEmail(auth, facebookEmail);
-    } catch (error) {
-      console.log('⚠️ PROVIDER CHECK ERROR:', error);
-    }
-
-    console.log('🔥 EXISTING FIREBASE PROVIDERS:', methods);
-
-    // =================================================
-    // GOOGLE ACCOUNT ALREADY EXISTS
-    // =================================================
-
-    if (methods.includes('google.com')) {
-      console.log('🔴 GOOGLE PROVIDER FOUND');
-
-      // -----------------------------------------------
-      // Get Google credential
-      // -----------------------------------------------
-
-      const { credential: googleCredential } = await getGoogleCredential();
-
-      // -----------------------------------------------
-      // Login existing Google Firebase account
-      // -----------------------------------------------
-
-      const googleUserCredential = await signInWithCredential(
-        auth,
-        googleCredential,
-      );
-
-      console.log('✅ EXISTING GOOGLE FIREBASE USER LOGIN SUCCESS');
-
-      const firebaseUser = googleUserCredential.user;
-
-      // -----------------------------------------------
-      // IMPORTANT
-      // Link Facebook FIRST
-      // -----------------------------------------------
-
-      await linkWithCredential(firebaseUser, facebookCredential);
-
-      console.log('✅ FACEBOOK PROVIDER LINKED');
-
-      // -----------------------------------------------
-      // Now unlink Google
-      // -----------------------------------------------
-
-      try {
-        await unlink(firebaseUser, 'google.com');
-
-        console.log('✅ GOOGLE PROVIDER UNLINKED');
-      } catch (error: any) {
-        console.log('⚠️ GOOGLE UNLINK ERROR:', error?.code, error?.message);
-      }
-
-      console.log('✅ FACEBOOK LOGIN COMPLETED USING EXISTING ACCOUNT');
-
-      return googleUserCredential;
-    }
-
-    // =================================================
-    // NORMAL FACEBOOK LOGIN
-    // =================================================
+    // -----------------------------------------------
+    // DIRECT FACEBOOK LOGIN ONLY
+    // -----------------------------------------------
 
     const userCredential = await signInWithCredential(auth, facebookCredential);
 
     console.log('✅ FACEBOOK FIREBASE LOGIN SUCCESS');
+
+    console.log('🔥 FIREBASE UID:', userCredential.user.uid);
 
     return userCredential;
   } catch (error: any) {
@@ -423,31 +328,31 @@ export const logout = async () => {
     console.log('🔥 LOGOUT STARTED');
     console.log('================================');
 
-    // Firebase
+    // Firebase logout
     try {
       await signOut(auth);
 
       console.log('✅ FIREBASE LOGOUT SUCCESS');
     } catch (error) {
-      console.log('Firebase logout error:', error);
+      console.log('⚠️ FIREBASE LOGOUT ERROR:', error);
     }
 
-    // Google SDK
+    // Google SDK logout
     try {
       await GoogleSignin.signOut();
 
       console.log('✅ GOOGLE LOGOUT SUCCESS');
     } catch (error) {
-      console.log('Google logout:', error);
+      console.log('⚠️ GOOGLE LOGOUT:', error);
     }
 
-    // Facebook SDK
+    // Facebook SDK logout
     try {
       await LoginManager.logOut();
 
       console.log('✅ FACEBOOK LOGOUT SUCCESS');
     } catch (error) {
-      console.log('Facebook logout:', error);
+      console.log('⚠️ FACEBOOK LOGOUT:', error);
     }
 
     console.log('🔥 COMPLETE LOGOUT SUCCESS');

@@ -67,6 +67,11 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={Routes.ABOUT} component={Screens.About} />
 
       <Drawer.Screen name={Routes.CATEGORIES} component={Screens.Categories} />
+      <Drawer.Screen
+        name={Routes.SUB_CATEGORIES}
+        component={Screens.SubCategories}
+      />
+      <Drawer.Screen name={Routes.QUOTES} component={Screens.Quotes} />
     </Drawer.Navigator>
   );
 };

@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
     height: moderateScale(40),
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: moderateScale(10),
+    paddingHorizontal: moderateScale(8),
     backgroundColor: COLORS.white,
   },
   side: {
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: moderateScale(20),
+    fontSize: moderateScale(18),
     lineHeight: moderateScale(20),
     fontWeight: '700',
     color: COLORS.black,

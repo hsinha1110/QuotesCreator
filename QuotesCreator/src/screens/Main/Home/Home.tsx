@@ -1,61 +1,116 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, ScrollView } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
+import { DrawerActions, useNavigation } from '@react-navigation/native';
+
+import moment from 'moment';
+
+import { AppDispatch, RootState } from '@/redux/store';
 import { useAppDispatch } from '@/redux/hooks';
+
 import { dailyNotificationsThunk } from '@/redux/thunk/dailyNotificationsThunk';
 import { latestQuotesThunk } from '@/redux/thunk/latestThunk';
 import { categoriesThunk } from '@/redux/thunk/categoriesThunk';
 import { popularQuotesThunk } from '@/redux/thunk/popularThunk';
+
 import { navigate } from '@/utils/NavigationUtils';
-import { Quote, Category } from '@/types';
-import { DrawerActions, useNavigation } from '@react-navigation/native';
+
+import { Quote, Category, DailyQuote } from '@/types';
+
 import Header from '@/components/Header/Header';
 import CustomDrawer from '@/components/CustomDrawer/CustomDrawer';
 import SectionHeader from '@/components/SectionHeader/SectionHeader';
 import ItemLatestQuotes from '@/components/ListItems/ItemLatestQuotes/ItemLatestQuotes';
 import ItemCategories from '@/components/ListItems/ItemCategories/ItemCategories';
 import ItemPopular from '@/components/ListItems/ItemPopular/ItemPopular';
-import QuoteActions from '@/components/QuotesActions/QuotesActions';
+
 import IMAGES from '@/assets/images';
-import styles from './styles';
 import Routes from '@/navigations/Routes';
-import moment from 'moment';
+
+import styles from './styles';
+import QuoteActions from '@/components/QuotesActions/QuotesActions';
+import { toggleFavourite } from '@/redux/slices/favouriteSlice';
+
 const Home = () => {
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch<AppDispatch>();
   const navigation = useNavigation();
-  const userId = useSelector((state: RootState) => state.auth.user?.id);
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const categories = useSelector(
-    (state: RootState) => state.categories.categories,
+    (state: RootState) => state.categories.categories || [],
   );
-  const latest = useSelector((state: RootState) => state.latestQuotes.quotes);
-  const popular = useSelector((state: RootState) => state.popularQuotes.quotes);
+  const favourites = useSelector(
+    (state: RootState) => state.favourites.favourites || [],
+  );
+  const latest = useSelector(
+    (state: RootState) => state.latestQuotes.quotes || [],
+  );
+
+  const popular = useSelector(
+    (state: RootState) => state.popularQuotes.quotes || [],
+  );
+
   const notifications = useSelector(
     (state: RootState) => state.notifications.notifications || [],
   );
 
-  const dailyQuote = notifications?.[0];
+  const [dailyQuote, setDailyQuote] = useState<DailyQuote | null>(null);
+  const isDailyFavorite = Boolean(
+    dailyQuote?._id &&
+      favourites.some(favourite => favourite._id === dailyQuote._id),
+  );
   const unreadCount = notifications.filter(
     notification => !notification.isRead,
   ).length;
-  
-  useEffect(() => {
-    if (!userId) {
-      console.log('USER ID NOT FOUND');
+  const handleDailyFavorite = () => {
+    if (!dailyQuote?._id) {
+      console.log('DAILY QUOTE ID NOT FOUND');
       return;
     }
-    console.log('FETCHING DAILY NOTIFICATIONS:', userId);
-    dispatch(dailyNotificationsThunk(userId))
-      .unwrap()
-      .then(response => {
-        console.log('DAILY NOTIFICATIONS RESPONSE:', response);
-      })
-      .catch(error => {
-        console.log('DAILY NOTIFICATIONS ERROR:', error);
-      });
-  }, [userId, dispatch]);
+
+    console.log(
+      isDailyFavorite ? '💔 REMOVE DAILY FAVORITE:' : '❤️ ADD DAILY FAVORITE:',
+      dailyQuote._id,
+    );
+
+    dispatch(
+      toggleFavourite({
+        _id: dailyQuote._id,
+        text: dailyQuote.text,
+        author: dailyQuote.author,
+      }),
+    );
+  };
+  useEffect(() => {
+    const fetchDailyQuote = async () => {
+      try {
+        console.log('FETCHING DAILY QUOTE: English');
+
+        const response = await dispatch(
+          dailyNotificationsThunk('English'),
+        ).unwrap();
+
+        console.log('DAILY QUOTE RESPONSE:', response);
+
+        if (response?.success && response?.quote) {
+          console.log('DAILY QUOTE:', response.quote);
+
+          setDailyQuote(response.quote);
+        } else {
+          console.log('DAILY QUOTE NOT FOUND');
+
+          setDailyQuote(null);
+        }
+      } catch (error) {
+        console.log('DAILY QUOTE ERROR:', error);
+
+        setDailyQuote(null);
+      }
+    };
+
+    fetchDailyQuote();
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(
@@ -87,27 +142,36 @@ const Home = () => {
     );
   }, [dispatch]);
 
-  useEffect(() => {
-    if (!userId) {
-      console.log('USER ID NOT FOUND');
-      return;
-    }
-
-    dispatch(dailyNotificationsThunk(userId));
-  }, [userId, dispatch]);
-
-  const openDrawer = () => {
-    setDrawerVisible(true);
-  };
-
   const closeDrawer = () => {
     setDrawerVisible(false);
   };
 
   const handleCategories = () => {
-    console.log('Categories handle');
     navigate(Routes.CATEGORIES);
   };
+
+  const handleSubCategories = (item: Category) => {
+    console.log('CATEGORY ID:', item._id);
+    console.log('CATEGORY NAME:', item.name);
+
+    navigate(Routes.SUB_CATEGORIES, {
+      categoryId: item._id,
+      categoryName: item.name,
+    });
+  };
+
+  const handleNotificationPress = () => {
+    navigate(Routes.NOTIFICATIONS);
+  };
+
+  const handleDailyShare = () => {
+    if (!dailyQuote?._id) {
+      return;
+    }
+
+    console.log('DAILY QUOTE SHARE:', dailyQuote._id);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Header
@@ -115,7 +179,7 @@ const Home = () => {
         onMenuPress={() => {
           navigation.dispatch(DrawerActions.openDrawer());
         }}
-        onNotificationPress={() => navigate(Routes.NOTIFICATIONS)}
+        onNotificationPress={handleNotificationPress}
         notificationCount={unreadCount}
       />
 
@@ -124,48 +188,62 @@ const Home = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <Text style={styles.title}>Good Morning! 👋</Text>
+
         <Text style={styles.subtitle}>Find inspiration for your day</Text>
-        <Text style={styles.notificationLabel}>DAILY QUOTE</Text>
 
         {dailyQuote && (
-          <View style={styles.notificationCard}>
-            <Image source={IMAGES.QUOTES} style={styles.quoteIcon} />
-            <View style={styles.quoteContent}>
-              <Text style={styles.notificationTitle}>{dailyQuote.title}</Text>
-              <Text style={styles.notificationBody}>{dailyQuote.body}</Text>
-            </View>
-            <View style={styles.dailyBottomRow}>
-              <Text style={styles.dailyDate}>
-                {dailyQuote.createdAt
-                  ? moment(dailyQuote.createdAt).format('DD MMM YYYY • h:mm A')
-                  : ''}
-              </Text>
+          <>
+            <SectionHeader title="DAILY QUOTES" />
 
-              <QuoteActions
-                isFavorite={false}
-                onFavoritePress={() => {
-                  console.log('Favorite daily quote');
-                }}
-                onSharePress={() => {
-                  console.log('Share daily quote');
-                }}
-              />
+            <View style={styles.notificationCard}>
+              <Image source={IMAGES.QUOTES} style={styles.quoteIcon} />
+
+              <View style={styles.quoteContent}>
+                <Text style={styles.notificationTitle}>{dailyQuote.title}</Text>
+
+                <Text style={styles.notificationBody}>{dailyQuote.text}</Text>
+              </View>
+
+              <View style={styles.dailyBottomRow}>
+                <Text style={styles.dailyDate}>
+                  {dailyQuote.createdAt
+                    ? moment(dailyQuote.createdAt).format(
+                        'DD MMM YYYY • h:mm A',
+                      )
+                    : ''}
+                </Text>
+
+                <QuoteActions
+                  isFavorite={isDailyFavorite}
+                  onFavoritePress={handleDailyFavorite}
+                  onSharePress={handleDailyShare}
+                />
+              </View>
             </View>
-          </View>
+          </>
         )}
+
         <SectionHeader title="Categories" onViewAllPress={handleCategories} />
+
         <FlatList<Category>
           data={categories.slice(0, 8)}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={item => item._id}
-          renderItem={({ item }) => <ItemCategories item={item} />}
+          renderItem={({ item }) => (
+            <ItemCategories
+              item={item}
+              onPress={() => handleSubCategories(item)}
+            />
+          )}
           contentContainerStyle={styles.categoryList}
           ItemSeparatorComponent={() => (
             <View style={styles.categorySeparator} />
           )}
         />
+
         <SectionHeader title="Latest" onViewAllPress={() => {}} />
+
         <FlatList<Quote>
           data={latest.slice(0, 8)}
           horizontal
@@ -175,7 +253,9 @@ const Home = () => {
           contentContainerStyle={styles.latestList}
           ItemSeparatorComponent={() => <View style={styles.latestSeparator} />}
         />
+
         <SectionHeader title="Popular" onViewAllPress={() => {}} />
+
         <FlatList<Quote>
           data={popular.slice(0, 8)}
           horizontal
@@ -188,6 +268,7 @@ const Home = () => {
           )}
         />
       </ScrollView>
+
       <CustomDrawer visible={drawerVisible} onClose={closeDrawer} />
     </SafeAreaView>
   );

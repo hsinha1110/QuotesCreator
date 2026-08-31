@@ -13,11 +13,9 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: moderateScale(14),
-
+    fontSize: moderateScale(12),
     fontWeight: '700',
-
-    color: COLORS.black,
+    color: COLORS.accent,
   },
 
   viewAll: {

@@ -1,31 +1,26 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import api from '@/api/axiosinterceptors';
-
-import { SERVICE_ROUTES, ASYNC_ROUTES } from '@/redux/constants';
+import { ASYNC_ROUTES } from '@/redux/constants';
+import { RootState } from '@/redux/store';
+import { dailyNotificationService } from '../services/dailyNotificationService';
 
 export const dailyNotificationsThunk = createAsyncThunk(
-  ASYNC_ROUTES.GET_NOTIFICATIONS,
+  ASYNC_ROUTES.DAILY_QUOTE,
 
-  async (userId: string, { rejectWithValue }) => {
+  async (language: 'English' | 'Hindi', { rejectWithValue, getState }) => {
     try {
-      console.log('🔥 GET NOTIFICATIONS THUNK:', userId);
+      const state = getState() as RootState;
 
-      const response = await api.get(
-        `${SERVICE_ROUTES.NOTIFICATION_HISTORY}/${userId}`,
-      );
+      if (!state.auth.token) {
+        return rejectWithValue('Authentication token not found');
+      }
 
-      console.log('🔥 GET NOTIFICATIONS RESPONSE:', response.data);
+      const response = await dailyNotificationService(language);
 
-      return response.data;
+      return response;
     } catch (error: any) {
-      console.log(
-        '❌ GET NOTIFICATIONS ERROR:',
-        error?.response?.data || error,
-      );
-
       return rejectWithValue(
-        error?.response?.data?.message || 'Failed to fetch notifications',
+        error?.response?.data?.message || 'Failed to fetch daily quote',
       );
     }
   },

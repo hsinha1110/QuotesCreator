@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const dispatch = useDispatch<AppDispatch>();
 
   const [user, setUser] = useState<any>(null);
-
   const [loading, setLoading] = useState(true);
 
   // =====================================================
@@ -37,27 +36,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(firebaseAuth, firebaseUser => {
-      try {
-        console.log(
-          '🔥 Firebase Auth State:',
-          firebaseUser
-            ? {
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                name: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-              }
-            : null,
-        );
+      console.log(
+        '🔥 Firebase Auth State:',
+        firebaseUser
+          ? {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              name: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+            }
+          : null,
+      );
 
-        setUser(firebaseUser);
-
-        setLoading(false);
-      } catch (error) {
-        console.log('❌ Firebase Auth State Error:', error);
-
-        setLoading(false);
-      }
+      setUser(firebaseUser);
+      setLoading(false);
     });
 
     return unsubscribe;
@@ -69,8 +61,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const googleLogin = async () => {
     try {
+      console.log('================================');
       console.log('🔥 GOOGLE LOGIN STARTED');
+      console.log('================================');
 
+      // Firebase Google login
       const response = await googleLoginService();
 
       const firebaseUser = response?.user;
@@ -85,34 +80,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         name: firebaseUser.displayName,
       });
 
+      // Firebase ID Token
       const firebaseToken = await firebaseUser.getIdToken();
-
-      console.log('🔥 FIREBASE TOKEN EXISTS:', !!firebaseToken);
 
       if (!firebaseToken) {
         throw new Error('Google Firebase token not found');
       }
 
+      console.log('🔥 GOOGLE FIREBASE TOKEN EXISTS:', !!firebaseToken);
+
+      // =================================================
+      // BACKEND SOCIAL LOGIN
+      // =================================================
+
       const mongoResponse = await dispatch(
         socialLoginThunk({
           firebaseUid: firebaseUser.uid,
-
           name: firebaseUser.displayName ?? '',
-
           email: firebaseUser.email ?? '',
-
           profileImage: firebaseUser.photoURL ?? null,
-
-          provider: 'google',
-
+          provider: 'facebook',
           language: 'English',
         }),
       ).unwrap();
 
       console.log('🔥 GOOGLE MONGO RESPONSE:', mongoResponse);
 
+      // =================================================
+      // VALIDATE BACKEND RESPONSE
+      // =================================================
+
       if (!mongoResponse?.success) {
-        throw new Error(mongoResponse?.message || 'Social login failed');
+        throw new Error(mongoResponse?.message || 'Google social login failed');
       }
 
       if (!mongoResponse?.token) {
@@ -122,6 +121,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (!mongoResponse?.user?.id) {
         throw new Error('MongoDB user ID not received');
       }
+
+      // =================================================
+      // SAVE REDUX AUTH
+      // =================================================
 
       dispatch(
         setAuth({
@@ -142,13 +145,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }),
       );
 
-      console.log('🔥 GOOGLE AUTH SAVED TO REDUX');
+      console.log('✅ GOOGLE AUTH SAVED TO REDUX');
 
-      console.log('🔥 REDUX USER ID:', mongoResponse.user.id);
+      console.log('🔥 MONGODB USER ID:', mongoResponse.user.id);
 
       return mongoResponse;
-    } catch (error) {
-      console.log('❌ Google Login Error:', error);
+    } catch (error: any) {
+      console.log(
+        '❌ GOOGLE LOGIN ERROR:',
+        error?.code,
+        error?.message || error,
+      );
 
       throw error;
     }
@@ -160,8 +167,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const facebookLogin = async () => {
     try {
+      console.log('================================');
       console.log('🔥 FACEBOOK LOGIN STARTED');
+      console.log('================================');
 
+      // Firebase Facebook login
       const response = await facebookLoginService();
 
       const firebaseUser = response?.user;
@@ -170,8 +180,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         throw new Error('Facebook Firebase user not found');
       }
 
-      console.log('🔥 FACEBOOK FIREBASE UID:', firebaseUser.uid);
+      console.log('🔥 FACEBOOK FIREBASE USER:', {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+      });
 
+      // Firebase ID Token
       const firebaseToken = await firebaseUser.getIdToken();
 
       if (!firebaseToken) {
@@ -179,6 +194,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       console.log('🔥 FACEBOOK FIREBASE TOKEN EXISTS:', !!firebaseToken);
+
+      // =================================================
+      // BACKEND SOCIAL LOGIN
+      // =================================================
 
       const mongoResponse = await dispatch(
         socialLoginThunk({
@@ -188,8 +207,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
           email: firebaseUser.email ?? '',
 
-          profileImage:
-            firebaseUser.photoURL ?? response?.user?.photoURL ?? null,
+          profileImage: firebaseUser.photoURL ?? null,
 
           provider: 'facebook',
 
@@ -198,6 +216,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       ).unwrap();
 
       console.log('🔥 FACEBOOK MONGO RESPONSE:', mongoResponse);
+
+      // =================================================
+      // VALIDATE BACKEND RESPONSE
+      // =================================================
 
       if (!mongoResponse?.success) {
         throw new Error(
@@ -213,35 +235,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         throw new Error('MongoDB user ID not received');
       }
 
+      // =================================================
+      // SAVE REDUX AUTH
+      // =================================================
+
       dispatch(
         setAuth({
           token: mongoResponse.token,
-
           user: {
             id: mongoResponse.user.id,
-
             name: mongoResponse.user.name ?? firebaseUser.displayName ?? '',
-
             email: mongoResponse.user.email ?? firebaseUser.email ?? '',
-
             profileImage:
-              mongoResponse.user.profileImage ??
-              firebaseUser.photoURL ??
-              response?.user?.photoURL ??
-              null,
-
+              mongoResponse.user.profileImage ?? firebaseUser.photoURL ?? null,
             language: mongoResponse.user.language ?? 'English',
           },
         }),
       );
 
-      console.log('🔥 FACEBOOK AUTH SAVED TO REDUX');
+      console.log('✅ FACEBOOK AUTH SAVED TO REDUX');
 
-      console.log('🔥 FACEBOOK MONGO USER ID:', mongoResponse.user.id);
+      console.log('🔥 MONGODB USER ID:', mongoResponse.user.id);
 
       return mongoResponse;
-    } catch (error) {
-      console.log('❌ Facebook Login Error:', error);
+    } catch (error: any) {
+      console.log(
+        '❌ FACEBOOK LOGIN ERROR:',
+        error?.code,
+        error?.message || error,
+      );
+
       throw error;
     }
   };
@@ -254,7 +277,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       console.log('🔥 DELETE ACCOUNT STARTED');
 
-      // MongoDB
+      // -----------------------------------------------
+      // 1. DELETE MONGODB ACCOUNT
+      // -----------------------------------------------
+
       const response = await dispatch(deleteAccountThunk()).unwrap();
 
       if (!response?.success) {
@@ -263,7 +289,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       console.log('✅ MONGODB USER DELETED');
 
-      // Firebase
+      // -----------------------------------------------
+      // 2. DELETE FIREBASE ACCOUNT
+      // -----------------------------------------------
+
       const firebaseUser = firebaseAuth.currentUser;
 
       if (firebaseUser) {
@@ -272,12 +301,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         console.log('✅ FIREBASE USER DELETED');
       }
 
-      // Redux
+      // -----------------------------------------------
+      // 3. CLEAR LOCAL STATE
+      // -----------------------------------------------
+
       setUser(null);
 
       dispatch(logoutRedux());
 
       console.log('✅ REDUX CLEARED');
+
       console.log('✅ ACCOUNT COMPLETELY DELETED');
     } catch (error: any) {
       console.log('❌ DELETE ACCOUNT ERROR:', error?.code, error?.message);
@@ -287,7 +320,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   // =====================================================
-  // NORMAL LOGOUT
+  // LOGOUT
   // =====================================================
 
   const logout = async (): Promise<void> => {
@@ -296,17 +329,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       await logoutService();
 
-      console.log('🔥 PROVIDER LOGOUT SUCCESS');
-    } catch (error) {
-      console.log('❌ Provider Logout Error:', error);
+      console.log('✅ FIREBASE LOGOUT SUCCESS');
+    } catch (error: any) {
+      console.log('❌ PROVIDER LOGOUT ERROR:', error?.code, error?.message);
     } finally {
+      // Always clear local state
       setUser(null);
 
       dispatch(logoutRedux());
 
-      console.log('🔥 REDUX AUTH CLEARED');
-
-      console.log('🔥 USER COMPLETELY LOGGED OUT');
+      console.log('✅ REDUX AUTH CLEARED');
     }
   };
 
