@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    // ==========================================
+    // BASIC USER
+    // ==========================================
+
     name: {
       type: String,
       required: true,
@@ -68,11 +72,29 @@ const userSchema = new mongoose.Schema(
 
     language: {
       type: String,
-      enum: [
-        "English",
-        "Hindi",
-      ],
+      enum: ["English", "Hindi"],
       default: "English",
+    },
+
+    // ==========================================
+    // NOTIFICATION SETTINGS
+    // ==========================================
+
+    notificationSettings: {
+      dailyQuote: {
+        type: Boolean,
+        default: true,
+      },
+
+      notificationTime: {
+        type: String,
+        default: "08:00",
+      },
+
+      timezone: {
+        type: String,
+        default: "Asia/Kolkata",
+      },
     },
   },
   {
@@ -80,4 +102,4 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);

@@ -19,3 +19,30 @@ export const NotificationsTabs = [
     title: 'Unread',
   },
 ];
+
+export const timeZoneData = [
+  {
+    label: 'Africa/Abidjan',
+    value: 'Africa/Abidjan',
+  },
+  {
+    label: 'Africa/Accra',
+    value: 'Africa/Accra',
+  },
+  {
+    label: 'Asia/Kolkata',
+    value: 'Asia/Kolkata',
+  },
+  {
+    label: 'Asia/Dubai',
+    value: 'Asia/Dubai',
+  },
+  {
+    label: 'Asia/Tokyo',
+    value: 'Asia/Tokyo',
+  },
+  {
+    label: 'America/New_York',
+    value: 'America/New_York',
+  },
+];

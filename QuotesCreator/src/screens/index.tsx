@@ -16,3 +16,5 @@ export { default as Downloads } from '@/screens/Main/Downloads/Downloads';
 export { default as Categories } from '@/screens/Main/Categories/Categories';
 export { default as SubCategories } from '@/screens/Main/SubCategories/SubCategories';
 export { default as Quotes } from '@/screens/Main/Quotes/Quotes';
+export { default as NotificationsSettings } from '@/screens/Main/NotificaitonsSettings/NotificationsSettings';
+export { default as TimeZone } from '@/screens/Main/TimeZone/TimeZone';

@@ -21,7 +21,20 @@ const styles = StyleSheet.create({
   rightSide: {
     alignItems: 'flex-end',
   },
+  rightButton: {
+    minHeight: moderateScale(40),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: moderateScale(4),
+  },
 
+  rightText: {
+    fontSize: moderateScale(14),
+    fontWeight: 'bold',
+    color: COLORS.accent,
+    marginRight: moderateScale(6),
+  },
   center: {
     flex: 1,
     alignItems: 'center',

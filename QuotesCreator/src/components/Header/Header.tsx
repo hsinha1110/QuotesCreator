@@ -1,14 +1,14 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { moderateScale } from 'react-native-size-matters';
-import { HeaderProps } from '@/types';
+import {View, Text, TouchableOpacity} from 'react-native';
+import {moderateScale} from 'react-native-size-matters';
+import {HeaderProps} from '@/types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLORS from '@/constants/Colors';
 import styles from './styles';
-import Entypo from 'react-native-vector-icons/Entypo';
 
 const Header = ({
   title,
+
   // LEFT
   icon = 'menu-outline',
   onMenuPress,
@@ -16,6 +16,7 @@ const Header = ({
 
   // RIGHT
   rightIcon,
+  rightText,
   onRightPress,
 
   // NOTIFICATION
@@ -31,8 +32,7 @@ const Header = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onMenuPress}
-            style={styles.iconButton}
-          >
+            style={styles.iconButton}>
             <Ionicons
               name={icon}
               size={moderateScale(25)}
@@ -51,24 +51,32 @@ const Header = ({
 
       {/* RIGHT */}
       <View style={[styles.side, styles.rightSide]}>
-        {rightIcon ? (
+        {rightIcon || rightText ? (
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onRightPress}
-            style={styles.iconButton}
-          >
-            <Ionicons
-              name={rightIcon}
-              size={moderateScale(23)}
-              color={COLORS.black}
-            />
+            style={styles.rightButton}>
+            
+            {rightText ? (
+              <Text style={styles.rightText} numberOfLines={1}>
+                {rightText}
+              </Text>
+            ) : null}
+
+            {rightIcon ? (
+              <Ionicons
+                name={rightIcon}
+                size={moderateScale(23)}
+                color={COLORS.black}
+              />
+            ) : null}
           </TouchableOpacity>
         ) : showNotification ? (
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onNotificationPress}
-            style={styles.iconButton}
-          >
+            style={styles.iconButton}>
+            
             <Ionicons
               name="notifications-outline"
               size={moderateScale(23)}

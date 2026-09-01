@@ -5,15 +5,15 @@ const notificationTokenSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null,
+      required: true,
       index: true,
     },
 
     fcmToken: {
       type: String,
       required: true,
-      trim: true,
       unique: true,
+      trim: true,
     },
 
     platform: {
@@ -32,22 +32,10 @@ const notificationTokenSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-
-    lastUsedAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
   {
     timestamps: true,
   },
 );
 
-notificationTokenSchema.index({
-  userId: 1,
-  isActive: 1,
-});
-
-module.exports =
-  mongoose.models.NotificationToken ||
-  mongoose.model("NotificationToken", notificationTokenSchema);
+module.exports = mongoose.model("NotificationToken", notificationTokenSchema);

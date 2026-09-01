@@ -7,6 +7,7 @@
       "dependencies": {
         "@notifee/react-native": "^9.1.8",
         "@react-native-async-storage/async-storage": "^3.1.1",
+        "@react-native-community/datetimepicker": "^9.1.0",
         "@react-native-firebase/app": "^26.3.2",
         "@react-native-firebase/auth": "^26.3.2",
         "@react-native-firebase/messaging": "^26.3.2",
@@ -592,6 +593,8 @@
     "@react-native-community/cli-tools": ["@react-native-community/cli-tools@20.2.0", "", { "dependencies": { "@vscode/sudo-prompt": "^9.0.0", "appdirsjs": "^1.2.4", "execa": "^5.0.0", "find-up": "^5.0.0", "launch-editor": "^2.9.1", "mime": "^2.4.1", "ora": "^5.4.1", "picocolors": "^1.1.1", "prompts": "^2.4.2", "semver": "^7.5.2" } }, "sha512-A5W2nqlTidPzGyXzS57jvHsMpQd8iOGSjePj4H318uMbhIdeIHQ5e59fNbdHahS62ISs+2p9s78sVHMbGVa1bg=="],
 
     "@react-native-community/cli-types": ["@react-native-community/cli-types@20.2.0", "", { "dependencies": { "joi": "^17.2.1" } }, "sha512-K60zY/ly8G9rGJQzZ+bFRyLEckAUzyF8Fu9a2Kw6JipCrOl7SiVRBVqjvOr/XnCRKuOpH8i9y7RVg07wkSGRBQ=="],
+
+    "@react-native-community/datetimepicker": ["@react-native-community/datetimepicker@9.1.0", "", { "dependencies": { "invariant": "^2.2.4" }, "peerDependencies": { "expo": ">=52.0.0", "react": "*", "react-native": "*", "react-native-windows": "*" }, "optionalPeers": ["expo", "react-native-windows"] }, "sha512-eadbnk+I2vxvW30iTAsm/qlCnMMAadkifIMYNEB2lzhxN/SvlKc7S2V4k5DyrwjdCbqdcMk3t9K6fnUMcAV34w=="],
 
     "@react-native-firebase/app": ["@react-native-firebase/app@26.3.2", "", { "dependencies": { "firebase": "12.17.1" }, "peerDependencies": { "expo": ">=47.0.0", "react": "*", "react-native": "*" }, "optionalPeers": ["expo"] }, "sha512-AtPF1PhUI7AjYCKp7XS9+IMP+T1IpPk9rx0ZhjhS2hcxKjNFThpH1ntSlolvwGXORov7e51PZ2XfYOnkmuJuEQ=="],
 

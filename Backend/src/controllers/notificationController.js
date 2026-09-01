@@ -4,8 +4,7 @@ const { getMessaging } = require("firebase-admin/messaging");
 
 const NotificationToken = require("../models/NotificationTokens");
 const Notification = require("../models/Notification");
-const Quote = require("../models/Quote");
-
+const User = require("../models/User");
 // Firebase initialize
 require("../config/firebase");
 
@@ -530,7 +529,104 @@ const getNotifications = async (req, res) => {
     });
   }
 };
+// =====================================================
+// UPDATE NOTIFICATION SETTINGS
+// =====================================================
 
+const updateNotificationSettings = async (req, res) => {
+  try {
+    console.log("REQ.USER:", req.user);
+    console.log("REQ.BODY:", req.body);
+
+    // JWT ke andar field userId hai
+    const userId = req.user?.userId;
+
+    console.log("USER ID:", userId);
+
+    // Validate MongoDB ObjectId
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const { dailyQuote, notificationTime, timezone } = req.body;
+
+    // Validate notification time
+    if (
+      notificationTime &&
+      !/^([01]\d|2[0-3]):([0-5]\d)$/.test(notificationTime)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid notification time. Use HH:mm format.",
+      });
+    }
+
+    // Validate timezone
+    if (timezone) {
+      try {
+        Intl.DateTimeFormat("en-US", {
+          timeZone: timezone,
+        });
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid timezone",
+        });
+      }
+    }
+
+    const updateData = {};
+
+    if (typeof dailyQuote === "boolean") {
+      updateData["notificationSettings.dailyQuote"] = dailyQuote;
+    }
+
+    if (notificationTime) {
+      updateData["notificationSettings.notificationTime"] = notificationTime;
+    }
+
+    if (timezone) {
+      updateData["notificationSettings.timezone"] = timezone;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: updateData,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).select("notificationSettings");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    console.log("UPDATED SETTINGS:", user.notificationSettings);
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification settings updated successfully",
+      data: user.notificationSettings,
+    });
+  } catch (error) {
+    console.error("UPDATE NOTIFICATION SETTINGS ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update notification settings",
+      error: error.message,
+    });
+  }
+};
 // =====================================================
 // GET UNREAD COUNT
 // =====================================================
@@ -714,4 +810,5 @@ module.exports = {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
+  updateNotificationSettings,
 };

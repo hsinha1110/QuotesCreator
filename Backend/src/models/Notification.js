@@ -48,11 +48,13 @@ const notificationSchema = new mongoose.Schema(
   },
 );
 
+// Latest notifications for a user
 notificationSchema.index({
   userId: 1,
   createdAt: -1,
 });
 
+// Unread notifications for a user
 notificationSchema.index({
   userId: 1,
   isRead: 1,

@@ -46,6 +46,8 @@ export const SERVICE_ROUTES = {
   SUB_CATEGORIES: 'api/subcategories',
 
   QUOTES: 'api/quotes',
+
+  NOTIFICATIONS_SETTINGS: 'api/notifications/notification-settings',
 } as const;
 //=================== METHODS ==============================
 

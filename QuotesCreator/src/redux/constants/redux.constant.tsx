@@ -26,6 +26,7 @@ export const ASYNC_ROUTES = {
   NOTIFICATIONS_HISTORY_BY_ID: 'notificationsHistory',
   READ_NOTIFICATIONS: 'readNotifications',
   DELETE_NOTIFICATIONS: 'deleteNotifications',
+  NOTIFICATIONS_SETTINGS: 'notificationsSettings',
 } as const;
 
 //==================== Thunk Status =====================

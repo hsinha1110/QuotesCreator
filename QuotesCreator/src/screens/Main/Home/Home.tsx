@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Image, FlatList, ScrollView } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,18 +10,19 @@ import moment from 'moment';
 import { AppDispatch, RootState } from '@/redux/store';
 import { useAppDispatch } from '@/redux/hooks';
 
-import { dailyNotificationsThunk } from '@/redux/thunk/dailyNotificationsThunk';
 import { latestQuotesThunk } from '@/redux/thunk/latestThunk';
 import { categoriesThunk } from '@/redux/thunk/categoriesThunk';
 import { popularQuotesThunk } from '@/redux/thunk/popularThunk';
+import { notificationHistoryByIdThunk } from '@/redux/thunk/notificationHistoryByIdThunk';
 
 import { navigate } from '@/utils/NavigationUtils';
 
-import { Quote, Category, DailyQuote } from '@/types';
+import { Quote, Category } from '@/types';
 
 import Header from '@/components/Header/Header';
 import CustomDrawer from '@/components/CustomDrawer/CustomDrawer';
 import SectionHeader from '@/components/SectionHeader/SectionHeader';
+
 import ItemLatestQuotes from '@/components/ListItems/ItemLatestQuotes/ItemLatestQuotes';
 import ItemCategories from '@/components/ListItems/ItemCategories/ItemCategories';
 import ItemPopular from '@/components/ListItems/ItemPopular/ItemPopular';
@@ -30,87 +31,118 @@ import IMAGES from '@/assets/images';
 import Routes from '@/navigations/Routes';
 
 import styles from './styles';
+
 import QuoteActions from '@/components/QuotesActions/QuotesActions';
 import { toggleFavourite } from '@/redux/slices/favouriteSlice';
 
 const Home = () => {
   const dispatch = useAppDispatch<AppDispatch>();
   const navigation = useNavigation();
+
   const [drawerVisible, setDrawerVisible] = useState(false);
+
+  // =====================================================
+  // AUTH
+  // =====================================================
+
+  const userId = useSelector(
+    (state: RootState) =>
+      state.auth?.user?.id ||
+      state.auth?.user?.id ||
+      state.auth?.user?.id ||
+      '',
+  );
+
+  // =====================================================
+  // CATEGORIES
+  // =====================================================
+
   const categories = useSelector(
     (state: RootState) => state.categories.categories || [],
   );
+
+  // =====================================================
+  // FAVOURITES
+  // =====================================================
+
   const favourites = useSelector(
     (state: RootState) => state.favourites.favourites || [],
   );
+
+  // =====================================================
+  // LATEST
+  // =====================================================
+
   const latest = useSelector(
     (state: RootState) => state.latestQuotes.quotes || [],
   );
+
+  // =====================================================
+  // POPULAR
+  // =====================================================
 
   const popular = useSelector(
     (state: RootState) => state.popularQuotes.quotes || [],
   );
 
+  // =====================================================
+  // NOTIFICATIONS
+  // =====================================================
+
   const notifications = useSelector(
     (state: RootState) => state.notifications.notifications || [],
   );
 
-  const [dailyQuote, setDailyQuote] = useState<DailyQuote | null>(null);
-  const isDailyFavorite = Boolean(
-    dailyQuote?._id &&
-      favourites.some(favourite => favourite._id === dailyQuote._id),
-  );
+  // =====================================================
+  // LATEST DAILY QUOTE NOTIFICATION
+  // =====================================================
+
+  const dailyQuote = useMemo(() => {
+    const dailyNotifications = notifications.filter(
+      notification => notification.type === 'daily_quote',
+    );
+
+    if (!dailyNotifications.length) {
+      return null;
+    }
+
+    // Latest notification
+    return [...dailyNotifications].sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime(),
+    )[0];
+  }, [notifications]);
+
+  // =====================================================
+  // UNREAD COUNT
+  // =====================================================
+
   const unreadCount = notifications.filter(
     notification => !notification.isRead,
   ).length;
-  const handleDailyFavorite = () => {
-    if (!dailyQuote?._id) {
-      console.log('DAILY QUOTE ID NOT FOUND');
+
+  // =====================================================
+  // FETCH NOTIFICATION HISTORY
+  // =====================================================
+
+  useEffect(() => {
+    if (!userId) {
+      console.log('❌ HOME: USER ID NOT FOUND');
+
       return;
     }
 
-    console.log(
-      isDailyFavorite ? '💔 REMOVE DAILY FAVORITE:' : '❤️ ADD DAILY FAVORITE:',
-      dailyQuote._id,
-    );
+    console.log('🔥 HOME: FETCHING NOTIFICATION HISTORY');
 
-    dispatch(
-      toggleFavourite({
-        _id: dailyQuote._id,
-        text: dailyQuote.text,
-        author: dailyQuote.author,
-      }),
-    );
-  };
-  useEffect(() => {
-    const fetchDailyQuote = async () => {
-      try {
-        console.log('FETCHING DAILY QUOTE: English');
+    console.log('👤 USER ID:', userId);
 
-        const response = await dispatch(
-          dailyNotificationsThunk('English'),
-        ).unwrap();
+    dispatch(notificationHistoryByIdThunk(userId));
+  }, [dispatch, userId]);
 
-        console.log('DAILY QUOTE RESPONSE:', response);
-
-        if (response?.success && response?.quote) {
-          console.log('DAILY QUOTE:', response.quote);
-
-          setDailyQuote(response.quote);
-        } else {
-          console.log('DAILY QUOTE NOT FOUND');
-
-          setDailyQuote(null);
-        }
-      } catch (error) {
-        console.log('DAILY QUOTE ERROR:', error);
-
-        setDailyQuote(null);
-      }
-    };
-
-    fetchDailyQuote();
-  }, [dispatch]);
+  // =====================================================
+  // CATEGORIES API
+  // =====================================================
 
   useEffect(() => {
     dispatch(
@@ -122,6 +154,10 @@ const Home = () => {
     );
   }, [dispatch]);
 
+  // =====================================================
+  // LATEST API
+  // =====================================================
+
   useEffect(() => {
     dispatch(
       latestQuotesThunk({
@@ -131,6 +167,10 @@ const Home = () => {
       }),
     );
   }, [dispatch]);
+
+  // =====================================================
+  // POPULAR API
+  // =====================================================
 
   useEffect(() => {
     dispatch(
@@ -142,9 +182,80 @@ const Home = () => {
     );
   }, [dispatch]);
 
+  // =====================================================
+  // DAILY FAVORITE
+  // =====================================================
+
+  const isDailyFavorite = Boolean(
+    dailyQuote?._id &&
+      favourites.some(
+        favourite =>
+          favourite._id === dailyQuote._id ||
+          favourite._id === dailyQuote.data?.quoteId,
+      ),
+  );
+
+  // =====================================================
+  // FAVORITE DAILY QUOTE
+  // =====================================================
+
+  const handleDailyFavorite = () => {
+    if (!dailyQuote) {
+      console.log('❌ DAILY QUOTE NOT FOUND');
+
+      return;
+    }
+
+    const quoteId = dailyQuote.data?.quoteId || dailyQuote._id;
+
+    const quoteText = dailyQuote.body || '';
+
+    console.log(
+      isDailyFavorite ? '💔 REMOVE DAILY FAVORITE:' : '❤️ ADD DAILY FAVORITE:',
+      quoteId,
+    );
+
+    dispatch(
+      toggleFavourite({
+        _id: quoteId,
+
+        text: quoteText,
+
+        author: 'Unknown',
+      }),
+    );
+  };
+
+  // =====================================================
+  // DAILY SHARE
+  // =====================================================
+
+  const handleDailyShare = () => {
+    if (!dailyQuote) {
+      console.log('❌ DAILY QUOTE NOT FOUND');
+
+      return;
+    }
+
+    console.log(
+      '📤 DAILY QUOTE SHARE:',
+      dailyQuote.data?.quoteId || dailyQuote._id,
+    );
+
+    // Share functionality yahan add kar sakte ho
+  };
+
+  // =====================================================
+  // DRAWER
+  // =====================================================
+
   const closeDrawer = () => {
     setDrawerVisible(false);
   };
+
+  // =====================================================
+  // CATEGORIES
+  // =====================================================
 
   const handleCategories = () => {
     navigate(Routes.CATEGORIES);
@@ -152,6 +263,7 @@ const Home = () => {
 
   const handleSubCategories = (item: Category) => {
     console.log('CATEGORY ID:', item._id);
+
     console.log('CATEGORY NAME:', item.name);
 
     navigate(Routes.SUB_CATEGORIES, {
@@ -160,20 +272,24 @@ const Home = () => {
     });
   };
 
+  // =====================================================
+  // NOTIFICATIONS
+  // =====================================================
+
   const handleNotificationPress = () => {
     navigate(Routes.NOTIFICATIONS);
   };
 
-  const handleDailyShare = () => {
-    if (!dailyQuote?._id) {
-      return;
-    }
-
-    console.log('DAILY QUOTE SHARE:', dailyQuote._id);
-  };
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
       <Header
         title="QuotesCreator"
         onMenuPress={() => {
@@ -183,26 +299,52 @@ const Home = () => {
         notificationCount={unreadCount}
       />
 
+      {/* =================================================
+          CONTENT
+      ================================================= */}
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* =================================================
+            GREETING
+        ================================================= */}
+
         <Text style={styles.title}>Good Morning! 👋</Text>
 
         <Text style={styles.subtitle}>Find inspiration for your day</Text>
 
-        {dailyQuote && (
+        {/* =================================================
+            DAILY QUOTE
+        ================================================= */}
+
+        {dailyQuote && dailyQuote.body ? (
           <>
             <SectionHeader title="DAILY QUOTES" />
 
             <View style={styles.notificationCard}>
+              {/* -----------------------------------------
+                  ICON
+              ----------------------------------------- */}
+
               <Image source={IMAGES.QUOTES} style={styles.quoteIcon} />
 
-              <View style={styles.quoteContent}>
-                <Text style={styles.notificationTitle}>{dailyQuote.title}</Text>
+              {/* -----------------------------------------
+                  CONTENT
+              ----------------------------------------- */}
 
-                <Text style={styles.notificationBody}>{dailyQuote.text}</Text>
+              <View style={styles.quoteContent}>
+                <Text style={styles.notificationTitle}>
+                  {dailyQuote.title || "Today's Thought"}
+                </Text>
+
+                <Text style={styles.notificationBody}>{dailyQuote.body}</Text>
               </View>
+
+              {/* -----------------------------------------
+                  BOTTOM
+              ----------------------------------------- */}
 
               <View style={styles.dailyBottomRow}>
                 <Text style={styles.dailyDate}>
@@ -221,7 +363,11 @@ const Home = () => {
               </View>
             </View>
           </>
-        )}
+        ) : null}
+
+        {/* =================================================
+            CATEGORIES
+        ================================================= */}
 
         <SectionHeader title="Categories" onViewAllPress={handleCategories} />
 
@@ -242,6 +388,10 @@ const Home = () => {
           )}
         />
 
+        {/* =================================================
+            LATEST
+        ================================================= */}
+
         <SectionHeader title="Latest" onViewAllPress={() => {}} />
 
         <FlatList<Quote>
@@ -253,6 +403,10 @@ const Home = () => {
           contentContainerStyle={styles.latestList}
           ItemSeparatorComponent={() => <View style={styles.latestSeparator} />}
         />
+
+        {/* =================================================
+            POPULAR
+        ================================================= */}
 
         <SectionHeader title="Popular" onViewAllPress={() => {}} />
 
@@ -268,6 +422,10 @@ const Home = () => {
           )}
         />
       </ScrollView>
+
+      {/* =================================================
+          DRAWER
+      ================================================= */}
 
       <CustomDrawer visible={drawerVisible} onClose={closeDrawer} />
     </SafeAreaView>

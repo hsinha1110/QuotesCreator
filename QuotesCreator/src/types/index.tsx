@@ -142,17 +142,24 @@ export type NotificationState = {
   error: string | null;
 };
 
-export type HeaderProps = {
+export interface HeaderProps {
   title: string;
+
+  // LEFT
   icon?: string;
   onMenuPress?: () => void;
   showMenu?: boolean;
+
+  // RIGHT
   rightIcon?: string;
+  rightText?: string;
   onRightPress?: () => void;
+
+  // NOTIFICATION
   onNotificationPress?: () => void;
   showNotification?: boolean;
   notificationCount?: number;
-};
+}
 export type Language = 'English' | 'Hindi';
 
 export type LatestQuotesParams = {
@@ -177,17 +184,25 @@ export type Quote = {
   displayText: string;
 };
 
-export type DailyQuote = {
+export interface DailyQuote {
   _id: string;
-  title: string;
+
   text: string;
-  language: 'English' | 'Hindi';
+
+  textEnglish?: string;
+
+  textHindi?: string;
+
   author?: string;
-  categoryId?: string;
-  image?: string;
+
+  title?: string;
+
+  imageUrl?: string;
+
   createdAt?: string;
+
   updatedAt?: string;
-};
+}
 
 export type DailyQuoteCardProps = {
   quote: DailyQuote;
@@ -394,3 +409,15 @@ export type ItemFavouritesProps = {
   item: Quote;
   onShare?: (item: Quote) => void;
 };
+
+export type TimeZoneItem = {
+  label: string;
+  value: string;
+};
+
+export interface RegisterDeviceData {
+  userId: string;
+  fcmToken: string;
+  platform: 'ios' | 'android';
+  language: 'English' | 'Hindi';
+}

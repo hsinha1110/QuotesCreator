@@ -63,4 +63,6 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/my-quotes", myQuotesRoutes);
 app.use("/api/stickers", stickerRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+app.use("/api/notifications", notificationRoutes);
 module.exports = app;

@@ -20,6 +20,8 @@ enum Routes {
   MAIN_NAVIGATOR = 'MainNavigator',
   ROUTES_NAVIGATOR = 'RoutesNavigators',
   DRAWER_NAVIGATOR = 'DrawerNavigator',
+  NOTIFICATIONS_SETTINGS = 'NotificationsSettings',
+  TIME_ZONE = 'TimeZone',
 }
 
 export default Routes;

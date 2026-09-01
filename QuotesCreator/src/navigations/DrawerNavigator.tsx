@@ -71,7 +71,15 @@ const DrawerNavigator = () => {
         name={Routes.SUB_CATEGORIES}
         component={Screens.SubCategories}
       />
-      <Drawer.Screen name={Routes.QUOTES} component={Screens.Quotes} />
+      <Drawer.Screen
+        name={Routes.QUOTES}
+        component={Screens.NotificationsSettings}
+      />
+      <Drawer.Screen
+        name={Routes.NOTIFICATIONS_SETTINGS}
+        component={Screens.NotificationsSettings}
+      />
+      <Drawer.Screen name={Routes.TIME_ZONE} component={Screens.TimeZone} />
     </Drawer.Navigator>
   );
 };

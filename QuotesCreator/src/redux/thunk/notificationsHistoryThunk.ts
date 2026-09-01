@@ -1,35 +1,40 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ASYNC_ROUTES } from '../constants';
-import { RootState } from '../store';
 import { notificationsHistoryByIdService } from '../services/notificationsHistoryByIdService';
 
-export const notificationsHistoryThunk = createAsyncThunk(
-  ASYNC_ROUTES.NOTIFICATIONS_HISTORY,
-
-  async (_, { rejectWithValue, getState }) => {
+export const notificationsHistoryByIdThunk = createAsyncThunk(
+  ASYNC_ROUTES.NOTIFICATIONS_HISTORY_BY_ID,
+  async (_, { getState, rejectWithValue }) => {
     try {
-      const state = getState() as RootState;
-      const token = state.auth.token;
+      const state: any = getState();
 
-      if (!token) {
-        return rejectWithValue(
-          'Authentication token not found',
-        );
+      const userId = state.auth?.user?.id;
+      const token = state.auth?.token;
+
+      console.log('THUNK USER ID:', userId);
+      console.log('THUNK TOKEN:', token ? 'AVAILABLE' : 'MISSING');
+
+      if (!userId) {
+        return rejectWithValue('User ID not found');
       }
 
-      const response =
-        await notificationsHistoryService(token);
+      if (!token) {
+        return rejectWithValue('Token not found');
+      }
+
+      const response = await notificationsHistoryByIdService(userId, token);
 
       return response;
     } catch (error: any) {
       console.log(
-        '❌ Notifications History Error:',
+        'NOTIFICATION HISTORY ERROR:',
         error?.response?.data || error,
       );
 
       return rejectWithValue(
         error?.response?.data?.message ||
-          'Failed to get notifications',
+          error?.message ||
+          'Failed to fetch notifications',
       );
     }
   },
