@@ -279,11 +279,8 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      console.log('');
       console.log('================================');
-
       console.log('🔥 GOOGLE LOGIN BUTTON PRESSED');
-
       console.log('================================');
 
       const result = await googleLogin();
@@ -292,23 +289,32 @@ const Login = () => {
 
       console.log('🔥 FIREBASE UID:', result?.user?.uid);
 
-      console.log('🔥 GOOGLE RESULT:', result);
+      // =================================================
+      // BACKEND USER ID
+      // =================================================
 
-      /*
-        IMPORTANT:
+      const socialUserId =
+        result?.userId ||
+        result?.user?._id ||
+        result?.user?.id ||
+        result?.data?.user?._id ||
+        result?.data?.user?.id;
 
-        googleLogin() agar backend se
-        user + token return karta hai:
+      console.log('👤 SOCIAL BACKEND USER ID:', socialUserId);
 
-        await registerFCMDevice(
-          result.backendUser.id,
-          result.backendUser.language || 'English',
-        );
+      if (!socialUserId) {
+        console.log('❌ BACKEND USER ID NOT FOUND');
 
-        Agar googleLogin sirf Firebase user return
-        karta hai, to backend user ID/JWT available
-        karne ke baad registration karna hoga.
-      */
+        return;
+      }
+
+      // =================================================
+      // REGISTER FCM DEVICE
+      // =================================================
+
+      await registerFCMDevice(socialUserId, 'English');
+
+      console.log('✅ GOOGLE LOGIN + FCM REGISTRATION COMPLETED');
     } catch (error: any) {
       console.log('❌ GOOGLE LOGIN ERROR:', error);
 
@@ -316,6 +322,10 @@ const Login = () => {
 
       const errorMessage =
         error?.message || 'Something went wrong. Please try again.';
+
+      console.log('GOOGLE ERROR CODE:', errorCode);
+
+      console.log('GOOGLE ERROR MESSAGE:', errorMessage);
 
       if (
         errorCode === 'SIGN_IN_CANCELLED' ||
@@ -337,18 +347,14 @@ const Login = () => {
       Alert.alert('Google Login Failed', errorMessage);
     }
   };
-
   // =====================================================
   // FACEBOOK LOGIN
   // =====================================================
 
   const handleFacebookLogin = async () => {
     try {
-      console.log('');
       console.log('================================');
-
       console.log('🔥 FACEBOOK LOGIN BUTTON PRESSED');
-
       console.log('================================');
 
       const result = await facebookLogin();
@@ -357,16 +363,32 @@ const Login = () => {
 
       console.log('🔥 FIREBASE UID:', result?.user?.uid);
 
-      console.log('🔥 FACEBOOK RESULT:', result);
+      // =================================================
+      // BACKEND USER ID
+      // =================================================
 
-      /*
-        Backend user + token milne ke baad:
+      const socialUserId =
+        result?.userId ||
+        result?.user?._id ||
+        result?.user?.id ||
+        result?.data?.user?._id ||
+        result?.data?.user?.id;
 
-        await registerFCMDevice(
-          result.backendUser.id,
-          result.backendUser.language || 'English',
-        );
-      */
+      console.log('👤 SOCIAL BACKEND USER ID:', socialUserId);
+
+      if (!socialUserId) {
+        console.log('❌ BACKEND USER ID NOT FOUND');
+
+        return;
+      }
+
+      // =================================================
+      // REGISTER FCM DEVICE
+      // =================================================
+
+      await registerFCMDevice(socialUserId, 'English');
+
+      console.log('✅ FACEBOOK LOGIN + FCM REGISTRATION COMPLETED');
     } catch (error: any) {
       console.log('❌ FACEBOOK LOGIN ERROR:', error);
 
@@ -374,6 +396,10 @@ const Login = () => {
 
       const errorMessage =
         error?.message || 'Something went wrong. Please try again.';
+
+      console.log('FACEBOOK ERROR CODE:', errorCode);
+
+      console.log('FACEBOOK ERROR MESSAGE:', errorMessage);
 
       if (
         errorCode === 'SIGN_IN_CANCELLED' ||
@@ -395,7 +421,6 @@ const Login = () => {
       Alert.alert('Facebook Login Failed', errorMessage);
     }
   };
-
   // =====================================================
   // FORGOT PASSWORD
   // =====================================================
