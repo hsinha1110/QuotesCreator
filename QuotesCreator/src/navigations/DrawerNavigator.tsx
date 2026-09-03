@@ -2,23 +2,27 @@ import React from 'react';
 
 import {
   createDrawerNavigator,
+  DrawerNavigationProp,
   useDrawerStatus,
 } from '@react-navigation/drawer';
 
 import CustomDrawer from '@/components/CustomDrawer/CustomDrawer';
 
 import BottomTabNavigator from './BottomTabNavigator';
-import * as Screens from '@/screens';
+import * as Screens from '@/screens/index';
 import Routes from './Routes';
-
-const Drawer = createDrawerNavigator();
+import { DrawerParamList } from './types';
+import { CustomDrawerProps } from '@/types';
+type CustomDrawerNavigationProps = CustomDrawerProps & {
+  navigation: DrawerNavigationProp<DrawerParamList>;
+};
+const Drawer = createDrawerNavigator<DrawerParamList>();
 
 const DrawerContent = (props: any) => {
   const drawerStatus = useDrawerStatus();
 
   return (
     <CustomDrawer
-      {...props}
       visible={drawerStatus === 'open'}
       onClose={() => props.navigation.closeDrawer()}
     />
@@ -28,7 +32,7 @@ const DrawerContent = (props: any) => {
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
-      initialRouteName="BottomTabs"
+      initialRouteName={Routes.BOTTOM_TABS}
       drawerContent={props => <DrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
@@ -41,16 +45,16 @@ const DrawerNavigator = () => {
         },
       }}
     >
-      {/* MAIN APP */}
-      <Drawer.Screen name="BottomTabs" component={BottomTabNavigator} />
+      {/* ========================================= */}
+      {/* BOTTOM TABS */}
+      {/* ========================================= */}
 
+      <Drawer.Screen name={Routes.BOTTOM_TABS} component={BottomTabNavigator} />
+
+      {/* ========================================= */}
       {/* DRAWER SCREENS */}
-
-      <Drawer.Screen
-        name={Routes.NOTIFICATIONS}
-        component={Screens.Notifications}
-      />
-
+      {/* ========================================= */}
+      <Drawer.Screen name={Routes.QUOTES} component={Screens.Quotes} />
       <Drawer.Screen
         name={Routes.CREATE_QUOTES}
         component={Screens.CreateQuotes}
@@ -67,19 +71,35 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={Routes.ABOUT} component={Screens.About} />
 
       <Drawer.Screen name={Routes.CATEGORIES} component={Screens.Categories} />
+
       <Drawer.Screen
         name={Routes.SUB_CATEGORIES}
         component={Screens.SubCategories}
       />
+
       <Drawer.Screen
-        name={Routes.QUOTES}
-        component={Screens.NotificationsSettings}
+        name={Routes.NOTIFICATIONS}
+        component={Screens.Notifications}
       />
+
       <Drawer.Screen
         name={Routes.NOTIFICATIONS_SETTINGS}
         component={Screens.NotificationsSettings}
       />
+
       <Drawer.Screen name={Routes.TIME_ZONE} component={Screens.TimeZone} />
+
+      <Drawer.Screen
+        name={Routes.QUOTES_DETAILS}
+        component={Screens.QuotesDetails}
+      />
+      <Drawer.Screen name={Routes.LATEST} component={Screens.Latest} />
+      <Drawer.Screen name={Routes.POPULAR} component={Screens.Popular} />
+      <Drawer.Screen name={Routes.PROFILE} component={Screens.Profile} />
+      <Drawer.Screen
+        name={Routes.EDIT_PROFILE}
+        component={Screens.EditProfile}
+      />
     </Drawer.Navigator>
   );
 };

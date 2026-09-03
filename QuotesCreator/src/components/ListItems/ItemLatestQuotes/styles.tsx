@@ -72,6 +72,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  latestCardFullWidth: {
+    width: '100%',
+    minHeight: moderateScale(165),
+    marginVertical: moderateScale(10),
+  },
 });
 
 export default styles;

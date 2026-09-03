@@ -1,42 +1,57 @@
 import { RouteProp } from '@react-navigation/native';
 import { TextInputProps } from 'react-native';
 
+import Routes from '@/navigations/Routes';
+
+// ==================================================
+// INPUT
+// ==================================================
+
 export interface InputComponentProps extends TextInputProps {
   leftIcon?: string;
   isPassword?: boolean;
   error?: string;
 }
 
+// ==================================================
+// AUTH
+// ==================================================
+
 export interface AuthFooterProps {
   text: string;
   linkText: string;
   onPress: () => void;
 }
+
+// ==================================================
+// TABS
+// ==================================================
+
 export type TabItem = {
   key: string;
   title: string;
 };
-export type SubCategoriesParams = {
-  categoryId: string;
-  categoryName: string;
-};
 
-export type SubCategoriesRouteProp = RouteProp<
-  {
-    SubCategories: SubCategoriesParams;
-  },
-  'SubCategories'
->;
 export interface TabsProps {
   tabs: TabItem[];
   activeTab: string;
   onTabPress: (key: string) => void;
 }
+
+// ==================================================
+// BUTTON
+// ==================================================
+
 export interface ButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
 }
+
+// ==================================================
+// DRAWER
+// ==================================================
+
 export type MenuItemProps = {
   icon: string;
   title: string;
@@ -44,15 +59,25 @@ export type MenuItemProps = {
   activeRoute?: string;
   badge?: number;
 };
+
 export type CustomDrawerProps = {
   visible: boolean;
   onClose: () => void;
 };
+
+// ==================================================
+// SOCIAL BUTTON
+// ==================================================
+
 export interface SocialButtonProps {
   title: string;
   icon: any;
   onPress: () => void;
 }
+
+// ==================================================
+// IMAGE PICKER
+// ==================================================
 
 export interface ImagePickerModalProps {
   visible: boolean;
@@ -61,6 +86,10 @@ export interface ImagePickerModalProps {
   onGallery: () => void;
 }
 
+// ==================================================
+// QUOTE ACTIONS
+// ==================================================
+
 export type QuoteActionsProps = {
   onFavoritePress?: () => void;
   onSharePress?: () => void;
@@ -68,13 +97,33 @@ export type QuoteActionsProps = {
   isFavorite?: boolean;
   isLiked?: boolean;
   likes?: number;
-  showLikes?: number;
+  showLikes?: boolean;
 };
+
+// ==================================================
+// AUTH PAYLOADS
+// ==================================================
 
 export interface LoginPayload {
   email: string;
   password: string;
 }
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  profileImage?: {
+    uri: string;
+    type: string;
+    name: string;
+  } | null;
+}
+
+// ==================================================
+// USER
+// ==================================================
 
 export interface User {
   id: string;
@@ -92,17 +141,9 @@ export interface AuthState {
   error: string | null;
 }
 
-export interface RegisterPayload {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  profileImage?: {
-    uri: string;
-    type: string;
-    name: string;
-  } | null;
-}
+// ==================================================
+// AUTH CONTEXT
+// ==================================================
 
 export type AuthContextType = {
   user: any;
@@ -116,6 +157,10 @@ export type AuthContextType = {
 export type AuthProviderProps = {
   children: React.ReactNode;
 };
+
+// ==================================================
+// NOTIFICATIONS
+// ==================================================
 
 export type NotificationItem = {
   _id: string;
@@ -142,6 +187,10 @@ export type NotificationState = {
   error: string | null;
 };
 
+// ==================================================
+// HEADER
+// ==================================================
+
 export interface HeaderProps {
   title: string;
 
@@ -160,13 +209,31 @@ export interface HeaderProps {
   showNotification?: boolean;
   notificationCount?: number;
 }
+
+// ==================================================
+// LANGUAGE
+// ==================================================
+
 export type Language = 'English' | 'Hindi';
+
+// ==================================================
+// LATEST QUOTES
+// ==================================================
 
 export type LatestQuotesParams = {
   language: Language;
   page: number;
   limit: number;
 };
+
+export type popularQuotesParams = {
+  language: Language;
+  page: number;
+  limit: number;
+};
+// ==================================================
+// QUOTE
+// ==================================================
 
 export type Quote = {
   _id: string;
@@ -183,6 +250,10 @@ export type Quote = {
   updatedAt?: string;
   displayText: string;
 };
+
+// ==================================================
+// DAILY QUOTE
+// ==================================================
 
 export interface DailyQuote {
   _id: string;
@@ -209,10 +280,19 @@ export type DailyQuoteCardProps = {
   onFavoritePress?: () => void;
   onSharePress?: () => void;
 };
+
+// ==================================================
+// SECTION HEADER
+// ==================================================
+
 export type SectionHeaderProps = {
   title: string;
   onViewAllPress?: () => void;
 };
+
+// ==================================================
+// CATEGORIES
+// ==================================================
 
 export type CategoriesParams = {
   language: Language;
@@ -231,10 +311,12 @@ export interface Category {
   displayName: string;
   displayLanguage: string;
   image: string | null;
+
   translations: {
     English: string;
     Hindi: string;
   };
+
   quoteCount: number;
   createdAt: string;
   updatedAt: string;
@@ -252,15 +334,23 @@ export interface CategoriesResponse {
   categories: Category[];
 }
 
-export type ItemLatestQuotesProps = {
-  item: Quote;
-};
-
 export type ItemCategoriesProps = {
   item: Category;
   fullWidth?: boolean;
   onPress: () => void;
 };
+
+// ==================================================
+// LATEST QUOTE ITEM
+// ==================================================
+
+export type ItemLatestQuotesProps = {
+  item: Quote;
+};
+
+// ==================================================
+// POPULAR QUOTES
+// ==================================================
 
 export type ItemPopularProps = {
   item: Quote;
@@ -287,11 +377,9 @@ export interface PopularQuotesResponse {
   quotes: Quote[];
 }
 
-export interface DailyNotificationState {
-  notifications: NotificationItem[];
-  isLoading: boolean;
-  error: string | null;
-}
+// ==================================================
+// QUOTE STATES
+// ==================================================
 
 export interface LatestQuoteState {
   quotes: Quote[];
@@ -313,52 +401,60 @@ export interface PopularQuoteState {
   totalPages: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
-  language: 'English' | 'Hindi';
+  language: Language;
   isLoading: boolean;
   error: string | null;
 }
 
-export interface DeleteAccountState {
-  isLoading: boolean;
-  success: boolean;
-  error: string | null;
-  message: string | null;
-}
-export interface GetQuotesParams {
-  categoryId?: string;
-  subcategoryId?: string;
-  page?: number;
-  limit?: number;
-  language?: 'English' | 'Hindi';
-}
-
-export interface subCategoriesParams {
-  categoryId?: string;
-  subcategoryId?: string;
-  page?: number;
-  limit?: number;
-  language?: 'English' | 'Hindi';
-}
+// ==================================================
+// GET QUOTES
+// ==================================================
 
 export interface GetQuotesParams {
   categoryId?: string;
   subcategoryId?: string;
   page?: number;
   limit?: number;
-  language?: 'English' | 'Hindi';
+  language?: Language;
 }
+
 export interface QuotesState {
   quotes: Quote[];
+
   page: number;
+
   limit: number;
+
   total: number;
+
   totalPages: number;
+
   hasNextPage: boolean;
+
   hasPreviousPage: boolean;
-  language: 'English' | 'Hindi';
+
+  language: Language;
+
   loading: boolean;
+
   error: string | null;
 }
+
+// ==================================================
+// SUBCATEGORIES
+// ==================================================
+
+export type SubCategoriesParams = {
+  categoryId: string;
+  categoryName: string;
+};
+
+export type SubCategoriesRouteProp = RouteProp<
+  {
+    SubCategories: SubCategoriesParams;
+  },
+  'SubCategories'
+>;
 
 export interface SubCategory {
   _id: string;
@@ -368,8 +464,10 @@ export interface SubCategory {
   name: string;
 
   displayName: string;
+
   displayText: string;
-  displayLanguage: 'English' | 'Hindi';
+
+  displayLanguage: Language;
 
   translations?: {
     English?: string;
@@ -398,26 +496,98 @@ export interface SubCategoriesState {
 
   hasPreviousPage: boolean;
 
-  language: 'English' | 'Hindi';
+  language: Language;
 
   loading: boolean;
 
   error: string | null;
 }
 
+// ==================================================
+// QUOTES SCREEN ROUTE
+// ==================================================
+
+export type QuotesParams = {
+  categoryId: string;
+  subcategoryId?: string;
+  categoryName?: string;
+};
+
+export type QuotesRouteProp = RouteProp<
+  {
+    [Routes.QUOTES]: QuotesParams;
+  },
+  typeof Routes.QUOTES
+>;
+
+// ==================================================
+// FAVOURITES
+// ==================================================
+
 export type ItemFavouritesProps = {
   item: Quote;
   onShare?: (item: Quote) => void;
 };
+
+// ==================================================
+// TIMEZONE
+// ==================================================
 
 export type TimeZoneItem = {
   label: string;
   value: string;
 };
 
+// ==================================================
+// DEVICE
+// ==================================================
+
 export interface RegisterDeviceData {
   userId: string;
   fcmToken: string;
   platform: 'ios' | 'android';
-  language: 'English' | 'Hindi';
+  language: Language;
 }
+
+// ==================================================
+// DELETE ACCOUNT
+// ==================================================
+
+export interface DeleteAccountState {
+  isLoading: boolean;
+  success: boolean;
+  error: string | null;
+  message: string | null;
+}
+export interface LatestQuotesState {
+  quotes: Quote[];
+  isLoading: boolean;
+  page: number;
+  totalPages: number;
+  total: number;
+  error: string | null;
+}
+
+export interface ProfileState {
+  profile: {
+    id: string;
+    name: string;
+    email: string;
+    profileImage: string | null;
+    provider?: 'email' | 'google' | 'facebook';
+  } | null;
+
+  isLoading: boolean;
+  error: string | null;
+}
+
+export type UpdateProfileParams = {
+  userId: string;
+  name: string;
+  email: string;
+  profileImage?: {
+    uri: string;
+    type?: string;
+    fileName?: string;
+  } | null;
+};

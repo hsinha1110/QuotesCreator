@@ -1,13 +1,11 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { moderateScale } from 'react-native-size-matters';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import moment from 'moment';
 
 import COLORS from '@/constants/Colors';
-
 import styles from './styles';
 
 export interface NotificationItem {
@@ -29,16 +27,30 @@ const ItemNotifications = ({
   onPress,
   onDelete,
 }: ItemNotificationsProps) => {
-  // =====================================================
-  // DELETE ACTION
-  // =====================================================
+  const swipeableRef = useRef<any>(null);
+
+  const handleCardPress = () => {
+    // Close swipe action before navigation
+    swipeableRef.current?.close();
+
+    // Send notification ID to parent
+    onPress(item._id);
+  };
+
+  const handleDelete = () => {
+    // Close swipe action
+    swipeableRef.current?.close();
+
+    // Delete notification
+    onDelete(item._id);
+  };
 
   const renderRightActions = () => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
         style={styles.deleteAction}
-        onPress={() => onDelete(item._id)}
+        onPress={handleDelete}
       >
         <Ionicons
           name="trash-outline"
@@ -53,31 +65,25 @@ const ItemNotifications = ({
 
   return (
     <Swipeable
+      ref={swipeableRef}
       friction={2}
       overshootRight={false}
       rightThreshold={40}
       renderRightActions={renderRightActions}
     >
-      <TouchableOpacity
-        activeOpacity={0.75}
+      <Pressable
         style={[
           styles.notificationCard,
           !item.isRead && styles.unreadNotificationCard,
         ]}
-        onPress={() => onPress(item._id)}
+        onPress={handleCardPress}
       >
-        {/* ========================================= */}
         {/* UNREAD DOT */}
-        {/* ========================================= */}
-
         <View style={styles.dotContainer}>
           {!item.isRead && <View style={styles.unreadDot} />}
         </View>
 
-        {/* ========================================= */}
-        {/* BELL */}
-        {/* ========================================= */}
-
+        {/* BELL ICON */}
         <View style={styles.iconContainer}>
           <Ionicons
             name="notifications"
@@ -86,10 +92,7 @@ const ItemNotifications = ({
           />
         </View>
 
-        {/* ========================================= */}
         {/* CONTENT */}
-        {/* ========================================= */}
-
         <View style={styles.contentContainer}>
           <View style={styles.titleRow}>
             <Text
@@ -115,16 +118,13 @@ const ItemNotifications = ({
           </Text>
         </View>
 
-        {/* ========================================= */}
         {/* ARROW */}
-        {/* ========================================= */}
-
         <Ionicons
           name="chevron-forward"
           size={moderateScale(18)}
           color={COLORS.black}
         />
-      </TouchableOpacity>
+      </Pressable>
     </Swipeable>
   );
 };

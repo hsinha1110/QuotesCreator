@@ -49,23 +49,19 @@ const popularQuoteSlice = createSlice({
       })
 
       .addCase(popularQuotesThunk.fulfilled, (state, action) => {
+        const response = action.payload;
+
         state.isLoading = false;
 
-        state.quotes = action.payload.quotes || [];
+        if (response.page === 1) {
+          state.quotes = response.quotes;
+        } else {
+          state.quotes.push(...response.quotes);
+        }
 
-        state.page = action.payload.page || 1;
-
-        state.limit = action.payload.limit || 10;
-
-        state.total = action.payload.total || 0;
-
-        state.totalPages = action.payload.totalPages || 0;
-
-        state.hasNextPage = action.payload.hasNextPage || false;
-
-        state.hasPreviousPage = action.payload.hasPreviousPage || false;
-
-        state.language = action.payload.language || 'English';
+        state.page = response.page;
+        state.totalPages = response.totalPages;
+        state.total = response.total;
       })
 
       .addCase(popularQuotesThunk.rejected, (state, action) => {

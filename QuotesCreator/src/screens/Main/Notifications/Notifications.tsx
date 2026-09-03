@@ -1,52 +1,31 @@
 import React, { useEffect, useMemo, useState } from 'react';
-
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { DrawerActions, useNavigation } from '@react-navigation/native';
-
-import Ionicons from 'react-native-vector-icons/Ionicons';
-
-import { moderateScale } from 'react-native-size-matters';
-
-import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
-import moment from 'moment';
-
-import Header from '@/components/Header/Header';
-import Tabs from '@/components/Tabs/Tabs';
-import EmptyState from '@/components/EmptyState/EmptyState';
-
 import { NotificationsTabs } from '@/constants/Data';
-import COLORS from '@/constants/Colors';
-
-import styles from './styles';
-
 import { useDispatch, useSelector } from 'react-redux';
-
 import { AppDispatch, RootState } from '@/redux/store';
-
 import { notificationHistoryByIdThunk } from '@/redux/thunk/notificationHistoryByIdThunk';
-
 import { readNotificationsThunk } from '@/redux/thunk/readNotificationsThunk';
 import { deleteNotificationThunk } from '@/redux/thunk/deleteNotificationThunk';
 import { NotificationItem } from '@/types';
 import ItemNotifications from '@/components/ListItems/ItemNotifications/ItemNotifications';
+import Routes from '@/navigations/Routes';
+import { goBack, navigate } from '@/utils/NavigationUtils';
+import {
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+} from '@/redux/slices/notificationsSlice';
+import EmptyState from '@/components/EmptyState/EmptyState';
+import styles from './styles';
+import moment from 'moment';
+import Header from '@/components/Header/Header';
+import Tabs from '@/components/Tabs/Tabs';
 
 const Notifications = () => {
-  const navigation = useNavigation();
-
-  const dispatch = useDispatch<AppDispatch>();
-
-  const userId = useSelector((state: RootState) => state.auth.user?.id);
-
   const [activeTab, setActiveTab] = useState('All');
-
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-
-  // =====================================================
-  // FETCH NOTIFICATIONS
-  // =====================================================
+  const dispatch = useDispatch<AppDispatch>();
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
 
   useEffect(() => {
     if (!userId) {
@@ -56,22 +35,16 @@ const Notifications = () => {
 
     const getNotifications = async () => {
       try {
-        console.log('🔔 FETCH NOTIFICATIONS:', userId);
-
         const response = await dispatch(
           notificationHistoryByIdThunk(userId),
         ).unwrap();
-
-        console.log('🔔 NOTIFICATIONS RESPONSE:', response);
-
         if (response?.success) {
           setNotifications(response.notifications || []);
         } else {
           setNotifications([]);
         }
       } catch (error: any) {
-        console.log('❌ NOTIFICATIONS HISTORY ERROR:', error);
-
+        console.log('NOTIFICATIONS HISTORY ERROR:', error);
         setNotifications([]);
       }
     };
@@ -79,75 +52,83 @@ const Notifications = () => {
     getNotifications();
   }, [userId, dispatch]);
 
-  // =====================================================
-  // TAB
-  // =====================================================
-
   const handleTabPress = (tabKey: string) => {
     setActiveTab(tabKey);
   };
 
-  // =====================================================
-  // MARK SINGLE AS READ
-  // =====================================================
-
   const handleNotificationPress = async (id: string) => {
     try {
-      // Optimistic UI update
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification._id === id
-            ? {
-                ...notification,
-                isRead: true,
-              }
-            : notification,
+      const notification = notifications.find(item => item._id === id);
+
+      if (notification && !notification.isRead) {
+        await dispatch(readNotificationsThunk(id)).unwrap();
+
+        setNotifications(prev =>
+          prev.map(item =>
+            item._id === id
+              ? {
+                  ...item,
+                  isRead: true,
+                }
+              : item,
+          ),
+        );
+        dispatch(markNotificationAsRead(id));
+      }
+
+      navigate(Routes.BOTTOM_TABS, {
+        screen: Routes.HOME,
+      });
+    } catch (error) {
+      console.log('Notification press error:', error);
+    }
+  };
+  const handleMarkAllAsRead = async () => {
+    try {
+      // Sirf unread notifications nikalo
+      const unreadNotifications = notifications.filter(
+        notification => !notification.isRead,
+      );
+
+      if (unreadNotifications.length === 0) {
+        return;
+      }
+
+      // 🔥 Har unread notification ko read API call karo
+      await Promise.all(
+        unreadNotifications.map(notification =>
+          dispatch(readNotificationsThunk(notification._id)).unwrap(),
         ),
       );
 
-      await dispatch(readNotificationsThunk(id)).unwrap();
+      // Local Notifications screen update
+      setNotifications(prev =>
+        prev.map(notification => ({
+          ...notification,
+          isRead: true,
+        })),
+      );
 
-      console.log('✅ NOTIFICATION MARKED AS READ:', id);
+      // 🔥 Redux update → Home badge remove
+      dispatch(markAllNotificationsAsRead());
+
+      console.log('✅ ALL NOTIFICATIONS MARKED AS READ');
     } catch (error) {
-      console.log('❌ MARK READ ERROR:', error);
+      console.log('❌ MARK ALL AS READ ERROR:', error);
     }
   };
-
-  // =====================================================
-  // MARK ALL AS READ
-  // =====================================================
-
-  const handleMarkAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({
-        ...notification,
-        isRead: true,
-      })),
-    );
-
-    console.log('✅ ALL NOTIFICATIONS MARKED AS READ');
-  };
-
-  // =====================================================
-  // DELETE NOTIFICATION
-  // =====================================================
-
   const handleDeleteNotification = async (id: string) => {
     try {
-      console.log('🗑️ DELETE NOTIFICATION:', id);
-
-      // Remove immediately from UI
       setNotifications(prev =>
         prev.filter(notification => notification._id !== id),
       );
 
       const response = await dispatch(deleteNotificationThunk(id)).unwrap();
 
-      console.log('✅ DELETE RESPONSE:', response);
+      console.log('DELETE RESPONSE:', response);
     } catch (error) {
-      console.log('❌ DELETE ERROR:', error);
+      console.log('DELETE ERROR:', error);
 
-      // If API fails, fetch again
       if (userId) {
         try {
           const response = await dispatch(
@@ -158,7 +139,7 @@ const Notifications = () => {
             setNotifications(response.notifications || []);
           }
         } catch (refreshError) {
-          console.log('❌ REFRESH ERROR:', refreshError);
+          console.log('REFRESH ERROR:', refreshError);
         }
       }
     }
@@ -173,17 +154,17 @@ const Notifications = () => {
   }, [activeTab, notifications]);
 
   const unreadCount = notifications.filter(item => !item.isRead).length;
-
   return (
     <SafeAreaView style={styles.container}>
+      {/* HEADER */}
+
       <Header
         title="Notifications"
-        onMenuPress={() => {
-          navigation.dispatch(DrawerActions.openDrawer());
-        }}
-        rightIcon={'trash-outline'}
-        onRightPress={() => {}}
+        icon="chevron-back"
+        onMenuPress={goBack}
         showNotification={false}
+        rightIcon="trash-outline"
+        onRightPress={() => {}}
       />
 
       <Tabs
@@ -209,9 +190,7 @@ const Notifications = () => {
         contentContainerStyle={styles.listContainer}
         renderItem={({ item, index }) => {
           const currentDate = moment(item.createdAt).startOf('day');
-
           const previousItem = filteredNotifications[index - 1];
-
           const showDate =
             index === 0 ||
             !previousItem ||
@@ -221,9 +200,7 @@ const Notifications = () => {
             );
 
           const today = moment().startOf('day');
-
           const yesterday = moment().subtract(1, 'day').startOf('day');
-
           let dateLabel = '';
 
           if (currentDate.isSame(today, 'day')) {
@@ -241,6 +218,7 @@ const Notifications = () => {
                   <Text style={styles.dateText}>{dateLabel}</Text>
                 </View>
               )}
+
               <ItemNotifications
                 item={item}
                 onPress={handleNotificationPress}

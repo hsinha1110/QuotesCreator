@@ -1,7 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Provider, useSelector } from 'react-redux';
@@ -16,22 +15,18 @@ import AuthNavigator from '@/navigations/AuthNavigator';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 
+import { NavigationContainer } from '@react-navigation/native';
+
 const AppNavigator = () => {
   const token = useSelector((state: RootState) => state.auth.token);
-
   const { loading } = useAuth();
-
-  console.log('==========================');
-  console.log('AUTH TOKEN =>', token);
-  console.log('TOKEN EXISTS =>', !!token);
-  console.log('AUTH LOADING =>', loading);
-  console.log('==========================');
 
   if (loading) {
     return <AppLoading />;
   }
 
   return (
+    // Yahan single NavigationContainer aur ref attach karein
     <NavigationContainer ref={navigationRef}>
       {token ? <MainNavigator key="main" /> : <AuthNavigator key="auth" />}
     </NavigationContainer>

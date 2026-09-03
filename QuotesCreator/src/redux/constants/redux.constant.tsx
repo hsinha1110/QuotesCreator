@@ -1,13 +1,10 @@
 //============ Async Routes ============================
 
 export const ASYNC_ROUTES = {
-  // AUTH
   LOGIN: 'login',
   REGISTER: 'register',
   SOCIAL_LOGIN: 'socialLogin',
-
   CATEGORIES: 'categories',
-  // NOTIFICATIONS
   REGISTER_DEVICE: 'registerDevice',
   DAILY_NOTIFICATIONS: 'dailyNotifications',
   GET_NOTIFICATIONS: 'getNotifications',
@@ -27,6 +24,8 @@ export const ASYNC_ROUTES = {
   READ_NOTIFICATIONS: 'readNotifications',
   DELETE_NOTIFICATIONS: 'deleteNotifications',
   NOTIFICATIONS_SETTINGS: 'notificationsSettings',
+  GET_PROFILE: 'getProfile',
+  UPDATE_PROFILE: 'updateProfile',
 } as const;
 
 //==================== Thunk Status =====================

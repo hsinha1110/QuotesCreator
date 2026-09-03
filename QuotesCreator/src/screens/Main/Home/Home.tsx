@@ -3,7 +3,11 @@ import { View, Text, Image, FlatList, ScrollView } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { DrawerActions, useNavigation } from '@react-navigation/native';
+import {
+  CompositeNavigationProp,
+  DrawerActions,
+  useNavigation,
+} from '@react-navigation/native';
 
 import moment from 'moment';
 
@@ -34,11 +38,17 @@ import styles from './styles';
 
 import QuoteActions from '@/components/QuotesActions/QuotesActions';
 import { toggleFavourite } from '@/redux/slices/favouriteSlice';
+import { BottomTabParamList, DrawerParamList } from '@/navigations/types';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { DrawerNavigationProp } from '@react-navigation/drawer';
 
 const Home = () => {
   const dispatch = useAppDispatch<AppDispatch>();
-  const navigation = useNavigation();
-
+  type HomeNavigationProp = CompositeNavigationProp<
+    BottomTabNavigationProp<BottomTabParamList, Routes.HOME>,
+    DrawerNavigationProp<DrawerParamList>
+  >;
+  const navigation = useNavigation<HomeNavigationProp>();
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   // =====================================================
@@ -117,7 +127,6 @@ const Home = () => {
   // =====================================================
   // UNREAD COUNT
   // =====================================================
-
   const unreadCount = notifications.filter(
     notification => !notification.isRead,
   ).length;
@@ -392,30 +401,55 @@ const Home = () => {
             LATEST
         ================================================= */}
 
-        <SectionHeader title="Latest" onViewAllPress={() => {}} />
-
+        <SectionHeader
+          title="Latest"
+          onViewAllPress={() => {
+            navigation.navigate(Routes.LATEST, {
+              title: 'Latest Quotes',
+            });
+          }}
+        />
         <FlatList<Quote>
           data={latest.slice(0, 8)}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={item => item._id}
-          renderItem={({ item }) => <ItemLatestQuotes item={item} />}
+          renderItem={({ item, index }) => (
+            <ItemLatestQuotes
+              item={item}
+              onPress={() => {
+                navigation.navigate(Routes.LATEST, {});
+              }}
+            />
+          )}
           contentContainerStyle={styles.latestList}
           ItemSeparatorComponent={() => <View style={styles.latestSeparator} />}
         />
-
         {/* =================================================
             POPULAR
         ================================================= */}
 
-        <SectionHeader title="Popular" onViewAllPress={() => {}} />
-
+        <SectionHeader
+          title="Popular"
+          onViewAllPress={() => {
+            navigation.navigate(Routes.POPULAR, {
+              title: 'Latest Quotes',
+            });
+          }}
+        />
         <FlatList<Quote>
           data={popular.slice(0, 8)}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={item => item._id}
-          renderItem={({ item }) => <ItemPopular item={item} />}
+          renderItem={({ item, index }) => (
+            <ItemLatestQuotes
+              item={item}
+              onPress={() => {
+                navigation.navigate(Routes.POPULAR, {});
+              }}
+            />
+          )}
           contentContainerStyle={styles.popularList}
           ItemSeparatorComponent={() => (
             <View style={styles.popularSeparator} />

@@ -1,22 +1,29 @@
 import { StyleSheet } from 'react-native';
 
 import { moderateScale } from '@/styles/scaling';
-
 import COLORS from '@/constants/Colors';
 
 const styles = StyleSheet.create({
+  // ==========================================
+  // LIST
+  // ==========================================
+
   popularList: {
-    paddingHorizontal: moderateScale(2),
-    paddingBottom: moderateScale(8),
+    paddingHorizontal: moderateScale(8),
+    paddingTop: moderateScale(8),
+    paddingBottom: moderateScale(30),
   },
 
   popularSeparator: {
-    width: moderateScale(14),
+    height: moderateScale(12),
   },
+
+  // ==========================================
+  // POPULAR CARD
+  // ==========================================
 
   popularCard: {
     width: moderateScale(300),
-    minHeight: moderateScale(165),
 
     paddingHorizontal: moderateScale(16),
     paddingTop: moderateScale(14),
@@ -41,50 +48,78 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
+  // ==========================================
+  // FULL WIDTH CARD
+  // ==========================================
+
+  popularCardFullWidth: {
+    width: '100%',
+    minHeight: moderateScale(165),
+  },
+
+  // ==========================================
+  // QUOTE ICON
+  // ==========================================
+
   popularQuoteIcon: {
     width: moderateScale(28),
     height: moderateScale(28),
 
-    resizeMode: 'contain',
+    right: moderateScale(6),
 
-    alignSelf: 'flex-start',
+    resizeMode: 'contain',
   },
+
+  // ==========================================
+  // QUOTE TEXT
+  // ==========================================
 
   popularQuoteText: {
     marginTop: moderateScale(8),
 
     fontSize: moderateScale(14),
-    lineHeight: moderateScale(20),
 
-    fontWeight: '600',
+    lineHeight: moderateScale(20),
 
     color: COLORS.black,
 
+    fontWeight: 'bold',
+
     flexShrink: 1,
   },
+
+  // ==========================================
+  // AUTHOR
+  // ==========================================
 
   popularAuthor: {
     marginTop: moderateScale(8),
 
     fontSize: moderateScale(10),
-    lineHeight: moderateScale(14),
 
-    fontWeight: '400',
+    lineHeight: moderateScale(14),
 
     color: COLORS.black,
 
+    fontWeight: '400',
+
     flexShrink: 1,
   },
+
+  // ==========================================
+  // ACTIONS
+  // ==========================================
 
   popularActions: {
     flexDirection: 'row',
 
     alignItems: 'center',
+
     justifyContent: 'flex-end',
 
     gap: moderateScale(8),
 
-    marginTop: 'auto',
+    marginTop: moderateScale(20),
   },
 
   popularActionButton: {

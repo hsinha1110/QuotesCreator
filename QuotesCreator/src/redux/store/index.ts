@@ -22,6 +22,7 @@ import deleteAccountReducer from '@/redux/slices/deleteAccountSlice';
 import quotesReducer from '@/redux/slices/quotesSlice';
 import subCategoriesReducer from '@/redux/slices/subCategories';
 import favouritesReducer from '@/redux/slices/favouriteSlice';
+import profileReducer from '@/redux/slices/profileSlice';
 const authPersistConfig = {
   key: 'auth',
   storage: AsyncStorage,
@@ -40,6 +41,7 @@ export const store = configureStore({
     quotes: quotesReducer,
     subCategories: subCategoriesReducer,
     favourites: favouritesReducer,
+    profile: profileReducer,
   },
 
   middleware: getDefaultMiddleware =>

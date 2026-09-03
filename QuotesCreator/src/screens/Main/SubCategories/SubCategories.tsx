@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
+  Pressable,
   Text,
   TouchableOpacity,
   View,
@@ -33,6 +35,10 @@ import { AppDispatch, RootState } from '@/redux/store';
 import { subCategoriesThunk } from '@/redux/thunk/subCategoriesThunk';
 
 import { getQuotesAsyncThunk } from '@/redux/thunk/quotesThunk';
+import EmptyState from '@/components/EmptyState/EmptyState';
+import Quotes from '../Quotes/Quotes';
+import IMAGES from '@/assets/images';
+import COLORS from '@/constants/Colors';
 
 const SubCategories = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -326,8 +332,7 @@ const SubCategories = () => {
 
   const renderSubCategory = ({ item }: { item: SubCategory }) => {
     return (
-      <TouchableOpacity
-        activeOpacity={0.8}
+      <Pressable
         onPress={() => handleSubCategoryPress(item)}
         style={styles.subCategoryCard}
       >
@@ -344,41 +349,9 @@ const SubCategories = () => {
 
           <Ionicons name="chevron-forward" size={22} color="#111" />
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
-
-  // ==================================================
-  // QUOTE ITEM
-  // ==================================================
-
-  const renderQuote = ({ item }: { item: Quote }) => {
-    return (
-      <TouchableOpacity activeOpacity={0.8} style={styles.quoteCard}>
-        <Text style={styles.quoteIcon}>“</Text>
-
-        <Text style={styles.quoteText} numberOfLines={5}>
-          {item.displayText || item.text}
-        </Text>
-
-        <Text style={styles.author}>— {item.author || 'Unknown'}</Text>
-
-        <View style={styles.quoteBottom}>
-          <Text style={styles.quoteLanguage}>{item.language || 'English'}</Text>
-
-          <View style={styles.quoteStats}>
-            <Text style={styles.statText}>♡ {item.likes ?? 0}</Text>
-
-            <Text style={styles.statText}>👁 {item.views ?? 0}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  // ==================================================
-  // SUBCATEGORY FOOTER
-  // ==================================================
 
   const renderSubcategoryFooter = () => {
     if (!loadingMoreSubcategories) {
@@ -393,8 +366,24 @@ const SubCategories = () => {
   };
 
   // ==================================================
-  // QUOTE FOOTER
+  // INITIAL LOADING
   // ==================================================
+
+  // ==========================================
+  // INITIAL LOADING
+  // ==========================================
+
+  const renderLoading = () => {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  };
+
+  // ==========================================
+  // BOTTOM PAGINATION LOADING
+  // ==========================================
 
   const renderQuoteFooter = () => {
     if (!loadingMoreQuotes) {
@@ -403,23 +392,10 @@ const SubCategories = () => {
 
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" />
+        <ActivityIndicator size="small" color={COLORS.accent} />
       </View>
     );
   };
-
-  // ==================================================
-  // INITIAL LOADING
-  // ==================================================
-
-  const renderLoading = () => {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  };
-
   // ==================================================
   // UI
   // ==================================================
@@ -462,11 +438,14 @@ const SubCategories = () => {
               contentContainerStyle={styles.listContainer}
               onEndReached={loadMoreSubcategories}
               onEndReachedThreshold={0.5}
-              ListFooterComponent={renderSubcategoryFooter}
+              ListFooterComponent={renderQuoteFooter}
               ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No subcategories found</Text>
-                </View>
+                <EmptyState
+                  icon="layers-outline"
+                  title="No Subcategories Found!"
+                  description={`There are no subcategories available
+in this category yet.`}
+                />
               }
             />
           )}
@@ -478,27 +457,11 @@ const SubCategories = () => {
           ================================================= */}
 
       {activeTab === 'Quotes' && (
-        <>
-          {quotesLoading && quotePage === 1 ? (
-            renderLoading()
-          ) : (
-            <FlatList
-              data={quotes}
-              keyExtractor={item => item._id}
-              renderItem={renderQuote}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContainer}
-              onEndReached={loadMoreQuotes}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={renderQuoteFooter}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No quotes found</Text>
-                </View>
-              }
-            />
-          )}
-        </>
+        <Quotes
+          type="subcategory"
+          categoryId={categoryId}
+          subcategoryId={selectedSubcategoryId}
+        />
       )}
     </SafeAreaView>
   );

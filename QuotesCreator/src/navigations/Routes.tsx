@@ -11,17 +11,21 @@ enum Routes {
   CATEGORIES = 'Categories',
   SUB_CATEGORIES = 'SubCategories',
   QUOTES = 'Quotes',
+  LATEST = 'Latest',
+  POPULAR = 'Popular',
   SETTINGS = 'Settings',
   NOTIFICATIONS = 'Notifications',
   ABOUT = 'About',
   DOWNLOADS = 'Downloads',
   TEMPLATES = 'Templates',
-  BOTTOM_TAB_NAVIGATOR = 'BottomTab',
+  BOTTOM_TABS = 'BottomTabs',
   MAIN_NAVIGATOR = 'MainNavigator',
   ROUTES_NAVIGATOR = 'RoutesNavigators',
   DRAWER_NAVIGATOR = 'DrawerNavigator',
   NOTIFICATIONS_SETTINGS = 'NotificationsSettings',
   TIME_ZONE = 'TimeZone',
+  QUOTES_DETAILS = 'QuotesDetails',
+  EDIT_PROFILE = 'EditProfile',
 }
 
 export default Routes;

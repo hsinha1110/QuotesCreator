@@ -1,86 +1,90 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, Pressable } from 'react-native';
+import {View, Text, Pressable, Image} from 'react-native';
 
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { moderateScale } from 'react-native-size-matters';
+import {useDispatch, useSelector} from 'react-redux';
 
 import IMAGES from '@/assets/images';
-import COLORS from '@/constants/Colors';
-import { Quote } from '@/types';
+import {Quote} from '@/types';
 
 import styles from './styles';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/redux/store';
-import { toggleFavourite } from '@/redux/slices/favouriteSlice';
+
+import {AppDispatch, RootState} from '@/redux/store';
+
+import {toggleFavourite} from '@/redux/slices/favouriteSlice';
+
+import QuoteActions from '@/components/QuotesActions/QuotesActions';
 
 type ItemLatestQuotesProps = {
   item: Quote;
+  onPress: () => void;
+  fullWidth?: boolean;
 };
 
-const ItemLatestQuotes = ({ item }: ItemLatestQuotesProps) => {
+const ItemLatestQuotes = ({
+  item,
+  onPress,
+  fullWidth = false,
+}: ItemLatestQuotesProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+
   const favourites = useSelector(
     (state: RootState) => state.favourites.favourites || [],
   );
-  const dispatch = useDispatch<AppDispatch>();
-  const isFavourite = favourites.some((fav: Quote) => fav._id === item._id);
 
-  console.log(isFavourite, '....isFavourite');
+  const isFavourite = favourites.some(
+    (fav: Quote) => fav._id === item._id,
+  );
+
+  const handleFavoritePress = () => {
+    dispatch(
+      toggleFavourite({
+        _id: item._id,
+        text: item.displayText || item.text,
+        author: item.author || 'Unknown',
+      }),
+    );
+  };
+
+  const handleSharePress = () => {
+    console.log('📤 SHARE QUOTE:', item._id);
+  };
+
   return (
-    <TouchableOpacity activeOpacity={0.8} style={styles.latestCard}>
-      {/* QUOTE ICON */}
+    <Pressable
+      style={[
+        styles.latestCard,
+        fullWidth && styles.latestCardFullWidth,
+      ]}
+      onPress={onPress}
+    >
+      <Image
+        source={IMAGES.QUOTES}
+        style={styles.latestQuoteIcon}
+      />
 
-      <Image source={IMAGES.QUOTES} style={styles.latestQuoteIcon} />
-
-      {/* QUOTE */}
-
-      <Text style={styles.latestQuoteText} numberOfLines={4}>
-        {item.text}
+      <Text
+        style={styles.latestQuoteText}
+        numberOfLines={fullWidth ? undefined : 4}
+      >
+        {item.displayText || item.text}
       </Text>
 
-      {/* AUTHOR */}
-
-      <Text style={styles.latestAuthor} numberOfLines={1}>
+      <Text
+        style={styles.latestAuthor}
+        numberOfLines={1}
+      >
         — {item.author || 'Unknown'}
       </Text>
 
-      {/* ACTIONS */}
-
       <View style={styles.latestActions}>
-        {/* FAVORITE */}
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.latestActionButton}
-          onPress={() => {
-            console.log('Favorite quote:', item);
-          }}
-        >
-          <Pressable onPress={() => dispatch(toggleFavourite(item))}>
-            <Ionicons
-              name={isFavourite ? 'heart' : 'heart-outline'}
-              size={moderateScale(20)}
-              color={isFavourite ? COLORS.red : COLORS.black}
-            />
-          </Pressable>
-        </TouchableOpacity>
-
-        {/* SHARE */}
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.latestActionButton}
-          onPress={() => {
-            console.log('Share quote:', item._id);
-          }}
-        >
-          <Ionicons
-            name="share-social-outline"
-            size={moderateScale(20)}
-            color={COLORS.black}
-          />
-        </TouchableOpacity>
+        <QuoteActions
+          isFavorite={isFavourite}
+          likes={item.likes ?? 0}
+          onFavoritePress={handleFavoritePress}
+          onSharePress={handleSharePress}
+        />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

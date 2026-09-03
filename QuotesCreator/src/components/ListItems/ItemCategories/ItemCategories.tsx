@@ -1,8 +1,8 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { ItemCategoriesProps } from '@/types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import { ItemCategoriesProps } from '@/types';
 import styles from './styles';
 
 const ItemCategories = ({
@@ -11,9 +11,8 @@ const ItemCategories = ({
   onPress,
 }: ItemCategoriesProps) => {
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      activeOpacity={0.8}
       style={[
         styles.categoryCard,
         fullWidth ? styles.fullWidthCard : styles.homeCategoryCard,
@@ -47,7 +46,7 @@ const ItemCategories = ({
           style={styles.arrow}
         />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

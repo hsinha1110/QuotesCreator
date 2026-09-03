@@ -18,3 +18,8 @@ export { default as SubCategories } from '@/screens/Main/SubCategories/SubCatego
 export { default as Quotes } from '@/screens/Main/Quotes/Quotes';
 export { default as NotificationsSettings } from '@/screens/Main/NotificaitonsSettings/NotificationsSettings';
 export { default as TimeZone } from '@/screens/Main/TimeZone/TimeZone';
+export { default as QuotesDetails } from '@/screens/Main/QuotesDetails/QuotesDetails';
+export { default as DrawerNavigator } from '@/navigations/DrawerNavigator';
+export { default as Latest } from '@/screens/Main/Latest/Latest';
+export { default as Popular } from '@/screens/Main/Popular/Popular';
+export { default as EditProfile } from '@/screens/Main/Edit/EditProfile';

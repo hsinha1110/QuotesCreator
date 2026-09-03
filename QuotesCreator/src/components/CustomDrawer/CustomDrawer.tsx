@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-
 import {
   Animated,
   Dimensions,
@@ -18,18 +17,14 @@ import {
 } from '@react-navigation/native';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import { useSelector } from 'react-redux';
 
 import { RootState } from '@/redux/store';
-
 import Routes from '@/navigations/Routes';
 import { navigate } from '@/utils/NavigationUtils';
-
 import { useAuth } from '@/context/AuthContext';
 
 import { CustomDrawerProps, MenuItemProps } from '@/types';
-
 import COLORS from '@/constants/Colors';
 
 const { width, height } = Dimensions.get('window');
@@ -67,10 +62,17 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
 
   // =====================================================
   // REDUX USER
-  // MongoDB user is stored here after social login
   // =====================================================
 
   const reduxUser = useSelector((state: RootState) => state.auth.user);
+
+  // =====================================================
+  // FAVOURITES
+  // =====================================================
+
+  const favourites = useSelector(
+    (state: RootState) => state.favourites.favourites || [],
+  );
 
   // =====================================================
   // NOTIFICATIONS
@@ -81,10 +83,17 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   );
 
   // =====================================================
+  // COUNTS
+  // =====================================================
+
+  const favouriteCount = favourites.length;
+
+  const unreadCount = notifications.filter(
+    notification => !notification.isRead,
+  ).length;
+
+  // =====================================================
   // CURRENT USER
-  //
-  // MongoDB/Redux user = PRIMARY
-  // Firebase user = FALLBACK
   // =====================================================
 
   const currentUser = {
@@ -104,27 +113,6 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   const currentRoute = useNavigationState(state => {
     return getActiveRouteName(state);
   });
-
-  // =====================================================
-  // DEBUG
-  // =====================================================
-
-  console.log('================================');
-  console.log('🔥 DRAWER CURRENT USER');
-  console.log('================================');
-
-  console.log('Redux User:', reduxUser);
-
-  console.log('Firebase User:', {
-    uid: firebaseUser?.uid,
-    email: firebaseUser?.email,
-    name: firebaseUser?.displayName,
-    photoURL: firebaseUser?.photoURL,
-  });
-
-  console.log('Final Current User:', currentUser);
-
-  console.log('Current Route:', currentRoute);
 
   // =====================================================
   // DRAWER ANIMATION
@@ -163,11 +151,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
     onClose();
 
     try {
-      console.log('🔥 DRAWER LOGOUT STARTED');
-
       await logout();
-
-      console.log('✅ DRAWER LOGOUT SUCCESS');
     } catch (error) {
       console.log('❌ DRAWER LOGOUT ERROR:', error);
     }
@@ -211,9 +195,9 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           {title}
         </Text>
 
-        {/* BADGE */}
+        {/* BADGE / ARROW */}
 
-        {badge ? (
+        {typeof badge === 'number' && badge > 0 ? (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
           </View>
@@ -285,8 +269,6 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           style={styles.profileCard}
           onPress={() => handleNavigation(Routes.PROFILE)}
         >
-          {/* PROFILE IMAGE */}
-
           {currentUser.profileImage ? (
             <Image
               source={{
@@ -301,8 +283,6 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
               </Text>
             </View>
           )}
-
-          {/* PROFILE DATA */}
 
           <View style={styles.profileContent}>
             <Text style={styles.profileName} numberOfLines={1}>
@@ -351,12 +331,15 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           route={Routes.CREATE_QUOTES}
         />
 
+        {/* ================================================= */}
         {/* FAVORITES */}
+        {/* ================================================= */}
 
         <MenuItem
           icon={currentRoute === Routes.FAVORITES ? 'heart' : 'heart-outline'}
           title="Favourites"
           route={Routes.FAVORITES}
+          badge={favouriteCount}
         />
 
         {/* TEMPLATES */}
@@ -395,7 +378,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           }
           title="Notifications"
           route={Routes.NOTIFICATIONS}
-          badge={notifications.length}
+          badge={unreadCount}
         />
 
         {/* ================================================= */}
@@ -449,9 +432,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        {/* ================================================= */}
         {/* VERSION */}
-        {/* ================================================= */}
 
         <Text style={styles.version}>QuoteCreator • v1.0.0</Text>
       </Animated.View>
@@ -466,7 +447,6 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
 const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
-
     top: 0,
     right: 0,
     bottom: 0,
@@ -478,7 +458,6 @@ const styles = StyleSheet.create({
 
   backdrop: {
     position: 'absolute',
-
     top: 0,
     right: 0,
     bottom: 0,
@@ -684,6 +663,10 @@ const styles = StyleSheet.create({
 
     fontWeight: '700',
   },
+
+  // =====================================================
+  // BADGE
+  // =====================================================
 
   badge: {
     minWidth: 22,

@@ -10,7 +10,8 @@ const {
   deleteAccount,
 } = require("../controllers/userController");
 
-const upload = require("../middleware/upload");
+const imageUpload = require("../middleware/imageUpload");
+const verifyToken = require("../middleware/verifyToken");
 
 // ======================================
 // ADMIN - GET ALL USERS
@@ -29,7 +30,7 @@ router.get("/:id", getProfile);
 // UPDATE PROFILE
 // ======================================
 
-router.put("/:id", upload.single("profileImage"), updateProfile);
+router.put("/:id", imageUpload.single("profileImage"), updateProfile);
 
 // ======================================
 // CHANGE PASSWORD
@@ -41,6 +42,6 @@ router.put("/:id/password", changePassword);
 // DELETE USER
 // ======================================
 
-router.delete("/:id", deleteAccount);
+router.delete("/:id", verifyToken, deleteAccount);
 
 module.exports = router;

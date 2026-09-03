@@ -37,14 +37,19 @@ const latestQuoteSlice = createSlice({
       })
 
       .addCase(latestQuotesThunk.fulfilled, (state, action) => {
+        const response = action.payload;
+
         state.isLoading = false;
-        state.quotes = action.payload.quotes || [];
-        state.page = action.payload.page || 1;
-        state.limit = action.payload.limit || 10;
-        state.total = action.payload.total || 0;
-        state.totalPages = action.payload.totalPages || 0;
-        state.hasNextPage = action.payload.hasNextPage || false;
-        state.hasPreviousPage = action.payload.hasPreviousPage || false;
+
+        if (response.page === 1) {
+          state.quotes = response.quotes;
+        } else {
+          state.quotes.push(...response.quotes);
+        }
+
+        state.page = response.page;
+        state.totalPages = response.totalPages;
+        state.total = response.total;
       })
 
       .addCase(latestQuotesThunk.rejected, (state, action) => {

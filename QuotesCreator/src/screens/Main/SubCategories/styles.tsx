@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 
     borderRadius: moderateScale(16),
 
-    backgroundColor: COLORS.light_grey,
+    backgroundColor: COLORS.white,
 
     elevation: moderateScale(3),
 
@@ -101,13 +101,6 @@ const styles = StyleSheet.create({
 
     shadowOpacity: 0.08,
     shadowRadius: moderateScale(5),
-  },
-
-  quoteIcon: {
-    fontSize: moderateScale(40),
-    lineHeight: moderateScale(40),
-    fontWeight: '700',
-    color: '#5B21E8',
   },
 
   quoteText: {
@@ -186,6 +179,13 @@ const styles = StyleSheet.create({
     lineHeight: moderateScale(24),
     fontWeight: '700',
     color: COLORS.black,
+  },
+  quoteIcon: {
+    position: 'absolute',
+    top: moderateScale(7),
+    left: moderateScale(10),
+    width: moderateScale(28),
+    height: moderateScale(28),
   },
 });
 
