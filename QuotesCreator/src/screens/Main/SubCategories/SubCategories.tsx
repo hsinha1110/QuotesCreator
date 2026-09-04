@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -24,9 +22,7 @@ import Tabs from '@/components/Tabs/Tabs';
 import { navigate } from '@/utils/NavigationUtils';
 import Routes from '@/navigations/Routes';
 
-import { SubCategoriesRouteProp, SubCategory, Quote } from '@/types';
-
-import { SubCategoriesTabs } from '@/constants/Data';
+import { SubCategoriesRouteProp, SubCategory } from '@/types';
 
 import styles from './styles';
 
@@ -35,10 +31,14 @@ import { AppDispatch, RootState } from '@/redux/store';
 import { subCategoriesThunk } from '@/redux/thunk/subCategoriesThunk';
 
 import { getQuotesAsyncThunk } from '@/redux/thunk/quotesThunk';
+
 import EmptyState from '@/components/EmptyState/EmptyState';
+
 import Quotes from '../Quotes/Quotes';
-import IMAGES from '@/assets/images';
+
 import COLORS from '@/constants/Colors';
+
+type TabKey = 'SubCategories' | 'Quotes';
 
 const SubCategories = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -48,10 +48,60 @@ const SubCategories = () => {
   const { categoryId, categoryName } = route.params;
 
   // ==================================================
-  // TAB
+  // LANGUAGE
   // ==================================================
 
-  const [activeTab, setActiveTab] = useState('SubCategories');
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const isHindi = language === 'Hindi';
+
+  // ==================================================
+  // LOCALIZED TEXT
+  // ==================================================
+
+  const texts = useMemo(
+    () => ({
+      subCategories: isHindi ? 'उपश्रेणियाँ' : 'Subcategories',
+
+      quotes: isHindi ? 'विचार' : 'Quotes',
+
+      noSubcategories: isHindi
+        ? 'कोई उपश्रेणी नहीं मिली!'
+        : 'No Subcategories Found!',
+
+      noSubcategoriesDescription: isHindi
+        ? 'इस श्रेणी में अभी कोई उपश्रेणी उपलब्ध नहीं है।'
+        : 'There are no subcategories available in this category yet.',
+
+      quoteWord: isHindi ? 'विचार' : 'Quotes',
+    }),
+    [isHindi],
+  );
+
+  // ==================================================
+  // LOCALIZED TABS
+  // ==================================================
+
+  const localizedTabs = useMemo(
+    () => [
+      {
+        key: 'SubCategories',
+        title: texts.subCategories,
+      },
+      {
+        key: 'Quotes',
+        title: texts.quotes,
+      },
+    ],
+    [texts],
+  );
+
+  // ==================================================
+  // ACTIVE TAB
+  // ==================================================
+
+  const [activeTab, setActiveTab] = useState<TabKey>('SubCategories');
+
   // ==================================================
   // SELECTED SUBCATEGORY
   // ==================================================
@@ -61,7 +111,7 @@ const SubCategories = () => {
   >(null);
 
   // ==================================================
-  // SUBCATEGORIES STATE
+  // SUBCATEGORY REDUX STATE
   // ==================================================
 
   const {
@@ -72,7 +122,7 @@ const SubCategories = () => {
   } = useSelector((state: RootState) => state.subCategories);
 
   // ==================================================
-  // QUOTES STATE
+  // QUOTES REDUX STATE
   // ==================================================
 
   const {
@@ -92,25 +142,79 @@ const SubCategories = () => {
   const [loadingMoreQuotes, setLoadingMoreQuotes] = useState(false);
 
   // ==================================================
+  // UNIQUE SUBCATEGORIES
+  // ==================================================
+
+  const uniqueSubcategories = useMemo(() => {
+    const seen = new Set<string>();
+
+    return subcategories.filter(item => {
+      if (!item?._id) {
+        return false;
+      }
+
+      // Agar backend displayLanguage bhej raha hai
+      // to sirf current language ka data rakho.
+      if (item.displayLanguage && item.displayLanguage !== language) {
+        return false;
+      }
+
+      if (seen.has(item._id)) {
+        return false;
+      }
+
+      seen.add(item._id);
+
+      return true;
+    });
+  }, [subcategories, language]);
+
+  // ==================================================
+  // UNIQUE QUOTES
+  // ==================================================
+
+  const uniqueQuotes = useMemo(() => {
+    const seen = new Set<string>();
+
+    return quotes.filter(item => {
+      if (!item?._id) {
+        return false;
+      }
+
+      if (item.displayLanguage && item.displayLanguage !== language) {
+        return false;
+      }
+
+      if (seen.has(item._id)) {
+        return false;
+      }
+
+      seen.add(item._id);
+
+      return true;
+    });
+  }, [quotes, language]);
+
+  // ==================================================
   // DEBUG
   // ==================================================
 
-  console.log('CATEGORY ID:', categoryId);
+  console.log('======================================');
 
-  console.log('SUBCATEGORY PAGE:', subcategoryPage);
+  console.log('🌐 SUBCATEGORIES CURRENT LANGUAGE:', language);
 
-  console.log('SUBCATEGORY TOTAL PAGES:', subcategoryTotalPages);
+  console.log('📁 CATEGORY ID:', categoryId);
 
-  console.log('QUOTE PAGE:', quotePage);
+  console.log('📂 SELECTED SUBCATEGORY:', selectedSubcategoryId);
 
-  console.log('QUOTE TOTAL PAGES:', quoteTotalPages);
+  console.log('📊 SUBCATEGORIES COUNT:', uniqueSubcategories.length);
 
-  console.log('TOTAL QUOTES IN REDUX:', quotes.length);
+  console.log('💬 QUOTES COUNT:', uniqueQuotes.length);
 
-  console.log('SELECTED SUBCATEGORY:', selectedSubcategoryId);
+  console.log('======================================');
 
   // ==================================================
-  // FETCH SUBCATEGORIES PAGE 1
+  // FETCH SUBCATEGORIES
   // ==================================================
 
   useEffect(() => {
@@ -118,15 +222,58 @@ const SubCategories = () => {
       return;
     }
 
-    dispatch(
-      subCategoriesThunk({
-        categoryId,
-        page: 1,
-        limit: 10,
-        language: 'English',
-      }),
-    );
-  }, [categoryId, dispatch]);
+    let cancelled = false;
+
+    const fetchSubcategories = async () => {
+      try {
+        console.log('🔥 FETCH SUBCATEGORIES');
+
+        console.log('🌐 LANGUAGE:', language);
+
+        const response = await dispatch(
+          subCategoriesThunk({
+            categoryId,
+            page: 1,
+            limit: 10,
+            language,
+          }),
+        ).unwrap();
+
+        if (!cancelled) {
+          console.log(
+            '✅ SUBCATEGORY RESPONSE:',
+            JSON.stringify(response, null, 2),
+          );
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.log('❌ SUBCATEGORY ERROR:', error);
+        }
+      }
+    };
+
+    fetchSubcategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId, dispatch, language]);
+
+  // ==================================================
+  // RESET WHEN LANGUAGE CHANGES
+  // ==================================================
+
+  useEffect(() => {
+    console.log('🔄 LANGUAGE CHANGED:', language);
+
+    setSelectedSubcategoryId(null);
+
+    setActiveTab('SubCategories');
+
+    setLoadingMoreSubcategories(false);
+
+    setLoadingMoreQuotes(false);
+  }, [language]);
 
   // ==================================================
   // LOAD MORE SUBCATEGORIES
@@ -137,13 +284,13 @@ const SubCategories = () => {
       return;
     }
 
-    if (subcategoryPage >= subcategoryTotalPages) {
+    if (!subcategoryTotalPages || subcategoryPage >= subcategoryTotalPages) {
       return;
     }
 
     const nextPage = subcategoryPage + 1;
 
-    console.log('LOADING SUBCATEGORY PAGE:', nextPage);
+    console.log('🔥 LOADING SUBCATEGORY PAGE:', nextPage);
 
     try {
       setLoadingMoreSubcategories(true);
@@ -151,16 +298,13 @@ const SubCategories = () => {
       await dispatch(
         subCategoriesThunk({
           categoryId,
-
           page: nextPage,
-
           limit: 10,
-
-          language: 'English',
+          language,
         }),
       ).unwrap();
     } catch (error) {
-      console.log('LOAD MORE SUBCATEGORIES ERROR:', error);
+      console.log('❌ LOAD MORE SUBCATEGORIES ERROR:', error);
     } finally {
       setLoadingMoreSubcategories(false);
     }
@@ -175,23 +319,26 @@ const SubCategories = () => {
       return;
     }
 
-    // Category quotes = no subcategory
-    setSelectedSubcategoryId(null);
+    console.log('🔥 FETCH CATEGORY QUOTES');
+
+    console.log('🌐 QUOTE LANGUAGE:', language);
 
     try {
-      await dispatch(
+      const response = await dispatch(
         getQuotesAsyncThunk({
           categoryId,
-
           page: 1,
-
           limit: 10,
-
-          language: 'English',
+          language,
         }),
       ).unwrap();
+
+      console.log(
+        '✅ CATEGORY QUOTES RESPONSE:',
+        JSON.stringify(response, null, 2),
+      );
     } catch (error) {
-      console.log('CATEGORY QUOTES ERROR:', error);
+      console.log('❌ CATEGORY QUOTES ERROR:', error);
     }
   };
 
@@ -200,48 +347,22 @@ const SubCategories = () => {
   // ==================================================
 
   const loadMoreQuotes = async () => {
-    console.log('========== LOAD MORE QUOTES ==========');
-
-    console.log('quotesLoading:', quotesLoading);
-
-    console.log('loadingMoreQuotes:', loadingMoreQuotes);
-
-    console.log('quotePage:', quotePage);
-
-    console.log('quoteTotalPages:', quoteTotalPages);
-
-    console.log('quotes.length:', quotes.length);
-
-    console.log('selectedSubcategoryId:', selectedSubcategoryId);
-
-    // ==========================================
-    // ALREADY LOADING
-    // ==========================================
-
     if (quotesLoading || loadingMoreQuotes) {
-      console.log('RETURN: ALREADY LOADING');
-
       return;
     }
 
-    // ==========================================
-    // NO MORE PAGES
-    // ==========================================
-
-    if (quotePage >= quoteTotalPages) {
-      console.log('RETURN: NO MORE QUOTE PAGES');
-
+    if (!quoteTotalPages || quotePage >= quoteTotalPages) {
       return;
     }
 
     const nextPage = quotePage + 1;
 
-    console.log('CALLING QUOTES API PAGE:', nextPage);
+    console.log('🔥 CALLING QUOTES API PAGE:', nextPage);
 
     try {
       setLoadingMoreQuotes(true);
 
-      const result = await dispatch(
+      await dispatch(
         getQuotesAsyncThunk({
           categoryId,
 
@@ -255,13 +376,11 @@ const SubCategories = () => {
 
           limit: 10,
 
-          language: 'English',
+          language,
         }),
       ).unwrap();
-
-      console.log('NEXT PAGE RESPONSE:', result);
     } catch (error) {
-      console.log('NEXT PAGE ERROR:', error);
+      console.log('❌ NEXT PAGE ERROR:', error);
     } finally {
       setLoadingMoreQuotes(false);
     }
@@ -272,9 +391,17 @@ const SubCategories = () => {
   // ==================================================
 
   const handleTabPress = (tabKey: string) => {
-    setActiveTab(tabKey);
+    console.log('🔘 TAB PRESSED:', tabKey);
 
-    if (tabKey === 'Quotes') {
+    if (tabKey !== 'SubCategories' && tabKey !== 'Quotes') {
+      return;
+    }
+
+    const selectedTab = tabKey as TabKey;
+
+    setActiveTab(selectedTab);
+
+    if (selectedTab === 'Quotes') {
       fetchCategoryQuotes();
     }
   };
@@ -284,14 +411,20 @@ const SubCategories = () => {
   // ==================================================
 
   const handleSubCategoryPress = (item: SubCategory) => {
-    console.log('SUBCATEGORY ID:', item._id);
+    if (!item?._id) {
+      return;
+    }
 
-    console.log('SUBCATEGORY NAME:', item.displayName || item.name);
+    console.log('📂 SUBCATEGORY ID:', item._id);
 
-    // Save subcategory
+    console.log('📂 SUBCATEGORY NAME:', item.displayName || item.name);
+
+    console.log('🌐 LANGUAGE:', language);
+
     setSelectedSubcategoryId(item._id);
 
-    // Fetch page 1
+    setActiveTab('Quotes');
+
     dispatch(
       getQuotesAsyncThunk({
         categoryId,
@@ -302,12 +435,19 @@ const SubCategories = () => {
 
         limit: 10,
 
-        language: 'English',
+        language,
       }),
-    );
-
-    // Open Quotes tab
-    setActiveTab('Quotes');
+    )
+      .unwrap()
+      .then(response => {
+        console.log(
+          '✅ SUBCATEGORY QUOTES RESPONSE:',
+          JSON.stringify(response, null, 2),
+        );
+      })
+      .catch(error => {
+        console.log('❌ SUBCATEGORY QUOTES ERROR:', error);
+      });
   };
 
   // ==================================================
@@ -315,7 +455,7 @@ const SubCategories = () => {
   // ==================================================
 
   const handleSearch = () => {
-    console.log('Search pressed');
+    console.log('🔍 SEARCH LANGUAGE:', language);
   };
 
   // ==================================================
@@ -343,7 +483,7 @@ const SubCategories = () => {
             </Text>
 
             <Text style={styles.subCategoryQuoteCount}>
-              {item.quoteCount ?? 0}+ Quotes
+              {item.quoteCount ?? 0} + {texts.quoteWord}
             </Text>
           </View>
 
@@ -353,6 +493,10 @@ const SubCategories = () => {
     );
   };
 
+  // ==================================================
+  // SUBCATEGORY FOOTER
+  // ==================================================
+
   const renderSubcategoryFooter = () => {
     if (!loadingMoreSubcategories) {
       return null;
@@ -360,30 +504,14 @@ const SubCategories = () => {
 
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" />
+        <ActivityIndicator size="small" color={COLORS.accent} />
       </View>
     );
   };
 
   // ==================================================
-  // INITIAL LOADING
+  // QUOTE FOOTER
   // ==================================================
-
-  // ==========================================
-  // INITIAL LOADING
-  // ==========================================
-
-  const renderLoading = () => {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-      </View>
-    );
-  };
-
-  // ==========================================
-  // BOTTOM PAGINATION LOADING
-  // ==========================================
 
   const renderQuoteFooter = () => {
     if (!loadingMoreQuotes) {
@@ -396,13 +524,28 @@ const SubCategories = () => {
       </View>
     );
   };
+
+  // ==================================================
+  // LOADING
+  // ==================================================
+
+  const renderLoading = () => {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  };
+
   // ==================================================
   // UI
   // ==================================================
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+      {/* ==============================================
+          HEADER
+      ============================================== */}
 
       <Header
         title={categoryName}
@@ -413,38 +556,44 @@ const SubCategories = () => {
         onRightPress={handleSearch}
       />
 
-      {/* TABS */}
+      {/* ==============================================
+          TABS
+      ============================================== */}
 
       <Tabs
-        tabs={SubCategoriesTabs}
+        tabs={localizedTabs}
         activeTab={activeTab}
         onTabPress={handleTabPress}
       />
 
-      {/* =================================================
+      {/* ==============================================
           SUBCATEGORIES TAB
-          ================================================= */}
+      ============================================== */}
 
       {activeTab === 'SubCategories' && (
-        <View style={{ flex: 1 }}>
+        <View
+          style={{
+            flex: 1,
+          }}
+        >
           {subcategoriesLoading && subcategoryPage === 1 ? (
             renderLoading()
           ) : (
             <FlatList
-              data={subcategories}
+              key={`subcategories-${language}`}
+              data={uniqueSubcategories}
               keyExtractor={item => item._id}
               renderItem={renderSubCategory}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContainer}
               onEndReached={loadMoreSubcategories}
               onEndReachedThreshold={0.5}
-              ListFooterComponent={renderQuoteFooter}
+              ListFooterComponent={renderSubcategoryFooter}
               ListEmptyComponent={
                 <EmptyState
                   icon="layers-outline"
-                  title="No Subcategories Found!"
-                  description={`There are no subcategories available
-in this category yet.`}
+                  title={texts.noSubcategories}
+                  description={texts.noSubcategoriesDescription}
                 />
               }
             />
@@ -452,12 +601,13 @@ in this category yet.`}
         </View>
       )}
 
-      {/* =================================================
+      {/* ==============================================
           QUOTES TAB
-          ================================================= */}
+      ============================================== */}
 
       {activeTab === 'Quotes' && (
         <Quotes
+          key={`quotes-${language}-${selectedSubcategoryId || 'category'}`}
           type="subcategory"
           categoryId={categoryId}
           subcategoryId={selectedSubcategoryId}

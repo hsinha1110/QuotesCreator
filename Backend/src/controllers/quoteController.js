@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const Quote = require("../models/Quote");
-
+const { getRecentQuotes, saveRecentQuote } = require("./userController");
 // =====================================================
 // GET ALL QUOTES
 // GET /api/quotes
@@ -222,14 +222,31 @@ const getLatestQuotes = async (req, res) => {
       subcategoryId,
     } = req.query;
 
-    const pageNumber = Math.max(Number(page) || 1, 1);
-    const limitNumber = Math.min(Math.max(Number(limit) || 10, 1), 100);
+    // =========================
+    // LANGUAGE
+    // =========================
+    const selectedLanguage =
+      String(language).toLowerCase() === "hindi" ? "Hindi" : "English";
+    // =========================
+    // PAGINATION
+    // =========================
+    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
 
+    const limitNumber = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // =========================
+    // FILTER
+    // =========================
     const filter = {
-      language,
       isActive: { $ne: false },
+      isDraft: false,
     };
 
+    // =========================
+    // CATEGORY FILTER
+    // =========================
     if (categoryId) {
       if (!mongoose.Types.ObjectId.isValid(categoryId)) {
         return res.status(400).json({
@@ -241,6 +258,9 @@ const getLatestQuotes = async (req, res) => {
       filter.categoryId = categoryId;
     }
 
+    // =========================
+    // SUBCATEGORY FILTER
+    // =========================
     if (subcategoryId) {
       if (!mongoose.Types.ObjectId.isValid(subcategoryId)) {
         return res.status(400).json({
@@ -252,8 +272,9 @@ const getLatestQuotes = async (req, res) => {
       filter.subcategoryId = subcategoryId;
     }
 
-    const skip = (pageNumber - 1) * limitNumber;
-
+    // =========================
+    // FETCH QUOTES + COUNT
+    // =========================
     const [quotes, total] = await Promise.all([
       Quote.find(filter)
         .sort({
@@ -267,14 +288,43 @@ const getLatestQuotes = async (req, res) => {
       Quote.countDocuments(filter),
     ]);
 
+    // =========================
+    // LOCALIZE QUOTES
+    // =========================
+    const localizedQuotes = quotes.map((quote) => {
+      const translation =
+        quote.translations && typeof quote.translations === "object"
+          ? quote.translations[selectedLanguage]
+          : null;
+
+      return {
+        ...quote,
+
+        // Selected language text
+        displayText:
+          translation && String(translation).trim() ? translation : quote.text,
+
+        // Selected language
+        displayLanguage: selectedLanguage,
+      };
+    });
+
+    // =========================
+    // RESPONSE
+    // =========================
     return res.status(200).json({
       success: true,
       message: "Latest quotes fetched successfully",
+
       total,
+
       page: pageNumber,
+
       limit: limitNumber,
+
       totalPages: Math.ceil(total / limitNumber),
-      quotes,
+
+      quotes: localizedQuotes,
     });
   } catch (error) {
     console.error("❌ Get Latest Quotes Error:", error);
@@ -487,9 +537,15 @@ const updateQuote = async (req, res) => {
 
 const deleteQuote = async (req, res) => {
   try {
+    console.log("🔥🔥🔥 DELETE QUOTE CONTROLLER HIT");
+    console.log("🔥 URL:", req.originalUrl);
+    console.log("🔥 PARAMS:", req.params);
+
     const { id } = req.params;
 
     const quote = await Quote.findById(id);
+
+    console.log("🔥 QUOTE FOUND:", quote?._id);
 
     if (!quote) {
       return res.status(404).json({
@@ -500,17 +556,20 @@ const deleteQuote = async (req, res) => {
 
     await Quote.findByIdAndDelete(id);
 
+    console.log("✅ QUOTE DELETED:", id);
+
     return res.status(200).json({
       success: true,
       message: "Quote deleted successfully",
       quote,
     });
   } catch (error) {
-    console.error("DELETE QUOTE ERROR:", error);
+    console.error("❌ DELETE QUOTE ERROR:", error);
 
     return res.status(500).json({
       success: false,
       message: "Failed to delete quote",
+      error: error.message,
     });
   }
 };

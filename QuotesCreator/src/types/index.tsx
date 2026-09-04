@@ -238,38 +238,6 @@ export type popularQuotesParams = {
 // QUOTE
 // ==================================================
 
-export type Quote = {
-  _id: string;
-
-  text: string;
-
-  author?: string;
-
-  image?: string | null;
-
-  language: Language;
-
-  categoryId: string;
-
-  subcategoryId: string;
-
-  views?: number;
-
-  likes?: number;
-
-  isLiked?: boolean;
-
-  isDraft?: boolean;
-
-  isActive?: boolean;
-
-  createdAt?: string;
-
-  updatedAt?: string;
-
-  displayText: string;
-};
-
 // ==================================================
 // DAILY QUOTE
 // ==================================================
@@ -482,18 +450,27 @@ export interface SubCategory {
 
   name: string;
 
-  displayName: string;
-
-  displayText: string;
-
-  displayLanguage: Language;
+  description?: string;
 
   translations?: {
     English?: string;
     Hindi?: string;
+    [key: string]: string | undefined;
   };
 
-  quoteCount: number;
+  descriptionTranslations?: {
+    English?: string;
+    Hindi?: string;
+    [key: string]: string | undefined;
+  };
+
+  displayName?: string;
+
+  displayDescription?: string;
+
+  displayLanguage?: 'English' | 'Hindi';
+
+  quoteCount?: number;
 
   createdAt?: string;
 
@@ -610,18 +587,27 @@ export type UpdateProfileParams = {
     fileName?: string;
   } | null;
 };
-
 export interface CreateQuotePayload {
   text: string;
-  author?: string;
+  quote?: string;
+  author: string;
+
   language: 'English' | 'Hindi';
 
-  categoryId?: string;
-  subcategoryId?: string;
+  source: 'admin' | 'user' | 'ai';
 
-  image?: string;
+  translations: {
+    English: string;
+    Hindi: string;
+  };
+
+  categoryId?: string | null;
+
+  subcategoryId?: string | null;
+
   isActive?: boolean;
-  source?: 'admin' | 'user' | 'ai';
+
+  isDraft?: boolean;
 }
 export interface RecentQuotesResponse {
   success: boolean;
@@ -666,4 +652,42 @@ export interface SettingRowProps {
 export interface LanguageState {
   language: AppLanguage;
   isLoading: boolean;
+}
+export interface Quote {
+  _id: string;
+
+  categoryId?: string | null;
+  subcategoryId?: string | null;
+
+  text: string;
+
+  author?: string;
+
+  image?: string | null;
+
+  language: 'English' | 'Hindi';
+
+  translations?: {
+    English?: string;
+    Hindi?: string;
+    [key: string]: string | undefined;
+  };
+
+  displayText?: string;
+
+  displayLanguage?: 'English' | 'Hindi';
+
+  likes?: number;
+
+  views?: number;
+
+  isDraft?: boolean;
+
+  isActive?: boolean;
+
+  source?: 'admin' | 'user' | 'ai';
+
+  createdAt?: string;
+
+  updatedAt?: string;
 }

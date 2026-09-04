@@ -5,7 +5,7 @@ import COLORS from '@/constants/Colors';
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: moderateScale(40),
+    height: moderateScale(50),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: moderateScale(8),
@@ -42,9 +42,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: moderateScale(18),
-    lineHeight: moderateScale(20),
     fontWeight: '700',
     color: COLORS.black,
+    flexWrap: 'wrap',
   },
   iconButton: {
     width: moderateScale(40),

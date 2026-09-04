@@ -37,7 +37,11 @@ const ItemCategories = ({
             style={[styles.categoryName, !fullWidth && styles.homeCategoryName]}
             numberOfLines={fullWidth ? 1 : 2}
           >
-            {item.displayName || item.name}
+            <Text>
+              {language === 'Hindi'
+                ? item.translations?.Hindi || item.displayName || item.name
+                : item.translations?.English || item.displayName || item.name}
+            </Text>
           </Text>
 
           <Text

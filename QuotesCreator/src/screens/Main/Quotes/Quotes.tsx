@@ -66,6 +66,14 @@ const Quotes = ({
   const [loadingMore, setLoadingMore] = useState(false);
 
   // =====================================================
+  // LANGUAGE
+  // =====================================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const isHindi = language === 'Hindi';
+
+  // =====================================================
   // CATEGORY / SUBCATEGORY REDUX
   // =====================================================
 
@@ -108,14 +116,20 @@ const Quotes = ({
     type === 'latest' ? latest : type === 'popular' ? popular : categoryQuotes;
 
   // =====================================================
-  // TITLE
+  // LOCALIZED TITLE
   // =====================================================
 
   const title =
     type === 'latest'
-      ? 'Latest Quotes'
+      ? isHindi
+        ? 'नवीनतम विचार'
+        : 'Latest Quotes'
       : type === 'popular'
-      ? 'Popular Quotes'
+      ? isHindi
+        ? 'लोकप्रिय विचार'
+        : 'Popular Quotes'
+      : isHindi
+      ? 'विचार'
       : 'Quotes';
 
   // =====================================================
@@ -131,10 +145,11 @@ const Quotes = ({
 
         if (type === 'latest') {
           console.log('🔥 FETCH LATEST PAGE 1');
+          console.log('🌐 LANGUAGE:', language);
 
           await dispatch(
             latestQuotesThunk({
-              language: 'English',
+              language,
               page: 1,
               limit: 10,
             }),
@@ -149,10 +164,11 @@ const Quotes = ({
 
         if (type === 'popular') {
           console.log('🔥 FETCH POPULAR PAGE 1');
+          console.log('🌐 LANGUAGE:', language);
 
           await dispatch(
             popularQuotesThunk({
-              language: 'English',
+              language,
               page: 1,
               limit: 10,
             }),
@@ -169,6 +185,7 @@ const Quotes = ({
           console.log('🔥 FETCH CATEGORY QUOTES PAGE 1');
           console.log('CATEGORY ID:', categoryId);
           console.log('SUBCATEGORY ID:', subcategoryId);
+          console.log('🌐 LANGUAGE:', language);
 
           await dispatch(
             getQuotesAsyncThunk({
@@ -182,7 +199,7 @@ const Quotes = ({
 
               page: 1,
               limit: 10,
-              language: 'English',
+              language,
             }),
           ).unwrap();
 
@@ -194,7 +211,7 @@ const Quotes = ({
     };
 
     fetchQuotes();
-  }, [type, categoryId, subcategoryId, dispatch]);
+  }, [type, categoryId, subcategoryId, language, dispatch]);
 
   // =====================================================
   // QUOTE DETAILS
@@ -246,6 +263,8 @@ const Quotes = ({
 
         console.log('🔥 CATEGORY NEXT PAGE:', nextPage);
 
+        console.log('🌐 LANGUAGE:', language);
+
         await dispatch(
           getQuotesAsyncThunk({
             categoryId: categoryId!,
@@ -258,7 +277,7 @@ const Quotes = ({
 
             page: nextPage,
             limit: 10,
-            language: 'English',
+            language,
           }),
         ).unwrap();
 
@@ -274,6 +293,7 @@ const Quotes = ({
           .latestQuotes;
 
         const currentPage = latestState.page || 1;
+
         const totalPages = latestState.totalPages || 1;
 
         if (currentPage >= totalPages) {
@@ -285,9 +305,11 @@ const Quotes = ({
 
         console.log('🔥 LATEST NEXT PAGE:', nextPage);
 
+        console.log('🌐 LANGUAGE:', language);
+
         await dispatch(
           latestQuotesThunk({
-            language: 'English',
+            language,
             page: nextPage,
             limit: 10,
           }),
@@ -305,6 +327,7 @@ const Quotes = ({
           .popularQuotes;
 
         const currentPage = popularState.page || 1;
+
         const totalPages = popularState.totalPages || 1;
 
         if (currentPage >= totalPages) {
@@ -316,9 +339,11 @@ const Quotes = ({
 
         console.log('🔥 POPULAR NEXT PAGE:', nextPage);
 
+        console.log('🌐 LANGUAGE:', language);
+
         await dispatch(
           popularQuotesThunk({
-            language: 'English',
+            language,
             page: nextPage,
             limit: 10,
           }),
@@ -340,15 +365,30 @@ const Quotes = ({
   const renderQuote = ({ item, index }: { item: Quote; index: number }) => {
     const isFavorite = favourites.some(favourite => favourite._id === item._id);
 
+    // ==========================================
+    // LOCALIZED TEXT
+    // ==========================================
+
+    const displayText =
+      item.displayText || item.translations?.[language] || item.text;
+
+    // ==========================================
+    // FAVORITE
+    // ==========================================
+
     const handleFavoritePress = () => {
       dispatch(
         toggleFavourite({
           _id: item._id,
-          text: item.displayText || item.text,
+          text: displayText,
           author: item.author || 'Unknown',
         }),
       );
     };
+
+    // ==========================================
+    // SHARE
+    // ==========================================
 
     const handleSharePress = () => {
       console.log('📤 SHARE QUOTE:', item._id);
@@ -366,7 +406,7 @@ const Quotes = ({
             resizeMode="contain"
           />
 
-          <Text style={styles.quoteText}>{item.displayText || item.text}</Text>
+          <Text style={styles.quoteText}>{displayText}</Text>
 
           <Text style={styles.author}>— {item.author || 'Unknown'}</Text>
         </Pressable>
@@ -438,9 +478,12 @@ const Quotes = ({
         ListEmptyComponent={
           <EmptyState
             icon="chatbubble-ellipses-outline"
-            title={`No ${title} Found!`}
-            description={`No quotes available right now.
-Try another category or search.`}
+            title={isHindi ? `कोई ${title} नहीं मिला!` : `No ${title} Found!`}
+            description={
+              isHindi
+                ? 'अभी कोई विचार उपलब्ध नहीं हैं।\nकोई दूसरी श्रेणी या खोज आज़माएँ।'
+                : 'No quotes available right now.\nTry another category or search.'
+            }
           />
         }
       />

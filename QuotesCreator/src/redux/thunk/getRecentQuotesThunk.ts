@@ -1,7 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 import { ASYNC_ROUTES } from '../constants';
-import { getRecentQuotesService } from '../services/getRecentQuotesService';
+import { getRecentQuotesService } from '../services/getRecentQuoteService';
 
 export const getRecentQuotesThunk = createAsyncThunk(
   ASYNC_ROUTES.GET_RECENT_QUOTE,
@@ -20,10 +20,7 @@ export const getRecentQuotesThunk = createAsyncThunk(
 
       return response;
     } catch (error: any) {
-      console.log(
-        'GET RECENT QUOTES ERROR:',
-        error?.response?.data || error,
-      );
+      console.log('GET RECENT QUOTES ERROR:', error?.response?.data || error);
 
       return rejectWithValue(
         error?.response?.data?.message || 'Failed to fetch recent quotes',

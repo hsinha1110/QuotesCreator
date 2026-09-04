@@ -7,9 +7,7 @@ export const saveRecentQuoteService = async (
 ) => {
   const response = await api.post(
     SERVICE_ROUTES.SAVE_RECENT_QUOTE,
-    {
-      quoteId,
-    },
+    { quoteId },
     {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,32 +17,92 @@ import { Quote } from '@/types';
 
 import COLORS from '@/constants/Colors';
 import styles from './styles';
+
 import ItemPopular from '@/components/ListItems/ItemPopular/ItemPopular';
 
 type PopularNavigationProp = DrawerNavigationProp<DrawerParamList>;
+
+type LocalizedQuote = Quote & {
+  displayLanguage?: string;
+  displayText?: string;
+};
 
 const Popular = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const navigation = useNavigation<PopularNavigationProp>();
 
+  // ==========================================
+  // LANGUAGE
+  // ==========================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const isHindi = language === 'Hindi';
+
+  // ==========================================
+  // POPULAR STATE
+  // ==========================================
+
   const { quotes, isLoading, page, totalPages } = useSelector(
     (state: RootState) => state.popularQuotes,
   );
+
+  // ==========================================
+  // LOCALIZED TEXT
+  // ==========================================
+
+  const screenTitle = isHindi ? 'लोकप्रिय विचार' : 'Popular Quotes';
+
+  // ==========================================
+  // REMOVE DUPLICATE QUOTES
+  // ==========================================
+
+  const uniqueQuotes = useMemo(() => {
+    const seen = new Set<string>();
+
+    return quotes.filter(item => {
+      if (!item?._id) {
+        return false;
+      }
+
+      if (seen.has(item._id)) {
+        return false;
+      }
+
+      seen.add(item._id);
+
+      return true;
+    });
+  }, [quotes]);
+
+  // ==========================================
+  // ONLY CURRENT LANGUAGE
+  // ==========================================
+
+  const displayQuotes = useMemo(() => {
+    const localizedQuotes = (uniqueQuotes as LocalizedQuote[]).filter(
+      item => !item.displayLanguage || item.displayLanguage === language,
+    );
+
+    return localizedQuotes;
+  }, [uniqueQuotes, language]);
 
   // ==========================================
   // FETCH PAGE 1
   // ==========================================
 
   useEffect(() => {
+    console.log('🌐 POPULAR SCREEN LANGUAGE:', language);
+
     dispatch(
       popularQuotesThunk({
-        language: 'English',
+        language,
         page: 1,
         limit: 10,
       }),
     );
-  }, [dispatch]);
+  }, [dispatch, language]);
 
   // ==========================================
   // BACK
@@ -57,7 +117,7 @@ const Popular = () => {
   // ==========================================
 
   const handleSearch = () => {
-    console.log('Search pressed');
+    console.log('🔍 POPULAR SEARCH:', language);
   };
 
   // ==========================================
@@ -67,7 +127,7 @@ const Popular = () => {
   const handleQuotePress = (item: Quote, index: number) => {
     navigation.navigate(Routes.QUOTES_DETAILS, {
       item,
-      quotes,
+      quotes: displayQuotes,
       index,
     });
   };
@@ -87,9 +147,13 @@ const Popular = () => {
 
     const nextPage = page + 1;
 
+    console.log('📄 POPULAR NEXT PAGE:', nextPage);
+
+    console.log('🌐 POPULAR LANGUAGE:', language);
+
     dispatch(
       popularQuotesThunk({
-        language: 'English',
+        language,
         page: nextPage,
         limit: 10,
       }),
@@ -101,7 +165,7 @@ const Popular = () => {
   // ==========================================
 
   const renderFooter = () => {
-    if (!isLoading || quotes.length === 0) {
+    if (!isLoading || displayQuotes.length === 0) {
       return null;
     }
 
@@ -116,11 +180,11 @@ const Popular = () => {
   // INITIAL LOADING
   // ==========================================
 
-  if (isLoading && quotes.length === 0) {
+  if (isLoading && displayQuotes.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
         <Header
-          title="Popular"
+          title={screenTitle}
           icon="chevron-back"
           onMenuPress={handleGoBack}
           showNotification={false}
@@ -142,7 +206,7 @@ const Popular = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        title="Popular Quotes"
+        title={screenTitle}
         icon="chevron-back"
         onMenuPress={handleGoBack}
         showNotification={false}
@@ -150,8 +214,9 @@ const Popular = () => {
         onRightPress={handleSearch}
       />
 
-      <FlatList
-        data={quotes}
+      <FlatList<LocalizedQuote>
+        data={displayQuotes}
+        key={language}
         keyExtractor={item => item._id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}

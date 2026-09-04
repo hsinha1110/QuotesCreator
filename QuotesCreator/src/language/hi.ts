@@ -26,6 +26,7 @@ const hi = {
     FACEBOOK_LOGIN_FAILED: 'Facebook लॉगिन असफल',
     SOMETHING_WENT_WRONG: 'कुछ गलत हो गया। कृपया दोबारा प्रयास करें।',
   },
+
   SIGNUP: {
     TITLE: 'अकाउंट बनाएं 🚀',
     SUBTITLE: 'अद्भुत Quotes बनाने के लिए साइन अप करें',
@@ -60,6 +61,7 @@ const hi = {
     FACEBOOK_SIGNUP_FAILED: 'Facebook साइन अप असफल',
     SOMETHING_WENT_WRONG: 'कुछ गलत हो गया। कृपया दोबारा प्रयास करें।',
   },
+
   DRAWER: {
     MAIN_MENU: 'मुख्य मेनू',
     HOME: 'होम',
@@ -76,8 +78,10 @@ const hi = {
     LOGOUT: 'लॉगआउट',
 
     APP_SUBTITLE: 'बनाएं। प्रेरित करें। साझा करें।',
+
     VERSION: 'QuoteCreator • संस्करण 1.0.0',
   },
+
   HOME: {
     GOOD_MORNING: 'सुप्रभात! 👋',
     INSPIRATION: 'अपने दिन के लिए प्रेरणा पाएं',
@@ -89,6 +93,79 @@ const hi = {
     POPULAR_QUOTES: 'लोकप्रिय कोट्स',
     TODAYS_THOUGHT: 'आज का विचार',
     QUOTES: 'कोट्स',
+  },
+
+  // ==========================================
+  // CREATE QUOTE
+  // ==========================================
+
+  CREATE_QUOTE: {
+    TITLE: 'कोट बनाएं',
+
+    SUBTITLE:
+      'अपना प्रेरणादायक कोट बनाएं\nऔर दुनिया के साथ सकारात्मकता साझा करें।',
+
+    WRITE_YOUR_OWN: 'अपना लिखें',
+
+    WRITE_YOUR_OWN_DESCRIPTION: 'अपना कोट शुरू से लिखें\nऔर इसे खूबसूरत बनाएं।',
+
+    USE_A_QUOTE: 'कोट इस्तेमाल करें',
+
+    USE_A_QUOTE_DESCRIPTION:
+      'हमारे कोट संग्रह में से चुनें\nऔर इसे कस्टमाइज़ करें।',
+
+    RECENT_QUOTES: 'हाल के कोट',
+
+    SEE_ALL: 'सभी देखें',
+
+    NO_RECENT_QUOTES: 'अभी कोई हाल का कोट नहीं है',
+
+    LOADING: 'लोड हो रहा है...',
+
+    DELETE_QUOTE: 'कोट डिलीट करें',
+
+    DELETE_CONFIRMATION: 'क्या आप वाकई इस कोट को डिलीट करना चाहते हैं?',
+
+    CANCEL: 'रद्द करें',
+
+    DELETE: 'डिलीट',
+
+    ERROR: 'त्रुटि',
+
+    DELETE_FAILED: 'कोट डिलीट नहीं हो सका',
+  },
+  CREATE_OWN: {
+    HEADER_TITLE: 'कोट बनाएं',
+
+    TITLE: 'अपना कोट लिखें',
+
+    SUBTITLE: 'कुछ प्रेरणादायक बनाएं और अपने विचार\nदुनिया के साथ साझा करें',
+
+    YOUR_QUOTE: 'आपका कोट',
+
+    QUOTE_PLACEHOLDER: 'अपना कोट यहां लिखें...',
+
+    AUTHOR: 'लेखक',
+
+    AUTHOR_PLACEHOLDER: 'लेखक का नाम दर्ज करें (वैकल्पिक)',
+
+    OPTIONAL: 'वैकल्पिक',
+
+    PREVIEW: 'पूर्वावलोकन',
+
+    PREVIEW_PLACEHOLDER: '"आपका प्रेरणादायक कोट यहां दिखाई देगा..."',
+
+    SAVE: 'सेव करें',
+
+    SAVING: 'सेव किया जा रहा है...',
+
+    QUOTE_REQUIRED: 'कृपया अपना कोट दर्ज करें',
+
+    AUTHOR_OPTIONAL: 'लेखक का नाम वैकल्पिक है',
+
+    SUCCESS: 'कोट सफलतापूर्वक बनाया गया',
+
+    ERROR: 'कोट बनाया नहीं जा सका',
   },
 };
 

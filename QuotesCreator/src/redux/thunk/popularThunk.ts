@@ -1,6 +1,5 @@
 import { LatestQuotesParams } from '@/types';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { latestQuotesService } from '../services/latestService';
 import { ASYNC_ROUTES } from '../constants';
 import { popularQuotesService } from '../services/popularService';
 

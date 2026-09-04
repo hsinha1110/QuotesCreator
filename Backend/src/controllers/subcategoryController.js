@@ -5,7 +5,7 @@ const Subcategory = require("../models/Subcategory");
 const Quote = require("../models/Quote");
 
 // ======================================================
-// ALLOWED LANGUAGES
+// CONSTANTS
 // ======================================================
 
 const allowedLanguages = ["English", "Hindi"];
@@ -40,20 +40,53 @@ const isValidObjectId = (id) => {
 
 // ======================================================
 // GET TRANSLATION
+// Supports:
+// 1. Mongoose Map
+// 2. Normal Object
 // ======================================================
 
 const getTranslation = (translations, language) => {
-  if (!translations) {
+  if (!translations || !language) {
     return "";
   }
 
+  const selectedLanguage = String(language).trim().toLowerCase();
+
+  // --------------------------------------------
   // Mongoose Map
+  // --------------------------------------------
+
   if (typeof translations.get === "function") {
-    return translations.get(language) || "";
+    const directValue = translations.get(language);
+
+    if (directValue) {
+      return String(directValue).trim();
+    }
+
+    for (const [key, value] of translations.entries()) {
+      if (String(key).trim().toLowerCase() === selectedLanguage) {
+        return value ? String(value).trim() : "";
+      }
+    }
+
+    return "";
   }
 
-  // Normal object
-  return translations[language] || "";
+  // --------------------------------------------
+  // Normal Object
+  // --------------------------------------------
+
+  if (typeof translations === "object" && !Array.isArray(translations)) {
+    const key = Object.keys(translations).find(
+      (item) => String(item).trim().toLowerCase() === selectedLanguage,
+    );
+
+    if (key && translations[key]) {
+      return String(translations[key]).trim();
+    }
+  }
+
+  return "";
 };
 
 // ======================================================
@@ -63,17 +96,29 @@ const getTranslation = (translations, language) => {
 const getLocalizedName = (item, language) => {
   const selectedLanguage = normalizeLanguage(language);
 
+  // --------------------------------------------
+  // Selected language
+  // --------------------------------------------
+
   const selected = getTranslation(item.translations, selectedLanguage);
 
   if (selected) {
     return selected;
   }
 
+  // --------------------------------------------
+  // English fallback
+  // --------------------------------------------
+
   const english = getTranslation(item.translations, "English");
 
   if (english) {
     return english;
   }
+
+  // --------------------------------------------
+  // Database name fallback
+  // --------------------------------------------
 
   return item.name || "";
 };
@@ -86,6 +131,10 @@ const getLocalizedDescription = (item, language) => {
   const selectedLanguage = normalizeLanguage(language);
 
   if (item.descriptionTranslations) {
+    // --------------------------------------------
+    // Selected language
+    // --------------------------------------------
+
     const selected = getTranslation(
       item.descriptionTranslations,
       selectedLanguage,
@@ -94,6 +143,10 @@ const getLocalizedDescription = (item, language) => {
     if (selected) {
       return selected;
     }
+
+    // --------------------------------------------
+    // English fallback
+    // --------------------------------------------
 
     const english = getTranslation(item.descriptionTranslations, "English");
 
@@ -159,6 +212,10 @@ const createSubcategory = async (req, res) => {
       descriptionTranslations,
     } = body;
 
+    // ==================================================
+    // CATEGORY ID
+    // ==================================================
+
     if (!categoryId) {
       return res.status(400).json({
         success: false,
@@ -173,6 +230,10 @@ const createSubcategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // NAME
+    // ==================================================
+
     if (!name || !String(name).trim()) {
       return res.status(400).json({
         success: false,
@@ -182,6 +243,10 @@ const createSubcategory = async (req, res) => {
 
     const cleanName = String(name).trim();
 
+    // ==================================================
+    // CHECK CATEGORY
+    // ==================================================
+
     const category = await Category.findById(categoryId);
 
     if (!category) {
@@ -190,6 +255,10 @@ const createSubcategory = async (req, res) => {
         message: "Category not found",
       });
     }
+
+    // ==================================================
+    // PARSE TRANSLATIONS
+    // ==================================================
 
     let parsedTranslations = {};
 
@@ -202,15 +271,35 @@ const createSubcategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // ENGLISH
+    // ==================================================
+
     if (!parsedTranslations.English) {
       parsedTranslations.English = cleanName;
     }
 
+    // ==================================================
+    // HINDI
+    //
+    // IMPORTANT:
+    // Hindi missing hone par English name ko
+    // Hindi nahi banayenge.
+    // ==================================================
+
     if (!parsedTranslations.Hindi) {
-      parsedTranslations.Hindi = cleanName;
+      parsedTranslations.Hindi = "";
     }
 
+    // ==================================================
+    // DESCRIPTION
+    // ==================================================
+
     const cleanDescription = description ? String(description).trim() : "";
+
+    // ==================================================
+    // DESCRIPTION TRANSLATIONS
+    // ==================================================
 
     let parsedDescriptionTranslations = {};
 
@@ -231,9 +320,13 @@ const createSubcategory = async (req, res) => {
       parsedDescriptionTranslations.English = cleanDescription;
     }
 
-    if (!parsedDescriptionTranslations.Hindi && cleanDescription) {
-      parsedDescriptionTranslations.Hindi = cleanDescription;
+    if (!parsedDescriptionTranslations.Hindi) {
+      parsedDescriptionTranslations.Hindi = "";
     }
+
+    // ==================================================
+    // CHECK DUPLICATE
+    // ==================================================
 
     const existing = await Subcategory.findOne({
       categoryId,
@@ -247,17 +340,28 @@ const createSubcategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // CREATE
+    // ==================================================
+
     const subcategory = await Subcategory.create({
       categoryId,
       name: cleanName,
       description: cleanDescription,
+
       translations: parsedTranslations,
+
       descriptionTranslations: parsedDescriptionTranslations,
     });
+
+    // ==================================================
+    // RESPONSE
+    // ==================================================
 
     return res.status(201).json({
       success: true,
       message: "Subcategory created successfully",
+
       subcategory,
     });
   } catch (error) {
@@ -273,6 +377,7 @@ const createSubcategory = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create subcategory",
+
       error: error.message,
     });
   }
@@ -284,8 +389,11 @@ const createSubcategory = async (req, res) => {
 // GET /api/subcategories
 //
 // Example:
-// /api/subcategories?categoryId=ID&page=1&limit=10&language=English
-//
+// /api/subcategories
+//   ?categoryId=ID
+//   &page=1
+//   &limit=10
+//   &language=Hindi
 // ======================================================
 
 const getSubcategories = async (req, res) => {
@@ -342,7 +450,7 @@ const getSubcategories = async (req, res) => {
     }
 
     // ==================================================
-    // TOTAL SUBCATEGORIES
+    // TOTAL
     // ==================================================
 
     const total = await Subcategory.countDocuments(filter);
@@ -360,18 +468,30 @@ const getSubcategories = async (req, res) => {
       .lean();
 
     // ==================================================
-    // ADD QUOTE COUNT
+    // LOCALIZE + QUOTE COUNT
     // ==================================================
 
     const result = await Promise.all(
       subcategories.map(async (item) => {
+        // --------------------------------------------
+        // IMPORTANT:
+        // Quote me language filter nahi lagana.
+        //
+        // One quote document contains:
+        // translations.English
+        // translations.Hindi
+        // --------------------------------------------
+
         const quoteFilter = {
           subcategoryId: item._id,
+
           isDraft: false,
-          language,
+
+          isActive: {
+            $ne: false,
+          },
         };
 
-        // Category bhi filter karo
         if (item.categoryId) {
           quoteFilter.categoryId = item.categoryId;
         }
@@ -387,7 +507,6 @@ const getSubcategories = async (req, res) => {
 
           displayLanguage: language,
 
-          // IMPORTANT
           quoteCount,
         };
       }),
@@ -430,6 +549,7 @@ const getSubcategories = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to get subcategories",
+
       error: error.message,
     });
   }
@@ -439,12 +559,15 @@ const getSubcategories = async (req, res) => {
 // GET SUBCATEGORIES BY CATEGORY
 //
 // GET /api/subcategories/category/:categoryId
-//
 // ======================================================
 
 const getSubcategoriesByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
+
+    // ==================================================
+    // VALIDATE CATEGORY ID
+    // ==================================================
 
     if (!isValidObjectId(categoryId)) {
       return res.status(400).json({
@@ -453,7 +576,15 @@ const getSubcategoriesByCategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // LANGUAGE
+    // ==================================================
+
     const language = normalizeLanguage(req.query.language);
+
+    // ==================================================
+    // PAGINATION
+    // ==================================================
 
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
 
@@ -464,6 +595,10 @@ const getSubcategoriesByCategory = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
+    // ==================================================
+    // CHECK CATEGORY
+    // ==================================================
+
     const category = await Category.findById(categoryId).lean();
 
     if (!category) {
@@ -473,11 +608,23 @@ const getSubcategoriesByCategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // FILTER
+    // ==================================================
+
     const filter = {
       categoryId,
     };
 
+    // ==================================================
+    // TOTAL
+    // ==================================================
+
     const total = await Subcategory.countDocuments(filter);
+
+    // ==================================================
+    // GET SUBCATEGORIES
+    // ==================================================
 
     const subcategories = await Subcategory.find(filter)
       .sort({
@@ -486,6 +633,10 @@ const getSubcategoriesByCategory = async (req, res) => {
       .skip(skip)
       .limit(limit)
       .lean();
+
+    // ==================================================
+    // LOCALIZE + QUOTE COUNT
+    // ==================================================
 
     const result = await Promise.all(
       subcategories.map(async (subcategory) => {
@@ -496,7 +647,9 @@ const getSubcategoriesByCategory = async (req, res) => {
 
           isDraft: false,
 
-          language,
+          isActive: {
+            $ne: false,
+          },
         });
 
         return {
@@ -513,7 +666,15 @@ const getSubcategoriesByCategory = async (req, res) => {
       }),
     );
 
+    // ==================================================
+    // PAGINATION
+    // ==================================================
+
     const totalPages = Math.ceil(total / limit);
+
+    // ==================================================
+    // RESPONSE
+    // ==================================================
 
     return res.status(200).json({
       success: true,
@@ -541,7 +702,9 @@ const getSubcategoriesByCategory = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to get subcategories",
+
       error: error.message,
     });
   }
@@ -550,13 +713,16 @@ const getSubcategoriesByCategory = async (req, res) => {
 // ======================================================
 // GET SINGLE SUBCATEGORY
 //
-// GET /api/subcategories/:id
-//
+// GET /api/subcategories/:id?language=Hindi
 // ======================================================
 
 const getSubcategory = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // ==================================================
+    // VALIDATE ID
+    // ==================================================
 
     if (!isValidObjectId(id)) {
       return res.status(400).json({
@@ -565,7 +731,15 @@ const getSubcategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // LANGUAGE
+    // ==================================================
+
     const language = normalizeLanguage(req.query.language);
+
+    // ==================================================
+    // GET SUBCATEGORY
+    // ==================================================
 
     const subcategory = await Subcategory.findById(id).lean();
 
@@ -576,12 +750,25 @@ const getSubcategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // QUOTE COUNT
+    // ==================================================
+
     const quoteCount = await Quote.countDocuments({
       categoryId: subcategory.categoryId,
+
       subcategoryId: subcategory._id,
+
       isDraft: false,
-      language,
+
+      isActive: {
+        $ne: false,
+      },
     });
+
+    // ==================================================
+    // RESPONSE
+    // ==================================================
 
     return res.status(200).json({
       success: true,
@@ -605,7 +792,9 @@ const getSubcategory = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to get subcategory",
+
       error: error.message,
     });
   }
@@ -613,6 +802,8 @@ const getSubcategory = async (req, res) => {
 
 // ======================================================
 // UPDATE SUBCATEGORY
+//
+// PUT /api/subcategories/:id
 // ======================================================
 
 const updateSubcategory = async (req, res) => {
@@ -629,12 +820,20 @@ const updateSubcategory = async (req, res) => {
       descriptionTranslations,
     } = body;
 
+    // ==================================================
+    // VALIDATE ID
+    // ==================================================
+
     if (!isValidObjectId(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid subcategory ID",
       });
     }
+
+    // ==================================================
+    // GET SUBCATEGORY
+    // ==================================================
 
     const subcategory = await Subcategory.findById(id);
 
@@ -644,6 +843,10 @@ const updateSubcategory = async (req, res) => {
         message: "Subcategory not found",
       });
     }
+
+    // ==================================================
+    // UPDATE CATEGORY
+    // ==================================================
 
     if (categoryId !== undefined) {
       if (!isValidObjectId(categoryId)) {
@@ -664,6 +867,10 @@ const updateSubcategory = async (req, res) => {
 
       subcategory.categoryId = categoryId;
     }
+
+    // ==================================================
+    // UPDATE NAME
+    // ==================================================
 
     if (name !== undefined) {
       const cleanName = String(name).trim();
@@ -695,9 +902,17 @@ const updateSubcategory = async (req, res) => {
       subcategory.name = cleanName;
     }
 
+    // ==================================================
+    // UPDATE DESCRIPTION
+    // ==================================================
+
     if (description !== undefined) {
       subcategory.description = String(description).trim();
     }
+
+    // ==================================================
+    // UPDATE TRANSLATIONS
+    // ==================================================
 
     if (translations !== undefined) {
       let parsedTranslations;
@@ -711,16 +926,30 @@ const updateSubcategory = async (req, res) => {
         });
       }
 
+      // --------------------------------------------
+      // English fallback
+      // --------------------------------------------
+
       if (!parsedTranslations.English) {
         parsedTranslations.English = subcategory.name;
       }
 
+      // --------------------------------------------
+      // IMPORTANT:
+      // Hindi missing => empty
+      // NOT English name
+      // --------------------------------------------
+
       if (!parsedTranslations.Hindi) {
-        parsedTranslations.Hindi = subcategory.name;
+        parsedTranslations.Hindi = "";
       }
 
       subcategory.translations = parsedTranslations;
     }
+
+    // ==================================================
+    // UPDATE DESCRIPTION TRANSLATIONS
+    // ==================================================
 
     if (descriptionTranslations !== undefined) {
       let parsedDescriptionTranslations;
@@ -736,10 +965,26 @@ const updateSubcategory = async (req, res) => {
         });
       }
 
+      if (!parsedDescriptionTranslations.English && subcategory.description) {
+        parsedDescriptionTranslations.English = subcategory.description;
+      }
+
+      if (!parsedDescriptionTranslations.Hindi) {
+        parsedDescriptionTranslations.Hindi = "";
+      }
+
       subcategory.descriptionTranslations = parsedDescriptionTranslations;
     }
 
+    // ==================================================
+    // SAVE
+    // ==================================================
+
     await subcategory.save();
+
+    // ==================================================
+    // RESPONSE
+    // ==================================================
 
     return res.status(200).json({
       success: true,
@@ -751,9 +996,18 @@ const updateSubcategory = async (req, res) => {
   } catch (error) {
     console.error("Update Subcategory Error:", error);
 
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Subcategory already exists in this category",
+      });
+    }
+
     return res.status(500).json({
       success: false,
+
       message: "Failed to update subcategory",
+
       error: error.message,
     });
   }
@@ -761,11 +1015,17 @@ const updateSubcategory = async (req, res) => {
 
 // ======================================================
 // DELETE SUBCATEGORY
+//
+// DELETE /api/subcategories/:id
 // ======================================================
 
 const deleteSubcategory = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // ==================================================
+    // VALIDATE ID
+    // ==================================================
 
     if (!isValidObjectId(id)) {
       return res.status(400).json({
@@ -773,6 +1033,10 @@ const deleteSubcategory = async (req, res) => {
         message: "Invalid subcategory ID",
       });
     }
+
+    // ==================================================
+    // DELETE
+    // ==================================================
 
     const subcategory = await Subcategory.findByIdAndDelete(id);
 
@@ -783,8 +1047,13 @@ const deleteSubcategory = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // RESPONSE
+    // ==================================================
+
     return res.status(200).json({
       success: true,
+
       message: "Subcategory deleted successfully",
     });
   } catch (error) {
@@ -792,7 +1061,9 @@ const deleteSubcategory = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to delete subcategory",
+
       error: error.message,
     });
   }
@@ -804,9 +1075,14 @@ const deleteSubcategory = async (req, res) => {
 
 module.exports = {
   createSubcategory,
+
   getSubcategories,
+
   getSubcategoriesByCategory,
+
   getSubcategory,
+
   updateSubcategory,
+
   deleteSubcategory,
 };

@@ -44,137 +44,69 @@ const getQuoteText = (quote, language) => {
 // =====================================================
 // REGISTER / UPDATE DEVICE
 // =====================================================
-
 const registerDevice = async (req, res) => {
   try {
-    const {
-      userId = null,
-      fcmToken,
+    const { userId, fcmToken, platform, language = "English" } = req.body;
+
+    console.log("📱 REGISTER DEVICE REQUEST:", {
+      userId,
+      fcmToken: fcmToken ? "Available" : "Missing",
       platform,
-      language = "English",
-    } = req.body || {};
+      language,
+    });
 
-    console.log("====================================");
-    console.log("🔥 REGISTER DEVICE");
-    console.log("userId:", userId);
-    console.log("platform:", platform);
-    console.log("language:", language);
-    console.log("FCM token:", fcmToken);
-    console.log("====================================");
-
-    // ==========================================
-    // VALIDATION
-    // ==========================================
-
-    if (!fcmToken || !fcmToken.trim()) {
+    if (!userId || !fcmToken) {
       return res.status(400).json({
         success: false,
-        message: "fcmToken is required",
+        message: "userId and fcmToken are required",
       });
     }
-
-    if (!platform) {
-      return res.status(400).json({
-        success: false,
-        message: "platform is required",
-      });
-    }
-
-    if (!["android", "ios"].includes(platform)) {
-      return res.status(400).json({
-        success: false,
-        message: "Platform must be android or ios",
-      });
-    }
-
-    // ==========================================
-    // LANGUAGE
-    // ==========================================
 
     if (!["English", "Hindi"].includes(language)) {
       return res.status(400).json({
         success: false,
         message: "Invalid language",
-        allowedLanguages: ["English", "Hindi"],
       });
     }
 
-    // ==========================================
-    // USER ID
-    // ==========================================
+    const device = await NotificationToken.findOneAndUpdate(
+      { fcmToken },
+      {
+        userId,
+        fcmToken,
+        platform,
+        language,
+        isActive: true,
+      },
+      {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true,
+      },
+    );
 
-    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID",
-      });
-    }
-
-    const token = fcmToken.trim();
-
-    // ==========================================
-    // FIND TOKEN
-    // ==========================================
-
-    let device = await NotificationToken.findOne({
-      fcmToken: token,
+    console.log("✅ DEVICE REGISTERED:", {
+      id: device._id,
+      userId: device.userId,
+      language: device.language,
+      platform: device.platform,
+      isActive: device.isActive,
     });
 
-    // ==========================================
-    // UPDATE EXISTING DEVICE
-    // ==========================================
-
-    if (device) {
-      device.userId = userId || null;
-      device.platform = platform;
-      device.language = language;
-      device.isActive = true;
-      device.lastUsedAt = new Date();
-
-      await device.save();
-
-      console.log("✅ DEVICE UPDATED");
-      console.log("Device ID:", device._id);
-      console.log("Language:", device.language);
-
-      return res.status(200).json({
-        success: true,
-        message: "Device updated successfully",
-        device,
-      });
-    }
-
-    // ==========================================
-    // CREATE DEVICE
-    // ==========================================
-
-    device = await NotificationToken.create({
-      userId: userId || null,
-      fcmToken: token,
-      platform,
-      language,
-      isActive: true,
-      lastUsedAt: new Date(),
-    });
-
-    console.log("✅ DEVICE REGISTERED");
-    console.log("Device ID:", device._id);
-    console.log("Language:", device.language);
-
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
       message: "Device registered successfully",
-      device,
+      device: {
+        id: device._id,
+        userId: device.userId,
+        fcmToken: device.fcmToken,
+        platform: device.platform,
+        language: device.language,
+        isActive: device.isActive,
+      },
     });
   } catch (error) {
-    console.error("❌ REGISTER DEVICE ERROR:", error);
-
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "FCM token already registered",
-      });
-    }
+    console.error("❌ Register Device Error:", error);
 
     return res.status(500).json({
       success: false,
@@ -275,41 +207,178 @@ const deactivateDevice = async (req, res) => {
 };
 
 // =====================================================
-// SEND DAILY QUOTE
+// SEND LOCALIZED NOTIFICATION
 // =====================================================
+
 const sendNotification = async (req, res) => {
   try {
-    console.log("\n====================================");
+    console.log("\n==============================================");
     console.log("🔥 SEND NOTIFICATION STARTED");
-    console.log("====================================");
+    console.log("==============================================");
 
     const {
-      title = "Today's Thought",
-      body = "Keep working hard, success will surely come.",
-      language = "English",
+      quoteId,
+      title = {
+        English: "Today's Thought",
+        Hindi: "आज का विचार",
+      },
+      body,
       type = "general",
       image = "",
     } = req.body || {};
 
-    console.log("🔥 TITLE:", title);
-    console.log("🔥 BODY:", body);
-    console.log("🔥 LANGUAGE:", language);
+    // =====================================================
+    // GET QUOTE + TRANSLATIONS
+    // =====================================================
 
-    // ==========================================
+    let localizedBody = {
+      English: "",
+      Hindi: "",
+    };
+
+    let finalImage = image || "";
+
+    if (quoteId) {
+      console.log("🔎 QUOTE ID:", quoteId);
+
+      if (!mongoose.Types.ObjectId.isValid(quoteId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid quoteId",
+        });
+      }
+
+      const quote = await mongoose.model("Quote").findById(quoteId).lean();
+
+      if (!quote) {
+        return res.status(404).json({
+          success: false,
+          message: "Quote not found",
+        });
+      }
+
+      console.log("📝 QUOTE TEXT:", quote.text);
+      console.log("🌐 QUOTE LANGUAGE:", quote.language);
+
+      // -----------------------------------------------
+      // ENGLISH
+      // -----------------------------------------------
+
+      let englishText = "";
+
+      if (quote.translations && typeof quote.translations === "object") {
+        englishText = quote.translations.English || "";
+      }
+
+      if (!englishText && quote.language === "English") {
+        englishText = quote.text || "";
+      }
+
+      if (!englishText) {
+        englishText = quote.text || "";
+      }
+
+      // -----------------------------------------------
+      // HINDI
+      // -----------------------------------------------
+
+      let hindiText = "";
+
+      if (quote.translations && typeof quote.translations === "object") {
+        hindiText = quote.translations.Hindi || "";
+      }
+
+      // Agar Hindi translation nahi hai
+      // to English fallback
+      if (!hindiText) {
+        hindiText = englishText;
+      }
+
+      localizedBody = {
+        English: String(englishText).trim(),
+        Hindi: String(hindiText).trim(),
+      };
+
+      if (!finalImage) {
+        finalImage = quote.image || "";
+      }
+
+      console.log("🇬🇧 ENGLISH:", localizedBody.English);
+      console.log("🇮🇳 HINDI:", localizedBody.Hindi);
+      console.log("🖼️ IMAGE:", finalImage || "NO IMAGE");
+    } else {
+      // =====================================================
+      // BACKWARD COMPATIBILITY
+      // =====================================================
+
+      if (body && typeof body === "object" && !Array.isArray(body)) {
+        localizedBody = {
+          English: String(body.English || "").trim(),
+
+          Hindi: String(body.Hindi || body.English || "").trim(),
+        };
+      } else {
+        const text = String(body || "").trim();
+
+        localizedBody = {
+          English: text || "Keep working hard, success will surely come.",
+
+          Hindi: text || "कड़ी मेहनत करते रहें, सफलता जरूर मिलेगी।",
+        };
+      }
+    }
+
+    // =====================================================
+    // LOCALIZED TITLE
+    // =====================================================
+
+    let localizedTitle = {
+      English: "Today's Thought",
+      Hindi: "आज का विचार",
+    };
+
+    if (title && typeof title === "object" && !Array.isArray(title)) {
+      localizedTitle = {
+        English: String(title.English || "Today's Thought").trim(),
+
+        Hindi: String(title.Hindi || "आज का विचार").trim(),
+      };
+    } else if (typeof title === "string") {
+      localizedTitle = {
+        English: title.trim() || "Today's Thought",
+        Hindi: "आज का विचार",
+      };
+    }
+
+    console.log("\n==============================================");
+    console.log("🌐 LOCALIZED CONTENT");
+    console.log("==============================================");
+    console.log("🇬🇧 TITLE:", localizedTitle.English);
+    console.log("🇮🇳 TITLE:", localizedTitle.Hindi);
+    console.log("🇬🇧 BODY:", localizedBody.English);
+    console.log("🇮🇳 BODY:", localizedBody.Hindi);
+
+    // =====================================================
     // GET ACTIVE DEVICES
-    // ==========================================
+    // =====================================================
 
     const devices = await NotificationToken.find({
-      language,
       isActive: true,
+
+      language: {
+        $in: allowedLanguages,
+      },
+
       fcmToken: {
         $exists: true,
         $type: "string",
         $ne: "",
       },
-    });
+    }).lean();
 
-    console.log("🔥 ACTIVE DEVICES:", devices.length);
+    console.log("\n==============================================");
+    console.log("📱 DEVICES FOUND:", devices.length);
+    console.log("==============================================");
 
     if (!devices.length) {
       return res.status(404).json({
@@ -318,174 +387,282 @@ const sendNotification = async (req, res) => {
       });
     }
 
-    // ==========================================
-    // UNIQUE TOKENS
-    // ==========================================
+    // =====================================================
+    // GROUP BY LANGUAGE
+    // =====================================================
 
-    const tokens = [
-      ...new Set(
-        devices.map((device) => device.fcmToken?.trim()).filter(Boolean),
-      ),
-    ];
+    const englishDevices = devices.filter(
+      (device) => device.language === "English",
+    );
 
-    console.log("🔥 UNIQUE FCM TOKENS:", tokens.length);
+    const hindiDevices = devices.filter(
+      (device) => device.language === "Hindi",
+    );
 
-    if (!tokens.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No valid FCM tokens found",
-      });
-    }
+    console.log("🇬🇧 ENGLISH DEVICES:", englishDevices.length);
 
-    // ==========================================
-    // SAVE NOTIFICATION HISTORY
-    // ==========================================
+    console.log("🇮🇳 HINDI DEVICES:", hindiDevices.length);
 
-    const userIds = [
-      ...new Set(
-        devices
-          .map((device) => (device.userId ? device.userId.toString() : null))
-          .filter(Boolean),
-      ),
-    ];
+    // =====================================================
+    // SEND TO LANGUAGE
+    // =====================================================
 
-    console.log("🔥 USERS:", userIds.length);
+    const sendToLanguage = async (language, languageDevices) => {
+      if (!languageDevices.length) {
+        return {
+          totalDevices: 0,
+          successCount: 0,
+          failureCount: 0,
+        };
+      }
 
-    if (userIds.length) {
-      const notifications = userIds.map((userId) => ({
-        userId,
-        title,
-        body,
-        type,
+      // ===================================================
+      // UNIQUE FCM TOKENS
+      // ===================================================
 
-        data: {
+      const tokens = [
+        ...new Set(
+          languageDevices
+            .map((device) => device.fcmToken?.trim())
+            .filter(Boolean),
+        ),
+      ];
+
+      console.log("\n==============================================");
+      console.log("📤 PREPARING FCM");
+      console.log("==============================================");
+      console.log("🌐 LANGUAGE:", language);
+      console.log("📱 TOKEN COUNT:", tokens.length);
+
+      if (!tokens.length) {
+        return {
+          totalDevices: 0,
+          successCount: 0,
+          failureCount: 0,
+        };
+      }
+
+      // ===================================================
+      // SELECT LANGUAGE TEXT
+      // ===================================================
+
+      const notificationTitle =
+        language === "Hindi" ? localizedTitle.Hindi : localizedTitle.English;
+
+      const notificationBody =
+        language === "Hindi" ? localizedBody.Hindi : localizedBody.English;
+
+      console.log("📝 TITLE:", notificationTitle);
+      console.log("📝 BODY:", notificationBody);
+      console.log("🖼️ IMAGE:", finalImage || "NO IMAGE");
+
+      // ===================================================
+      // SAVE HISTORY
+      // ===================================================
+
+      const userIds = [
+        ...new Set(
+          languageDevices
+            .map((device) => (device.userId ? device.userId.toString() : null))
+            .filter(Boolean),
+        ),
+      ];
+
+      if (userIds.length) {
+        const notifications = userIds.map((userId) => ({
+          userId,
+
+          title: notificationTitle,
+
+          body: notificationBody,
+
           language,
-          image,
-        },
 
-        isRead: false,
-      }));
+          type,
 
-      await Notification.insertMany(notifications);
+          data: {
+            language,
+            quoteId: quoteId ? String(quoteId) : "",
 
-      console.log("✅ NOTIFICATION HISTORY SAVED:", notifications.length);
-    }
+            image: String(finalImage || ""),
+          },
 
-    // ==========================================
-    // FCM MESSAGE
-    // ==========================================
+          isRead: false,
+        }));
 
-    const message = {
-      tokens,
+        await Notification.insertMany(notifications);
 
-      notification: {
-        title,
-        body,
-      },
+        console.log(`✅ ${language} HISTORY SAVED:`, notifications.length);
+      }
 
-      data: {
-        title: String(title),
-        body: String(body),
-        language: String(language),
-        type: String(type),
-        image: String(image || ""),
-      },
+      // ===================================================
+      // FCM MESSAGE
+      // ===================================================
 
-      android: {
-        priority: "high",
+      const message = {
+        tokens,
 
         notification: {
-          channelId: "quotes",
-          sound: "default",
+          title: notificationTitle,
+          body: notificationBody,
         },
-      },
 
-      apns: {
-        payload: {
-          aps: {
+        data: {
+          title: String(notificationTitle),
+
+          body: String(notificationBody),
+
+          language: String(language),
+
+          type: String(type),
+
+          quoteId: quoteId ? String(quoteId) : "",
+
+          image: String(finalImage || ""),
+        },
+
+        android: {
+          priority: "high",
+
+          notification: {
+            channelId: "quotes",
             sound: "default",
-            badge: 1,
           },
         },
-      },
-    };
 
-    // ==========================================
-    // IMAGE
-    // ==========================================
-
-    if (image) {
-      message.notification.imageUrl = image;
-
-      message.android.notification.imageUrl = image;
-
-      message.apns.fcmOptions = {
-        imageUrl: image,
+        apns: {
+          payload: {
+            aps: {
+              sound: "default",
+              badge: 1,
+            },
+          },
+        },
       };
-    }
 
-    // ==========================================
-    // SEND FCM
-    // ==========================================
+      // ===================================================
+      // IMAGE
+      // ===================================================
 
-    console.log("🔥 SENDING FCM TO:", tokens.length, "DEVICES");
+      if (finalImage) {
+        message.notification.imageUrl = finalImage;
 
-    const response = await getMessaging().sendEachForMulticast(message);
+        message.android.notification.imageUrl = finalImage;
 
-    console.log("🔥 FCM SUCCESS:", response.successCount);
+        message.apns.fcmOptions = {
+          imageUrl: finalImage,
+        };
+      }
 
-    console.log("❌ FCM FAILED:", response.failureCount);
+      // ===================================================
+      // SEND FCM
+      // ===================================================
 
-    // ==========================================
-    // INVALID TOKEN CLEANUP
-    // ==========================================
+      const response = await getMessaging().sendEachForMulticast(message);
 
-    for (let i = 0; i < response.responses.length; i++) {
-      const result = response.responses[i];
+      console.log(`🔥 ${language} SUCCESS:`, response.successCount);
 
-      if (!result.success) {
-        const failedToken = tokens[i];
+      console.log(`❌ ${language} FAILED:`, response.failureCount);
 
-        console.log("❌ FCM TOKEN FAILED:", failedToken);
+      // ===================================================
+      // DELETE INVALID TOKENS
+      // ===================================================
 
-        console.log("❌ FCM ERROR:", result.error?.code, result.error?.message);
+      for (let i = 0; i < response.responses.length; i++) {
+        const result = response.responses[i];
 
-        if (
-          result.error?.code ===
-            "messaging/registration-token-not-registered" ||
-          result.error?.code === "messaging/invalid-registration-token"
-        ) {
-          await NotificationToken.deleteOne({
-            fcmToken: failedToken,
-          });
+        if (!result.success) {
+          const failedToken = tokens[i];
 
-          console.log("🗑️ Invalid FCM token deleted");
+          console.log("❌ FCM TOKEN FAILED:", failedToken);
+
+          console.log(
+            "❌ FCM ERROR:",
+            result.error?.code,
+            result.error?.message,
+          );
+
+          if (
+            result.error?.code ===
+              "messaging/registration-token-not-registered" ||
+            result.error?.code === "messaging/invalid-registration-token"
+          ) {
+            await NotificationToken.deleteOne({
+              fcmToken: failedToken,
+            });
+
+            console.log("🗑️ Invalid FCM token deleted");
+          }
         }
       }
-    }
 
-    // ==========================================
-    // RESPONSE
-    // ==========================================
+      return {
+        totalDevices: tokens.length,
+
+        successCount: response.successCount,
+
+        failureCount: response.failureCount,
+      };
+    };
+
+    // =====================================================
+    // SEND ENGLISH
+    // =====================================================
+
+    const englishResult = await sendToLanguage("English", englishDevices);
+
+    // =====================================================
+    // SEND HINDI
+    // =====================================================
+
+    const hindiResult = await sendToLanguage("Hindi", hindiDevices);
+
+    // =====================================================
+    // TOTAL
+    // =====================================================
+
+    const totalDevices = englishResult.totalDevices + hindiResult.totalDevices;
+
+    const successCount = englishResult.successCount + hindiResult.successCount;
+
+    const failureCount = englishResult.failureCount + hindiResult.failureCount;
+
+    console.log("\n==============================================");
+    console.log("🎉 NOTIFICATION COMPLETED");
+    console.log("==============================================");
+    console.log("TOTAL:", totalDevices);
+    console.log("SUCCESS:", successCount);
+    console.log("FAILED:", failureCount);
+    console.log("🇬🇧 ENGLISH:", englishResult);
+    console.log("🇮🇳 HINDI:", hindiResult);
+    console.log("==============================================");
 
     return res.status(200).json({
       success: true,
 
-      message: "Notification sent",
+      message: "Localized notifications sent successfully",
 
-      totalDevices: tokens.length,
+      totalDevices,
 
-      successCount: response.successCount,
+      successCount,
 
-      failureCount: response.failureCount,
+      failureCount,
+
+      languages: {
+        English: englishResult,
+        Hindi: hindiResult,
+      },
     });
   } catch (error) {
     console.error("\n❌ SEND NOTIFICATION ERROR:");
+
     console.error(error);
 
     return res.status(500).json({
       success: false,
+
       message: "Failed to send notification",
+
       error: error.message,
     });
   }
@@ -811,4 +988,5 @@ module.exports = {
   markAllNotificationsAsRead,
   deleteNotification,
   updateNotificationSettings,
+  getQuoteText,
 };

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View, Platform } from 'react-native';
 
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '@/redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/redux/store';
 
 import { loginAsyncThunk } from '@/redux/thunk/loginThunk';
 import { registerDeviceThunk } from '@/redux/thunk/registerDeviceThunk';
@@ -25,7 +25,7 @@ import styles from './styles';
 
 import { RegisterDeviceData } from '@/types';
 
-import { PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import { request, RESULTS } from 'react-native-permissions';
 
 import { getMessaging, getToken } from '@react-native-firebase/messaging';
 
@@ -33,6 +33,86 @@ const Login = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const { googleLogin, facebookLogin } = useAuth();
+
+  // =====================================================
+  // LANGUAGE
+  // =====================================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const isHindi = language === 'Hindi';
+
+  // =====================================================
+  // LOCALIZED TEXT
+  // =====================================================
+
+  const loginText = {
+    title: isHindi ? 'वापसी पर स्वागत है! 👋' : 'Welcome Back! 👋',
+
+    subtitle: isHindi
+      ? 'QuoteCreator जारी रखने के लिए लॉगिन करें'
+      : 'Login to continue to QuoteCreator',
+
+    emailPlaceholder: isHindi ? 'अपना ईमेल दर्ज करें' : 'Enter your email',
+
+    passwordPlaceholder: isHindi
+      ? 'अपना पासवर्ड दर्ज करें'
+      : 'Enter your password',
+
+    forgotPassword: isHindi ? 'पासवर्ड भूल गए?' : 'Forgot Password?',
+
+    login: isHindi ? 'लॉगिन' : 'Login',
+
+    orContinue: isHindi ? 'या इसके साथ जारी रखें' : 'or continue with',
+
+    google: isHindi ? 'Google' : 'Google',
+
+    facebook: isHindi ? 'Facebook' : 'Facebook',
+
+    noAccount: isHindi ? 'क्या आपका अकाउंट नहीं है?' : "Don't have an account?",
+
+    signup: isHindi ? 'साइन अप करें' : 'Sign Up',
+
+    emailRequired: isHindi
+      ? 'कृपया अपना ईमेल दर्ज करें'
+      : 'Please enter your email',
+
+    emailInvalid: isHindi
+      ? 'कृपया एक मान्य ईमेल दर्ज करें'
+      : 'Please enter a valid email',
+
+    passwordRequired: isHindi
+      ? 'कृपया अपना पासवर्ड दर्ज करें'
+      : 'Please enter your password',
+
+    passwordLength: isHindi
+      ? 'पासवर्ड कम से कम 6 अक्षरों का होना चाहिए'
+      : 'Password must be at least 6 characters',
+
+    loginFailed: isHindi ? 'लॉगिन विफल' : 'Login Failed',
+
+    invalidLogin: isHindi
+      ? 'ईमेल या पासवर्ड गलत है'
+      : 'Invalid email or password',
+
+    networkError: isHindi ? 'नेटवर्क त्रुटि' : 'Network Error',
+
+    checkInternet: isHindi
+      ? 'कृपया अपना इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।'
+      : 'Please check your internet connection and try again.',
+
+    googleFailed: isHindi ? 'Google लॉगिन विफल' : 'Google Login Failed',
+
+    facebookFailed: isHindi ? 'Facebook लॉगिन विफल' : 'Facebook Login Failed',
+
+    somethingWrong: isHindi
+      ? 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।'
+      : 'Something went wrong. Please try again.',
+  };
+
+  // =====================================================
+  // FORM STATE
+  // =====================================================
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +126,7 @@ const Login = () => {
 
   const registerFCMDevice = async (
     userId: string,
-    language: 'English' | 'Hindi' = 'English',
+    selectedLanguage: 'English' | 'Hindi',
   ) => {
     try {
       console.log('');
@@ -54,12 +134,8 @@ const Login = () => {
       console.log('🔥 FCM DEVICE REGISTRATION STARTED');
       console.log('================================');
 
-      // ---------------------------------------------
-      // USER
-      // ---------------------------------------------
-
       console.log('👤 USER ID:', userId);
-      console.log('🌐 LANGUAGE:', language);
+      console.log('🌐 LANGUAGE:', selectedLanguage);
       console.log('📱 PLATFORM:', Platform.OS);
 
       if (!userId) {
@@ -67,9 +143,9 @@ const Login = () => {
         return;
       }
 
-      // ---------------------------------------------
+      // =================================================
       // ANDROID 13+ NOTIFICATION PERMISSION
-      // ---------------------------------------------
+      // =================================================
 
       if (Platform.OS === 'android' && Platform.Version >= 33) {
         console.log('🔔 Requesting Android notification permission...');
@@ -82,98 +158,73 @@ const Login = () => {
 
         if (permission !== RESULTS.GRANTED) {
           console.log('❌ NOTIFICATION PERMISSION NOT GRANTED');
+
           return;
         }
 
         console.log('✅ NOTIFICATION PERMISSION GRANTED');
       }
 
-      // ---------------------------------------------
+      // =================================================
       // FIREBASE MESSAGING
-      // ---------------------------------------------
-
-      console.log('🔥 Creating Firebase Messaging...');
+      // =================================================
 
       const messaging = getMessaging();
 
       console.log('✅ Firebase Messaging initialized');
 
-      // ---------------------------------------------
+      // =================================================
       // GET FCM TOKEN
-      // ---------------------------------------------
-
-      console.log('🔥 Getting FCM token...');
+      // =================================================
 
       const fcmToken = await getToken(messaging);
 
-      console.log('🔥 FCM TOKEN:', fcmToken);
+      console.log('🔥 FCM TOKEN:', fcmToken ? 'AVAILABLE' : 'MISSING');
 
       if (!fcmToken) {
         console.log('❌ FCM TOKEN NOT AVAILABLE');
+
         return;
       }
 
-      // ---------------------------------------------
+      // =================================================
       // PLATFORM
-      // ---------------------------------------------
+      // =================================================
 
       const platform: 'ios' | 'android' =
         Platform.OS === 'ios' ? 'ios' : 'android';
 
-      console.log('📱 REGISTER PLATFORM:', platform);
-
-      // ---------------------------------------------
+      // =================================================
       // DEVICE DATA
-      // ---------------------------------------------
+      // =================================================
 
       const deviceData: RegisterDeviceData = {
         userId,
         fcmToken,
         platform,
-        language,
+        language: selectedLanguage,
       };
 
       console.log('📦 REGISTER DEVICE DATA:', deviceData);
 
-      // ---------------------------------------------
-      // API CALL
-      // ---------------------------------------------
-
-      console.log('🚀 Calling registerDeviceThunk...');
+      // =================================================
+      // REGISTER DEVICE
+      // =================================================
 
       const response = await dispatch(registerDeviceThunk(deviceData)).unwrap();
 
-      // ---------------------------------------------
-      // SUCCESS
-      // ---------------------------------------------
-
-      console.log('');
-      console.log('================================');
-      console.log('✅ REGISTER DEVICE SUCCESS');
-      console.log('✅ REGISTER DEVICE RESPONSE:', response);
-      console.log('================================');
-      console.log('');
+      console.log('✅ REGISTER DEVICE SUCCESS:', response);
 
       return response;
     } catch (error: any) {
-      // ---------------------------------------------
-      // ERROR
-      // ---------------------------------------------
-
-      console.log('');
-      console.log('================================');
-      console.log('❌ REGISTER FCM DEVICE ERROR');
-      console.log('================================');
-
-      console.log('❌ ERROR:', error);
+      console.log('❌ REGISTER FCM DEVICE ERROR:', error);
 
       console.log('❌ ERROR MESSAGE:', error?.message);
 
       console.log('❌ ERROR RESPONSE:', error?.response?.data);
 
-      console.log('❌ ERROR CODE:', error?.code);
-
-      console.log('================================');
+      // FCM failure should not break login
+      return null;
     }
   };
 
@@ -187,30 +238,30 @@ const Login = () => {
     setEmailError('');
     setPasswordError('');
 
-    // ---------------------------------------------
-    // Email validation
-    // ---------------------------------------------
+    // =================================================
+    // EMAIL VALIDATION
+    // =================================================
 
     if (!email.trim()) {
-      setEmailError('Please enter your email');
+      setEmailError(loginText.emailRequired);
 
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-      setEmailError('Please enter a valid email');
+      setEmailError(loginText.emailInvalid);
 
       isValid = false;
     }
 
-    // ---------------------------------------------
-    // Password validation
-    // ---------------------------------------------
+    // =================================================
+    // PASSWORD VALIDATION
+    // =================================================
 
     if (!password.trim()) {
-      setPasswordError('Please enter your password');
+      setPasswordError(loginText.passwordRequired);
 
       isValid = false;
     } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setPasswordError(loginText.passwordLength);
 
       isValid = false;
     }
@@ -220,56 +271,38 @@ const Login = () => {
     }
 
     try {
-      console.log('');
-      console.log('================================');
-
       console.log('🔥 NORMAL LOGIN STARTED');
-
-      console.log('================================');
-
-      // ---------------------------------------------
-      // Login API
-      // ---------------------------------------------
 
       const result = await dispatch(
         loginAsyncThunk({
           email: email.trim().toLowerCase(),
-
           password,
         }),
       ).unwrap();
 
       console.log('✅ NORMAL LOGIN SUCCESS:', result);
 
-      // ---------------------------------------------
-      // Get user
-      // ---------------------------------------------
-
       const user = result?.user;
 
       console.log('👤 LOGIN USER:', user);
 
-      console.log('🆔 USER ID:', user?.id);
-
-      console.log('🔑 TOKEN:', result?.token ? 'AVAILABLE' : 'MISSING');
-
-      // ---------------------------------------------
-      // Register FCM
-      // ---------------------------------------------
+      // =================================================
+      // REGISTER FCM
+      // IMPORTANT:
+      // CURRENT REDUX LANGUAGE
+      // =================================================
 
       if (user?.id) {
-        await registerFCMDevice(user.id, user.language || 'English');
-      } else {
-        console.log('❌ FCM REGISTRATION SKIPPED - USER ID MISSING');
+        await registerFCMDevice(user.id, language);
       }
 
       console.log('✅ LOGIN FLOW COMPLETED');
     } catch (error: any) {
       console.log('❌ NORMAL LOGIN ERROR:', error);
 
-      const message = error?.message || error || 'Invalid email or password';
+      const message = error?.message || loginText.invalidLogin;
 
-      Alert.alert('Login Failed', String(message));
+      Alert.alert(loginText.loginFailed, String(message));
     }
   };
 
@@ -279,19 +312,11 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      console.log('================================');
       console.log('🔥 GOOGLE LOGIN BUTTON PRESSED');
-      console.log('================================');
 
       const result = await googleLogin();
 
       console.log('✅ GOOGLE LOGIN SUCCESS:', result?.user?.email);
-
-      console.log('🔥 FIREBASE UID:', result?.user?.uid);
-
-      // =================================================
-      // BACKEND USER ID
-      // =================================================
 
       const socialUserId =
         result?.userId ||
@@ -308,11 +333,8 @@ const Login = () => {
         return;
       }
 
-      // =================================================
-      // REGISTER FCM DEVICE
-      // =================================================
-
-      await registerFCMDevice(socialUserId, 'English');
+      // Current language
+      await registerFCMDevice(socialUserId, language);
 
       console.log('✅ GOOGLE LOGIN + FCM REGISTRATION COMPLETED');
     } catch (error: any) {
@@ -320,12 +342,7 @@ const Login = () => {
 
       const errorCode = error?.code;
 
-      const errorMessage =
-        error?.message || 'Something went wrong. Please try again.';
-
-      console.log('GOOGLE ERROR CODE:', errorCode);
-
-      console.log('GOOGLE ERROR MESSAGE:', errorMessage);
+      const errorMessage = error?.message || loginText.somethingWrong;
 
       if (
         errorCode === 'SIGN_IN_CANCELLED' ||
@@ -336,36 +353,26 @@ const Login = () => {
       }
 
       if (errorCode === 'ERR_NETWORK' || errorCode === 'NETWORK_ERROR') {
-        Alert.alert(
-          'Network Error',
-          'Please check your internet connection and try again.',
-        );
+        Alert.alert(loginText.networkError, loginText.checkInternet);
 
         return;
       }
 
-      Alert.alert('Google Login Failed', errorMessage);
+      Alert.alert(loginText.googleFailed, errorMessage);
     }
   };
+
   // =====================================================
   // FACEBOOK LOGIN
   // =====================================================
 
   const handleFacebookLogin = async () => {
     try {
-      console.log('================================');
       console.log('🔥 FACEBOOK LOGIN BUTTON PRESSED');
-      console.log('================================');
 
       const result = await facebookLogin();
 
       console.log('✅ FACEBOOK LOGIN SUCCESS:', result?.user?.email);
-
-      console.log('🔥 FIREBASE UID:', result?.user?.uid);
-
-      // =================================================
-      // BACKEND USER ID
-      // =================================================
 
       const socialUserId =
         result?.userId ||
@@ -382,11 +389,9 @@ const Login = () => {
         return;
       }
 
-      // =================================================
-      // REGISTER FCM DEVICE
-      // =================================================
-
-      await registerFCMDevice(socialUserId, 'English');
+      // IMPORTANT:
+      // DO NOT HARDCODE ENGLISH
+      await registerFCMDevice(socialUserId, language);
 
       console.log('✅ FACEBOOK LOGIN + FCM REGISTRATION COMPLETED');
     } catch (error: any) {
@@ -394,12 +399,7 @@ const Login = () => {
 
       const errorCode = error?.code;
 
-      const errorMessage =
-        error?.message || 'Something went wrong. Please try again.';
-
-      console.log('FACEBOOK ERROR CODE:', errorCode);
-
-      console.log('FACEBOOK ERROR MESSAGE:', errorMessage);
+      const errorMessage = error?.message || loginText.somethingWrong;
 
       if (
         errorCode === 'SIGN_IN_CANCELLED' ||
@@ -410,17 +410,15 @@ const Login = () => {
       }
 
       if (errorCode === 'ERR_NETWORK' || errorCode === 'NETWORK_ERROR') {
-        Alert.alert(
-          'Network Error',
-          'Please check your internet connection and try again.',
-        );
+        Alert.alert(loginText.networkError, loginText.checkInternet);
 
         return;
       }
 
-      Alert.alert('Facebook Login Failed', errorMessage);
+      Alert.alert(loginText.facebookFailed, errorMessage);
     }
   };
+
   // =====================================================
   // FORGOT PASSWORD
   // =====================================================
@@ -436,17 +434,23 @@ const Login = () => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
+        {/* LOGO */}
+
         <AuthLogo />
 
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back! 👋</Text>
+        {/* HEADER */}
 
-          <Text style={styles.subtitle}>Login to continue to QuoteCreator</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>{loginText.title}</Text>
+
+          <Text style={styles.subtitle}>{loginText.subtitle}</Text>
         </View>
+
+        {/* EMAIL */}
 
         <InputComponent
           leftIcon="mail-outline"
-          placeholder="Enter your email"
+          placeholder={loginText.emailPlaceholder}
           value={email}
           onChangeText={text => {
             setEmail(text);
@@ -461,9 +465,11 @@ const Login = () => {
           error={emailError}
         />
 
+        {/* PASSWORD */}
+
         <InputComponent
           leftIcon="lock-closed-outline"
-          placeholder="Enter your password"
+          placeholder={loginText.passwordPlaceholder}
           value={password}
           onChangeText={text => {
             setPassword(text);
@@ -476,40 +482,50 @@ const Login = () => {
           error={passwordError}
         />
 
+        {/* FORGOT PASSWORD */}
+
         <TouchableOpacity
           style={styles.forgotButton}
           onPress={handleForgotPassword}
         >
-          <Text style={styles.forgotText}>Forgot Password?</Text>
+          <Text style={styles.forgotText}>{loginText.forgotPassword}</Text>
         </TouchableOpacity>
 
-        <Button title="Login" onPress={handleLogin} />
+        {/* LOGIN */}
+
+        <Button title={loginText.login} onPress={handleLogin} />
+
+        {/* DIVIDER */}
 
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
 
-          <Text style={styles.dividerText}>or continue with</Text>
+          <Text style={styles.dividerText}>{loginText.orContinue}</Text>
 
           <View style={styles.divider} />
         </View>
 
+        {/* SOCIAL LOGIN */}
+
         <View style={styles.socialContainer}>
           <SocialButton
-            title="Google"
+            title={loginText.google}
             icon={<GoogleIcon size={20} />}
             onPress={handleGoogleLogin}
           />
 
           <SocialButton
-            title="Facebook"
+            title={loginText.facebook}
             icon={<FacebookIcon size={20} />}
             onPress={handleFacebookLogin}
           />
         </View>
 
+        {/* SIGN UP */}
+
         <AuthFooter
-          text="Don't have an account?"
-          linkText="Sign Up"
+          text={loginText.noAccount}
+          linkText={loginText.signup}
           onPress={() => navigate(Routes.REGISTER)}
         />
       </View>

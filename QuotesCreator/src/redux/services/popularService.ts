@@ -2,14 +2,45 @@ import api from '@/api/axiosinterceptors';
 import { SERVICE_ROUTES } from '../constants';
 import { PopularQuotesParams } from '@/types';
 
-export const popularQuotesService = async (params: PopularQuotesParams) => {
-  const url = SERVICE_ROUTES.POPULAR.replace(':language', params.language)
-    .replace(':page', String(params.page))
-    .replace(':limit', String(params.limit));
+export const popularQuotesService = async ({
+  language,
+  page,
+  limit,
+}: PopularQuotesParams) => {
+  try {
+    console.log('🌐 POPULAR SERVICE LANGUAGE:', language);
 
-  console.log('POPULAR API URL:', url);
+    const response = await api.get(SERVICE_ROUTES.POPULAR, {
+      params: {
+        language,
+        page,
+        limit,
+      },
+    });
 
-  const response = await api.get(url);
+    console.log('🌐 POPULAR SENT PARAMS:', {
+      language,
+      page,
+      limit,
+    });
 
-  return response.data;
+    console.log(
+      '🔥 POPULAR DISPLAY LANGUAGE:',
+      response.data?.quotes?.[0]?.displayLanguage,
+    );
+
+    console.log(
+      '🔥 POPULAR DISPLAY TEXT:',
+      response.data?.quotes?.[0]?.displayText,
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.log(
+      '❌ POPULAR QUOTES SERVICE ERROR:',
+      error?.response?.data || error?.message,
+    );
+
+    throw error;
+  }
 };

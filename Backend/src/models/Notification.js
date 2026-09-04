@@ -21,6 +21,14 @@ const notificationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Notification language
+    language: {
+      type: String,
+      enum: ["English", "Hindi"],
+      default: "English",
+      index: true,
+    },
+
     type: {
       type: String,
       enum: [
@@ -58,6 +66,13 @@ notificationSchema.index({
 notificationSchema.index({
   userId: 1,
   isRead: 1,
+});
+
+// User + language notifications
+notificationSchema.index({
+  userId: 1,
+  language: 1,
+  createdAt: -1,
 });
 
 module.exports =

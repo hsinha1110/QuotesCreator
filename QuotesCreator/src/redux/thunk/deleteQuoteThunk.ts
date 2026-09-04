@@ -14,6 +14,10 @@ export const deleteQuoteThunk = createAsyncThunk(
         return rejectWithValue('Authentication token not found');
       }
 
+      if (!quoteId) {
+        return rejectWithValue('Quote ID is required');
+      }
+
       return await deleteQuoteService(quoteId, token);
     } catch (error: any) {
       return rejectWithValue(

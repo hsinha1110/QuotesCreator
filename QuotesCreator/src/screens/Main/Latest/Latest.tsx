@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -14,51 +8,81 @@ import type { AppDispatch, RootState } from '@/redux/store';
 
 import { Quote } from '@/types';
 import { latestQuotesThunk } from '@/redux/thunk/latestThunk';
+
 import { DrawerParamList } from '@/navigations/types';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
+
 import Routes from '@/navigations/Routes';
 import styles from './styles';
 import COLORS from '@/constants/Colors';
+
 import Header from '@/components/Header/Header';
 import { navigate } from '@/utils/NavigationUtils';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import ItemLatestQuotes from '@/components/ListItems/ItemLatestQuotes/ItemLatestQuotes';
+
 type LatestNavigationProp = DrawerNavigationProp<DrawerParamList>;
+
 const Latest = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const navigation = useNavigation<LatestNavigationProp>();
+
+  // =========================
+  // LATEST STATE
+  // =========================
+
   const { quotes, isLoading, page, totalPages } = useSelector(
     (state: RootState) => state.latestQuotes,
   );
 
   // =========================
-  // FIRST API CALL
+  // SELECTED LANGUAGE
+  // =========================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  console.log('🌐 LATEST LANGUAGE:', language);
+
+  // =========================
+  // FETCH LATEST QUOTES
   // =========================
 
   useEffect(() => {
+    console.log('🔥 FETCH LATEST QUOTES');
+    console.log('🌐 LANGUAGE:', language);
+
     dispatch(
       latestQuotesThunk({
-        language: 'English',
+        language,
         page: 1,
         limit: 10,
       }),
     );
-  }, [dispatch]);
+  }, [dispatch, language]);
 
   // =========================
-  // LOAD MORE
-  // =========================
-
-  // =========================
-  // QUOTE DETAILS
+  // BACK
   // =========================
 
   const handleGoBack = () => {
     navigate(Routes.CATEGORIES);
   };
 
-  const handleSearch = () => {};
+  // =========================
+  // SEARCH
+  // =========================
+
+  const handleSearch = () => {
+    console.log('🔍 SEARCH LATEST');
+  };
+
+  // =========================
+  // QUOTE DETAILS
+  // =========================
+
   const handleQuotePress = (item: Quote, index: number) => {
     navigation.navigate(Routes.QUOTES_DETAILS, {
       item,
@@ -66,11 +90,17 @@ const Latest = () => {
       index,
     });
   };
+
   // =========================
-  // RENDER ITEM
+  // LOAD MORE
   // =========================
+
   const handleLoadMore = () => {
     if (isLoading) {
+      return;
+    }
+
+    if (!quotes.length) {
       return;
     }
 
@@ -80,108 +110,21 @@ const Latest = () => {
 
     const nextPage = page + 1;
 
+    console.log('📄 LOAD MORE LATEST');
+    console.log('🌐 LANGUAGE:', language);
+    console.log('📄 PAGE:', nextPage);
+
     dispatch(
       latestQuotesThunk({
-        language: 'English',
+        language,
         page: nextPage,
         limit: 10,
       }),
     );
   };
-  const renderItem = ({ item, index }: { item: Quote; index: number }) => {
-    return (
-      <Pressable
-        onPress={() => handleQuotePress(item, index)}
-        style={{
-          marginHorizontal: 16,
-          marginBottom: 14,
-          padding: 20,
-          borderRadius: 18,
-          backgroundColor: '#FFFFFF',
-
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: 3,
-          },
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
-
-          elevation: 3,
-        }}
-      >
-        {/* QUOTE ICON */}
-
-        <Text
-          style={{
-            fontSize: 38,
-            fontWeight: '700',
-            color: '#6C35D9',
-            lineHeight: 38,
-          }}
-        >
-          “
-        </Text>
-
-        {/* TEXT */}
-
-        <Text
-          style={{
-            fontSize: 17,
-            lineHeight: 26,
-            fontWeight: '600',
-            color: '#222',
-            marginTop: 4,
-          }}
-        >
-          {item.text}
-        </Text>
-
-        {/* AUTHOR */}
-
-        <Text
-          style={{
-            fontSize: 14,
-            color: '#666',
-            marginTop: 12,
-          }}
-        >
-          — {item.author || 'Unknown'}
-        </Text>
-
-        {/* ACTIONS */}
-
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 16,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 14,
-              color: '#666',
-            }}
-          >
-            ♡ {item.likes || 0}
-          </Text>
-
-          <Text
-            style={{
-              fontSize: 14,
-              color: '#666',
-            }}
-          >
-            ↗ Share
-          </Text>
-        </View>
-      </Pressable>
-    );
-  };
 
   // =========================
-  // FOOTER
+  // FOOTER LOADER
   // =========================
 
   const renderFooter = () => {
@@ -197,29 +140,78 @@ const Latest = () => {
   };
 
   // =========================
+  // FIRST LOADING
+  // =========================
+
+  if (isLoading && quotes.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header
+          title={language === 'Hindi' ? 'नवीनतम' : 'Latest'}
+          icon="chevron-back"
+          onMenuPress={handleGoBack}
+          showNotification={false}
+          rightIcon="search"
+          onRightPress={handleSearch}
+        />
+
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.accent} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // =========================
   // EMPTY
   // =========================
 
   if (!isLoading && quotes.length === 0) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Text>No latest quotes found</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <Header
+          title={language === 'Hindi' ? 'नवीनतम' : 'Latest'}
+          icon="chevron-back"
+          onMenuPress={handleGoBack}
+          showNotification={false}
+          rightIcon="search"
+          onRightPress={handleSearch}
+        />
+
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              color: '#666',
+              textAlign: 'center',
+            }}
+          >
+            {language === 'Hindi'
+              ? 'कोई नवीनतम कोट्स नहीं मिले'
+              : 'No latest quotes found'}
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
+
+  // =========================
+  // UI
+  // =========================
 
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
 
       <Header
-        title={'Latest'}
+        title={language === 'Hindi' ? 'नवीनतम' : 'Latest'}
         icon="chevron-back"
         onMenuPress={handleGoBack}
         showNotification={false}
@@ -230,6 +222,7 @@ const Latest = () => {
       {/* LIST */}
 
       <FlatList
+        key={language}
         data={quotes}
         keyExtractor={item => item._id}
         renderItem={({ item, index }) => (
@@ -245,14 +238,6 @@ const Latest = () => {
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
       />
-
-      {/* FIRST LOADING */}
-
-      {isLoading && quotes.length === 0 && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
-        </View>
-      )}
     </SafeAreaView>
   );
 };

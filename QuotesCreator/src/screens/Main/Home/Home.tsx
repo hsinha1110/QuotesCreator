@@ -3,6 +3,7 @@ import { View, Text, Image, FlatList, ScrollView } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+
 import {
   CompositeNavigationProp,
   DrawerActions,
@@ -29,7 +30,6 @@ import SectionHeader from '@/components/SectionHeader/SectionHeader';
 
 import ItemLatestQuotes from '@/components/ListItems/ItemLatestQuotes/ItemLatestQuotes';
 import ItemCategories from '@/components/ListItems/ItemCategories/ItemCategories';
-import ItemPopular from '@/components/ListItems/ItemPopular/ItemPopular';
 
 import IMAGES from '@/assets/images';
 import Routes from '@/navigations/Routes';
@@ -41,27 +41,33 @@ import { toggleFavourite } from '@/redux/slices/favouriteSlice';
 import { BottomTabParamList, DrawerParamList } from '@/navigations/types';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
+import ItemPopular from '@/components/ListItems/ItemPopular/ItemPopular';
 
 const Home = () => {
   const dispatch = useAppDispatch<AppDispatch>();
+
   type HomeNavigationProp = CompositeNavigationProp<
     BottomTabNavigationProp<BottomTabParamList, Routes.HOME>,
     DrawerNavigationProp<DrawerParamList>
   >;
+
   const navigation = useNavigation<HomeNavigationProp>();
+
   const [drawerVisible, setDrawerVisible] = useState(false);
+
+  // =====================================================
+  // LANGUAGE
+  // =====================================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const isHindi = language === 'Hindi';
 
   // =====================================================
   // AUTH
   // =====================================================
 
-  const userId = useSelector(
-    (state: RootState) =>
-      state.auth?.user?.id ||
-      state.auth?.user?.id ||
-      state.auth?.user?.id ||
-      '',
-  );
+  const userId = useSelector((state: RootState) => state.auth?.user?.id || '');
 
   // =====================================================
   // CATEGORIES
@@ -104,6 +110,32 @@ const Home = () => {
   );
 
   // =====================================================
+  // LOCALIZED TEXT
+  // =====================================================
+
+  const homeText = {
+    greeting: isHindi ? 'सुप्रभात! 👋' : 'Good Morning! 👋',
+
+    subtitle: isHindi
+      ? 'अपने दिन के लिए प्रेरणा पाएं'
+      : 'Find inspiration for your day',
+
+    dailyQuotes: isHindi ? 'दैनिक विचार' : 'DAILY QUOTES',
+
+    todaysThought: isHindi ? 'आज का विचार' : "Today's Thought",
+
+    categories: isHindi ? 'श्रेणियाँ' : 'Categories',
+
+    latest: isHindi ? 'नवीनतम' : 'Latest',
+
+    popular: isHindi ? 'लोकप्रिय' : 'Popular',
+
+    latestQuotes: isHindi ? 'नवीनतम विचार' : 'Latest Quotes',
+
+    popularQuotes: isHindi ? 'लोकप्रिय विचार' : 'Popular Quotes',
+  };
+
+  // =====================================================
   // LATEST DAILY QUOTE NOTIFICATION
   // =====================================================
 
@@ -116,7 +148,6 @@ const Home = () => {
       return null;
     }
 
-    // Latest notification
     return [...dailyNotifications].sort(
       (a, b) =>
         new Date(b.createdAt || 0).getTime() -
@@ -127,6 +158,7 @@ const Home = () => {
   // =====================================================
   // UNREAD COUNT
   // =====================================================
+
   const unreadCount = notifications.filter(
     notification => !notification.isRead,
   ).length;
@@ -138,12 +170,10 @@ const Home = () => {
   useEffect(() => {
     if (!userId) {
       console.log('❌ HOME: USER ID NOT FOUND');
-
       return;
     }
 
     console.log('🔥 HOME: FETCHING NOTIFICATION HISTORY');
-
     console.log('👤 USER ID:', userId);
 
     dispatch(notificationHistoryByIdThunk(userId));
@@ -154,42 +184,48 @@ const Home = () => {
   // =====================================================
 
   useEffect(() => {
+    console.log('🌐 HOME CATEGORY LANGUAGE:', language);
+
     dispatch(
       categoriesThunk({
-        language: 'English',
+        language,
         page: 1,
         limit: 10,
       }),
     );
-  }, [dispatch]);
+  }, [dispatch, language]);
 
   // =====================================================
   // LATEST API
   // =====================================================
 
   useEffect(() => {
+    console.log('🌐 HOME LATEST LANGUAGE:', language);
+
     dispatch(
       latestQuotesThunk({
-        language: 'English',
+        language,
         page: 1,
         limit: 10,
       }),
     );
-  }, [dispatch]);
+  }, [dispatch, language]);
 
   // =====================================================
   // POPULAR API
   // =====================================================
 
   useEffect(() => {
+    console.log('🌐 HOME POPULAR LANGUAGE:', language);
+
     dispatch(
       popularQuotesThunk({
-        language: 'English',
+        language,
         page: 1,
         limit: 10,
       }),
     );
-  }, [dispatch]);
+  }, [dispatch, language]);
 
   // =====================================================
   // DAILY FAVORITE
@@ -211,7 +247,6 @@ const Home = () => {
   const handleDailyFavorite = () => {
     if (!dailyQuote) {
       console.log('❌ DAILY QUOTE NOT FOUND');
-
       return;
     }
 
@@ -227,9 +262,7 @@ const Home = () => {
     dispatch(
       toggleFavourite({
         _id: quoteId,
-
         text: quoteText,
-
         author: 'Unknown',
       }),
     );
@@ -242,7 +275,6 @@ const Home = () => {
   const handleDailyShare = () => {
     if (!dailyQuote) {
       console.log('❌ DAILY QUOTE NOT FOUND');
-
       return;
     }
 
@@ -251,7 +283,7 @@ const Home = () => {
       dailyQuote.data?.quoteId || dailyQuote._id,
     );
 
-    // Share functionality yahan add kar sakte ho
+    // Share functionality
   };
 
   // =====================================================
@@ -272,12 +304,14 @@ const Home = () => {
 
   const handleSubCategories = (item: Category) => {
     console.log('CATEGORY ID:', item._id);
-
     console.log('CATEGORY NAME:', item.name);
 
     navigate(Routes.SUB_CATEGORIES, {
       categoryId: item._id,
-      categoryName: item.name,
+
+      // Agar backend localized displayName bhej raha hai
+      // to wahi navigation mein use karo
+      categoryName: item.displayName || item.name,
     });
   };
 
@@ -320,9 +354,9 @@ const Home = () => {
             GREETING
         ================================================= */}
 
-        <Text style={styles.title}>Good Morning! 👋</Text>
+        <Text style={styles.title}>{homeText.greeting}</Text>
 
-        <Text style={styles.subtitle}>Find inspiration for your day</Text>
+        <Text style={styles.subtitle}>{homeText.subtitle}</Text>
 
         {/* =================================================
             DAILY QUOTE
@@ -330,30 +364,18 @@ const Home = () => {
 
         {dailyQuote && dailyQuote.body ? (
           <>
-            <SectionHeader title="DAILY QUOTES" />
+            <SectionHeader title={homeText.dailyQuotes} />
 
             <View style={styles.notificationCard}>
-              {/* -----------------------------------------
-                  ICON
-              ----------------------------------------- */}
-
               <Image source={IMAGES.QUOTES} style={styles.quoteIcon} />
-
-              {/* -----------------------------------------
-                  CONTENT
-              ----------------------------------------- */}
 
               <View style={styles.quoteContent}>
                 <Text style={styles.notificationTitle}>
-                  {dailyQuote.title || "Today's Thought"}
+                  {dailyQuote.title || homeText.todaysThought}
                 </Text>
 
                 <Text style={styles.notificationBody}>{dailyQuote.body}</Text>
               </View>
-
-              {/* -----------------------------------------
-                  BOTTOM
-              ----------------------------------------- */}
 
               <View style={styles.dailyBottomRow}>
                 <Text style={styles.dailyDate}>
@@ -378,7 +400,10 @@ const Home = () => {
             CATEGORIES
         ================================================= */}
 
-        <SectionHeader title="Categories" onViewAllPress={handleCategories} />
+        <SectionHeader
+          title={homeText.categories}
+          onViewAllPress={handleCategories}
+        />
 
         <FlatList<Category>
           data={categories.slice(0, 8)}
@@ -402,19 +427,20 @@ const Home = () => {
         ================================================= */}
 
         <SectionHeader
-          title="Latest"
+          title={homeText.latest}
           onViewAllPress={() => {
             navigation.navigate(Routes.LATEST, {
-              title: 'Latest Quotes',
+              title: homeText.latestQuotes,
             });
           }}
         />
+
         <FlatList<Quote>
           data={latest.slice(0, 8)}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={item => item._id}
-          renderItem={({ item, index }) => (
+          renderItem={({ item }) => (
             <ItemLatestQuotes
               item={item}
               onPress={() => {
@@ -425,25 +451,27 @@ const Home = () => {
           contentContainerStyle={styles.latestList}
           ItemSeparatorComponent={() => <View style={styles.latestSeparator} />}
         />
+
         {/* =================================================
             POPULAR
         ================================================= */}
 
         <SectionHeader
-          title="Popular"
+          title={homeText.popular}
           onViewAllPress={() => {
             navigation.navigate(Routes.POPULAR, {
-              title: 'Latest Quotes',
+              title: homeText.popularQuotes,
             });
           }}
         />
+
         <FlatList<Quote>
           data={popular.slice(0, 8)}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={item => item._id}
-          renderItem={({ item, index }) => (
-            <ItemLatestQuotes
+          renderItem={({ item }) => (
+            <ItemPopular
               item={item}
               onPress={() => {
                 navigation.navigate(Routes.POPULAR, {});

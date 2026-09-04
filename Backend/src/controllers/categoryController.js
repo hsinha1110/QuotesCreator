@@ -312,17 +312,32 @@ const getCategory = async (req, res) => {
     // QUOTE COUNT
     // ==========================================
 
-    const quoteCount = await Quote.countDocuments({
-      categoryId: category._id,
-      isActive: true,
-      isDraft: false,
-    });
+    const languageKey = normalizeLanguage(language);
+
+    const quoteCounts = await Quote.aggregate([
+      {
+        $match: {
+          categoryId: {
+            $in: categoryIds,
+          },
+          language: languageKey,
+          isActive: true,
+          isDraft: false,
+        },
+      },
+      {
+        $group: {
+          _id: "$categoryId",
+          quoteCount: {
+            $sum: 1,
+          },
+        },
+      },
+    ]);
 
     // ==========================================
     // DISPLAY NAME
     // ==========================================
-
-    const languageKey = language === "Hindi" ? "Hindi" : "English";
 
     const translations = category.translations || {};
 

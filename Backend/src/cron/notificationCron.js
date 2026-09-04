@@ -9,6 +9,15 @@ const Quote = require("../models/Quote");
 require("../config/firebase");
 
 // =====================================================
+// CONSTANTS
+// =====================================================
+
+const ALLOWED_LANGUAGES = ["English", "Hindi"];
+
+// Prevent duplicate execution in same Node process
+const processedUsers = new Map();
+
+// =====================================================
 // GET RANDOM ACTIVE QUOTE
 // =====================================================
 
@@ -41,7 +50,7 @@ const getRandomQuote = async () => {
 };
 
 // =====================================================
-// GET USER CURRENT TIME
+// GET CURRENT USER TIME
 // =====================================================
 
 const getCurrentTimeForTimezone = (timezone) => {
@@ -60,6 +69,34 @@ const getCurrentTimeForTimezone = (timezone) => {
 };
 
 // =====================================================
+// GET TRANSLATION FROM MAP / OBJECT
+// =====================================================
+
+const getTranslation = (quote, language) => {
+  if (!quote) {
+    return "";
+  }
+
+  const translations = quote.translations;
+
+  if (!translations) {
+    return "";
+  }
+
+  // Mongoose Map
+  if (typeof translations.get === "function") {
+    return String(translations.get(language) || "").trim();
+  }
+
+  // Normal object
+  if (typeof translations === "object") {
+    return String(translations[language] || "").trim();
+  }
+
+  return "";
+};
+
+// =====================================================
 // GET QUOTE TEXT BY LANGUAGE
 // =====================================================
 
@@ -68,21 +105,33 @@ const getQuoteText = (quote, language) => {
     return "";
   }
 
-  const translations = quote.translations || {};
+  const english = getTranslation(quote, "English");
 
-  // ---------------------------------------------------
-  // Hindi
-  // ---------------------------------------------------
+  const hindi = getTranslation(quote, "Hindi");
+
+  // ===================================================
+  // HINDI
+  // ===================================================
 
   if (language === "Hindi") {
-    return translations.Hindi || quote.text || translations.English || "";
+    return (
+      hindi ||
+      (quote.language === "Hindi" ? String(quote.text || "").trim() : "") ||
+      english ||
+      String(quote.text || "").trim()
+    );
   }
 
-  // ---------------------------------------------------
-  // English
-  // ---------------------------------------------------
+  // ===================================================
+  // ENGLISH
+  // ===================================================
 
-  return translations.English || quote.text || translations.Hindi || "";
+  return (
+    english ||
+    (quote.language === "English" ? String(quote.text || "").trim() : "") ||
+    hindi ||
+    String(quote.text || "").trim()
+  );
 };
 
 // =====================================================
@@ -94,7 +143,15 @@ const getQuoteImage = (quote) => {
 };
 
 // =====================================================
-// SEND FCM
+// GET LOCALIZED TITLE
+// =====================================================
+
+const getNotificationTitle = (language) => {
+  return language === "Hindi" ? "आज का विचार" : "Today's Thought";
+};
+
+// =====================================================
+// SEND FCM TO TOKENS
 // =====================================================
 
 const sendToTokens = async ({
@@ -107,69 +164,23 @@ const sendToTokens = async ({
 }) => {
   if (!tokens || !tokens.length) {
     console.log("⚠️ NO FCM TOKENS");
-    return;
+    return {
+      successCount: 0,
+      failureCount: 0,
+    };
   }
 
   if (!body || !String(body).trim()) {
     console.log("❌ QUOTE BODY EMPTY");
     console.log("QUOTE OBJECT:", quote);
 
-    return;
+    return {
+      successCount: 0,
+      failureCount: 0,
+    };
   }
 
   const image = getQuoteImage(quote);
-
-  // ===================================================
-  // BASE MESSAGE
-  // ===================================================
-
-  const message = {
-    notification: {
-      title: String(title),
-      body: String(body),
-    },
-
-    data: {
-      title: String(title),
-      body: String(body),
-      language: String(language),
-      type: "daily_quote",
-      quoteId: String(quote._id),
-    },
-
-    android: {
-      priority: "high",
-
-      notification: {
-        channelId: "quotes",
-        sound: "default",
-      },
-    },
-
-    apns: {
-      payload: {
-        aps: {
-          sound: "default",
-        },
-      },
-    },
-  };
-
-  // ===================================================
-  // IMAGE
-  // ===================================================
-
-  if (image && String(image).trim()) {
-    message.notification.imageUrl = String(image);
-
-    message.data.image = String(image);
-
-    message.android.notification.imageUrl = String(image);
-
-    message.apns.fcmOptions = {
-      imageUrl: String(image),
-    };
-  }
 
   console.log("");
   console.log("==============================================");
@@ -189,16 +200,75 @@ const sendToTokens = async ({
 
   const chunkSize = 500;
 
+  let totalSuccess = 0;
+  let totalFailure = 0;
+
   for (let start = 0; start < tokens.length; start += chunkSize) {
     const tokenChunk = tokens.slice(start, start + chunkSize);
 
     try {
       console.log(`📤 FCM SENDING → ${tokenChunk.length} TOKEN(S)`);
 
-      const response = await getMessaging().sendEachForMulticast({
-        ...message,
+      const message = {
         tokens: tokenChunk,
-      });
+
+        notification: {
+          title: String(title),
+          body: String(body),
+        },
+
+        data: {
+          title: String(title),
+          body: String(body),
+          language: String(language),
+          type: "daily_quote",
+          quoteId: String(quote._id),
+          image: String(image || ""),
+        },
+
+        android: {
+          priority: "high",
+
+          notification: {
+            channelId: "quotes",
+            sound: "default",
+          },
+        },
+
+        apns: {
+          payload: {
+            aps: {
+              sound: "default",
+              badge: 1,
+            },
+          },
+        },
+      };
+
+      // =================================================
+      // IMAGE
+      // =================================================
+
+      if (image && String(image).trim()) {
+        message.notification.imageUrl = String(image);
+
+        message.data.image = String(image);
+
+        message.android.notification.imageUrl = String(image);
+
+        message.apns.fcmOptions = {
+          imageUrl: String(image),
+        };
+      }
+
+      // =================================================
+      // SEND FCM
+      // =================================================
+
+      const response = await getMessaging().sendEachForMulticast(message);
+
+      totalSuccess += response.successCount;
+      totalFailure += response.failureCount;
 
       console.log(`✅ FCM SUCCESS: ${response.successCount}`);
 
@@ -216,7 +286,9 @@ const sendToTokens = async ({
 
           console.log("");
           console.log("❌ FCM TOKEN FAILED");
+
           console.log("CODE:", result.error?.code);
+
           console.log("MESSAGE:", result.error?.message);
 
           // ---------------------------------------------
@@ -236,36 +308,49 @@ const sendToTokens = async ({
           }
         }
       }
-
-      // =================================================
-      // SAVE NOTIFICATION HISTORY
-      // =================================================
-
-      if (response.successCount > 0) {
-        await Notification.create({
-          userId,
-
-          title: String(title),
-
-          body: String(body),
-
-          type: "daily_quote",
-
-          data: {
-            quoteId: String(quote._id),
-            language: String(language),
-            image: String(image),
-          },
-
-          isRead: false,
-        });
-
-        console.log("💾 NOTIFICATION HISTORY SAVED");
-      }
     } catch (error) {
       console.error("❌ FCM SEND ERROR:", error);
     }
   }
+
+  // ===================================================
+  // SAVE NOTIFICATION HISTORY
+  // ===================================================
+
+  if (totalSuccess > 0) {
+    try {
+      await Notification.create({
+        userId,
+
+        title: String(title),
+
+        body: String(body),
+
+        language,
+
+        type: "daily_quote",
+
+        data: {
+          quoteId: String(quote._id),
+
+          language: String(language),
+
+          image: String(image || ""),
+        },
+
+        isRead: false,
+      });
+
+      console.log("💾 NOTIFICATION HISTORY SAVED");
+    } catch (historyError) {
+      console.error("❌ HISTORY SAVE ERROR:", historyError);
+    }
+  }
+
+  return {
+    successCount: totalSuccess,
+    failureCount: totalFailure,
+  };
 };
 
 // =====================================================
@@ -327,11 +412,11 @@ const sendDailyNotifications = async () => {
 
     console.log("QUOTE TEXT:", quote.text);
 
-    console.log("ENGLISH:", quote.translations?.English);
+    console.log("ENGLISH:", getTranslation(quote, "English"));
 
-    console.log("HINDI:", quote.translations?.Hindi);
+    console.log("HINDI:", getTranslation(quote, "Hindi"));
 
-    console.log("IMAGE:", quote.image || quote.imageUrl || "");
+    console.log("IMAGE:", getQuoteImage(quote));
 
     console.log("==============================================");
 
@@ -341,6 +426,8 @@ const sendDailyNotifications = async () => {
 
     for (const user of users) {
       try {
+        const userId = String(user._id);
+
         const settings = user.notificationSettings || {};
 
         const timezone = settings.timezone || "Asia/Kolkata";
@@ -350,7 +437,7 @@ const sendDailyNotifications = async () => {
         console.log("");
         console.log("----------------------------------------------");
 
-        console.log("👤 USER:", String(user._id));
+        console.log("👤 USER:", userId);
 
         console.log("🌍 TIMEZONE:", timezone);
 
@@ -377,38 +464,32 @@ const sendDailyNotifications = async () => {
         console.log("🎯🎯🎯 TIME MATCHED!");
 
         // =================================================
-        // LANGUAGE
+        // DUPLICATE PROTECTION
         // =================================================
 
-        const language = user.language === "Hindi" ? "Hindi" : "English";
+        const processKey = `${userId}_${timezone}_${notificationTime}_${new Date()
+          .toISOString()
+          .slice(0, 16)}`;
 
-        const title = language === "Hindi" ? "आज का विचार" : "Today's Thought";
-
-        // =================================================
-        // IMPORTANT:
-        // USE translations.English / translations.Hindi
-        // =================================================
-
-        const body = getQuoteText(quote, language);
-
-        console.log("🌐 LANGUAGE:", language);
-
-        console.log("📝 TITLE:", title);
-
-        console.log("📝 BODY:", body);
-
-        // =================================================
-        // BODY CHECK
-        // =================================================
-
-        if (!body) {
-          console.log("❌ NO QUOTE TEXT AVAILABLE");
+        if (processedUsers.has(processKey)) {
+          console.log("⏭️ ALREADY PROCESSED THIS MINUTE");
 
           continue;
         }
 
+        processedUsers.set(processKey, true);
+
+        // Cleanup old keys
+        if (processedUsers.size > 1000) {
+          const firstKey = processedUsers.keys().next().value;
+
+          if (firstKey) {
+            processedUsers.delete(firstKey);
+          }
+        }
+
         // =================================================
-        // GET FCM DEVICES
+        // GET USER DEVICES
         // =================================================
 
         const devices = await NotificationToken.find({
@@ -418,9 +499,16 @@ const sendDailyNotifications = async () => {
 
           fcmToken: {
             $exists: true,
+
+            $type: "string",
+
             $ne: "",
           },
-        }).select("fcmToken");
+
+          language: {
+            $in: ALLOWED_LANGUAGES,
+          },
+        }).select("fcmToken language platform");
 
         console.log(`📱 DEVICES FOUND: ${devices.length}`);
 
@@ -431,38 +519,88 @@ const sendDailyNotifications = async () => {
         }
 
         // =================================================
-        // UNIQUE TOKENS
+        // GROUP DEVICES BY LANGUAGE
         // =================================================
 
-        const tokens = [
-          ...new Set(devices.map((device) => device.fcmToken).filter(Boolean)),
-        ];
+        const englishDevices = devices.filter(
+          (device) => device.language === "English",
+        );
 
-        console.log(`📱 UNIQUE FCM TOKENS: ${tokens.length}`);
+        const hindiDevices = devices.filter(
+          (device) => device.language === "Hindi",
+        );
 
-        if (!tokens.length) {
-          console.log("⚠️ NO VALID FCM TOKENS");
+        console.log("🇬🇧 ENGLISH DEVICES:", englishDevices.length);
 
-          continue;
+        console.log("🇮🇳 HINDI DEVICES:", hindiDevices.length);
+
+        // =================================================
+        // ENGLISH DEVICES
+        // =================================================
+
+        if (englishDevices.length) {
+          const englishTokens = [
+            ...new Set(
+              englishDevices
+                .map((device) => String(device.fcmToken || "").trim())
+                .filter(Boolean),
+            ),
+          ];
+
+          const englishBody = getQuoteText(quote, "English");
+
+          if (englishBody) {
+            await sendToTokens({
+              tokens: englishTokens,
+
+              title: getNotificationTitle("English"),
+
+              body: englishBody,
+
+              language: "English",
+
+              quote,
+
+              userId: user._id,
+            });
+          } else {
+            console.log("❌ ENGLISH QUOTE EMPTY");
+          }
         }
 
         // =================================================
-        // SEND
+        // HINDI DEVICES
         // =================================================
 
-        await sendToTokens({
-          tokens,
+        if (hindiDevices.length) {
+          const hindiTokens = [
+            ...new Set(
+              hindiDevices
+                .map((device) => String(device.fcmToken || "").trim())
+                .filter(Boolean),
+            ),
+          ];
 
-          title,
+          const hindiBody = getQuoteText(quote, "Hindi");
 
-          body,
+          if (hindiBody) {
+            await sendToTokens({
+              tokens: hindiTokens,
 
-          language,
+              title: getNotificationTitle("Hindi"),
 
-          quote,
+              body: hindiBody,
 
-          userId: user._id,
-        });
+              language: "Hindi",
+
+              quote,
+
+              userId: user._id,
+            });
+          } else {
+            console.log("❌ HINDI QUOTE EMPTY");
+          }
+        }
       } catch (userError) {
         console.error(`❌ USER NOTIFICATION ERROR [${user._id}]:`, userError);
       }
@@ -470,8 +608,11 @@ const sendDailyNotifications = async () => {
 
     console.log("");
     console.log("==============================================");
+
     console.log("✅ DAILY NOTIFICATION CHECK COMPLETED");
+
     console.log("==============================================");
+
     console.log("");
   } catch (error) {
     console.error("❌ DAILY NOTIFICATION JOB ERROR:", error);
@@ -495,9 +636,15 @@ cron.schedule(
   },
 );
 
+// =====================================================
+// START
+// =====================================================
+
 console.log("");
 console.log("🚀 DAILY NOTIFICATION CRON STARTED");
+
 console.log("⏰ CHECKING EVERY MINUTE");
+
 console.log("");
 
 // =====================================================

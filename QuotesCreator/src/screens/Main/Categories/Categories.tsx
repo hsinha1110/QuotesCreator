@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+
 import { goBack, navigate } from '@/utils/NavigationUtils';
 import { RootState } from '@/redux/store';
 import { useAppDispatch } from '@/redux/hooks';
 import { categoriesThunk } from '@/redux/thunk/categoriesThunk';
+
 import { Category } from '@/types';
 import ItemCategories from '@/components/ListItems/ItemCategories/ItemCategories';
 import styles from './styles';
@@ -14,34 +16,51 @@ import Header from '@/components/Header/Header';
 import CustomDrawer from '@/components/CustomDrawer/CustomDrawer';
 
 import Routes from '@/navigations/Routes';
+
 const Categories = () => {
   const dispatch = useAppDispatch();
+
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
+
   const loadingRef = useRef(false);
-  const { categories, page, hasNextPage, isLoading, language } = useSelector(
+
+  const { categories, page, hasNextPage, isLoading } = useSelector(
     (state: RootState) => state.categories,
   );
 
+  const language = useSelector((state: RootState) => state.language.language);
+  // =====================================================
+  // LOAD CATEGORIES BASED ON LANGUAGE
+  // =====================================================
+
   useEffect(() => {
-    if (categories.length === 0) {
-      console.log('LOADING FIRST PAGE');
-      dispatch(
-        categoriesThunk({
-          language,
-          page: 1,
-          limit: 10,
-        }),
-      );
-    }
-  }, [dispatch, categories.length, language]);
+    console.log('🌐 SELECTED LANGUAGE:', language);
+
+    loadingRef.current = false;
+
+    dispatch(
+      categoriesThunk({
+        language,
+        page: 1,
+        limit: 10,
+      }),
+    );
+  }, [dispatch, language]);
+
+  // =====================================================
+  // LOAD MORE
+  // =====================================================
 
   const handleLoadMore = async () => {
-    if (loadingRef.current || isLoading || !hasNextPage) {
+    if (loadingRef.current || isLoading || isLoadingMore || !hasNextPage) {
       return;
     }
+
     const nextPage = page + 1;
-    console.log('CALLING CATEGORY PAGE:', nextPage);
+
+    console.log('📄 CALLING CATEGORY PAGE:', nextPage);
+    console.log('🌐 LANGUAGE:', language);
 
     try {
       loadingRef.current = true;
@@ -55,35 +74,56 @@ const Categories = () => {
         }),
       ).unwrap();
 
-      console.log('PAGE RESPONSE:', response);
+      console.log('✅ PAGE RESPONSE:', response);
     } catch (error) {
-      console.log('LOAD MORE CATEGORIES ERROR:', error);
+      console.log('❌ LOAD MORE CATEGORIES ERROR:', error);
     } finally {
       loadingRef.current = false;
       setIsLoadingMore(false);
 
-      console.log('LOAD MORE FINISHED');
+      console.log('✅ LOAD MORE FINISHED');
     }
   };
+
+  // =====================================================
+  // SUBCATEGORIES
+  // =====================================================
+
   const handleSubCategories = (category: Category) => {
     console.log('SELECTED CATEGORY:', category);
+    console.log('🌐 LANGUAGE:', language);
 
     navigate(Routes.SUB_CATEGORIES, {
       categoryId: category._id,
       categoryName: category.displayName,
+      language,
     });
   };
+
+  // =====================================================
+  // DRAWER
+  // =====================================================
+
   const closeDrawer = () => {
     setDrawerVisible(false);
   };
+
+  // =====================================================
+  // SEARCH
+  // =====================================================
+
   const handleSearch = () => {
     navigate(Routes.EXPLORE);
   };
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        title="Categories"
+        title={language === 'Hindi' ? 'श्रेणियाँ' : 'Categories'}
         icon="chevron-back"
         onMenuPress={goBack}
         showNotification={false}
@@ -114,11 +154,7 @@ const Categories = () => {
               <ActivityIndicator size="large" color={COLORS.accent} />
             </View>
           ) : (
-            <View
-              style={{
-                height: 30,
-              }}
-            />
+            <View style={{ height: 30 }} />
           )
         }
       />

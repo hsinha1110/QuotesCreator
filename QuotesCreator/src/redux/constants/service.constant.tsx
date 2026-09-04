@@ -31,7 +31,7 @@ export const SERVICE_ROUTES = {
   CREATE_QUOTE: 'api/quotes',
   SAVE_RECENT_QUOTE: 'api/users/recent-quotes',
   GET_RECENT_QUOTE: 'api/users/recent-quotes',
-  DELETE_QUOTE: 'api/users',
+  DELETE_QUOTE: 'api/quotes',
 } as const;
 //=================== METHODS ==============================
 

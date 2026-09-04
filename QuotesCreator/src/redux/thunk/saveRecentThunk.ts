@@ -10,7 +10,6 @@ export const saveRecentQuoteThunk = createAsyncThunk(
   async (quoteId: string, { getState, rejectWithValue }) => {
     try {
       const state = getState() as RootState;
-
       const token = state.auth.token;
 
       if (!token) {
@@ -23,7 +22,10 @@ export const saveRecentQuoteThunk = createAsyncThunk(
 
       const response = await saveRecentQuoteService(quoteId, token);
 
-      console.log('✅ SAVE RECENT QUOTE RESPONSE:', response);
+      console.log(
+        '✅ SAVE RECENT QUOTE RESPONSE:',
+        JSON.stringify(response, null, 2),
+      );
 
       return response;
     } catch (error: any) {

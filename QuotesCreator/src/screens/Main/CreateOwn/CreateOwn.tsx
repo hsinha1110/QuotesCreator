@@ -12,49 +12,32 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Header from '@/components/Header/Header';
-import { goBack, navigate } from '@/utils/NavigationUtils';
+import { goBack } from '@/utils/NavigationUtils';
 import { AppDispatch, RootState } from '@/redux/store';
 
 import { createQuoteThunk } from '@/redux/thunk/createQuoteThunk';
-
-import styles from './styles';
 import { saveRecentQuoteThunk } from '@/redux/thunk/saveRecentThunk';
 
-const CreateOwn = () => {
-  // ==========================================
-  // STATES
-  // ==========================================
+import styles from './styles';
 
+const CreateOwn = () => {
   const [quote, setQuote] = useState('');
   const [author, setAuthor] = useState('');
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
 
-  // ==========================================
-  // AUTH TOKEN
-  // ==========================================
-
   const token = useSelector((state: RootState) => state.auth.token);
-
-  console.log('========== CREATE OWN ==========');
-  console.log('TOKEN:', !!token);
-
-  // ==========================================
-  // SAVE
-  // ==========================================
 
   const handleContinue = async () => {
     const trimmedQuote = quote.trim();
     const trimmedAuthor = author.trim();
 
-    // Quote validation
     if (!trimmedQuote) {
       console.log('❌ Quote is required');
       return;
     }
 
-    // Token validation
     if (!token) {
       console.log('❌ Token missing');
       return;
@@ -64,59 +47,76 @@ const CreateOwn = () => {
       setLoading(true);
 
       // ==========================================
-      // 1️⃣ CREATE CUSTOM QUOTE
+      // 1️⃣ CREATE QUOTE
       // ==========================================
 
       console.log('📝 Creating custom quote...');
 
-      const response = await dispatch(
+      const createResponse = await dispatch(
         createQuoteThunk({
           text: trimmedQuote,
           author: trimmedAuthor || 'Unknown',
           language: 'English',
           source: 'user',
+          translations: {
+            English: trimmedQuote,
+            Hindi: trimmedQuote,
+          },
         }),
       ).unwrap();
 
-      console.log('✅ CREATE QUOTE RESPONSE:', response);
+      console.log(
+        '🔥 CREATE QUOTE RESPONSE:',
+        JSON.stringify(createResponse, null, 2),
+      );
 
       // ==========================================
-      // 2️⃣ GET NEWLY CREATED QUOTE ID
+      // 2️⃣ GET CREATED QUOTE ID
       // ==========================================
 
-      const quoteId = response?.quote?._id;
+      const quoteId =
+        createResponse?.quote?._id ||
+        createResponse?._id ||
+        createResponse?.data?.quote?._id ||
+        createResponse?.data?._id;
 
-      console.log('✅ CREATED QUOTE ID:', quoteId);
+      console.log('🔥 CREATED QUOTE ID:', quoteId);
 
       if (!quoteId) {
-        console.log('❌ Quote ID not found in create response');
-        return;
+        throw new Error('Quote ID not found after creating quote');
       }
 
-      console.log('Saving recent quote...');
+      // ==========================================
+      // 3️⃣ SAVE RECENT QUOTE
+      // ==========================================
+
+      console.log('🕘 Calling saveRecentQuoteThunk...');
 
       const recentResponse = await dispatch(
         saveRecentQuoteThunk(quoteId),
       ).unwrap();
 
-      console.log(' SAVE RECENT QUOTE RESPONSE:', recentResponse);
+      console.log(
+        '✅ SAVE RECENT RESPONSE:',
+        JSON.stringify(recentResponse, null, 2),
+      );
 
-      // navigate('Editor', {
-      //   quote: trimmedQuote,
-      //   author: trimmedAuthor || 'Unknown',
-      //   quoteId: quoteId,
-      //   isCustomQuote: true,
-      // });
+      // ==========================================
+      // 4️⃣ SUCCESS
+      // ==========================================
+
+      console.log('✅ Quote created and saved in recent quotes');
+
+      goBack();
     } catch (error: any) {
-      console.log('❌ CREATE OWN ERROR:', error?.response?.data || error);
+      console.log(
+        '❌ CREATE OWN ERROR:',
+        error?.response?.data || error?.message || error,
+      );
     } finally {
       setLoading(false);
     }
   };
-
-  // ==========================================
-  // UI
-  // ==========================================
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,9 +135,7 @@ const CreateOwn = () => {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {/* ==================================
-              TITLE
-          ================================== */}
+          {/* TITLE */}
 
           <View style={styles.headingContainer}>
             <Text style={styles.title}>Write Your Own Quote</Text>
@@ -147,9 +145,7 @@ const CreateOwn = () => {
             </Text>
           </View>
 
-          {/* ==================================
-              QUOTE
-          ================================== */}
+          {/* QUOTE */}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Your Quote</Text>
@@ -168,9 +164,7 @@ const CreateOwn = () => {
             <Text style={styles.characterCount}>{quote.length}/300</Text>
           </View>
 
-          {/* ==================================
-              AUTHOR
-          ================================== */}
+          {/* AUTHOR */}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Author</Text>
@@ -186,9 +180,7 @@ const CreateOwn = () => {
             <Text style={styles.optional}>Optional</Text>
           </View>
 
-          {/* ==================================
-              PREVIEW
-          ================================== */}
+          {/* PREVIEW */}
 
           <View style={styles.previewContainer}>
             <Text style={styles.previewLabel}>Preview</Text>
@@ -206,9 +198,7 @@ const CreateOwn = () => {
             </View>
           </View>
 
-          {/* ==================================
-              SAVE BUTTON
-          ================================== */}
+          {/* SAVE BUTTON */}
 
           <TouchableOpacity
             activeOpacity={0.8}

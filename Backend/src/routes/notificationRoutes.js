@@ -16,6 +16,7 @@ const {
 } = require("../controllers/notificationController");
 
 const verifyToken = require("../middleware/verifyToken");
+
 // =====================================================
 // DEVICE / FCM
 // =====================================================
@@ -25,7 +26,10 @@ router.post("/register-device", registerDevice);
 router.get("/user/:userId", getUserDevices);
 
 router.put("/deactivate", deactivateDevice);
-router.put("/notification-settings", verifyToken, updateNotificationSettings); // =====================================================
+
+router.put("/notification-settings", verifyToken, updateNotificationSettings);
+
+// =====================================================
 // SEND NOTIFICATION
 // =====================================================
 

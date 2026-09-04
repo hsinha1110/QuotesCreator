@@ -8,42 +8,84 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Header from '@/components/Header/Header';
 import { goBack } from '@/utils/NavigationUtils';
 import styles from './styles';
+
 import Routes from '@/navigations/Routes';
-import { useFocusEffect } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { AppDispatch, RootState } from '@/redux/store';
+
 import { getRecentQuotesThunk } from '@/redux/thunk/getRecentQuotesThunk';
+import { deleteQuoteThunk } from '@/redux/thunk/deleteQuoteThunk';
+
 import QuoteActions from '@/components/QuotesActions/QuotesActions';
 import IMAGES from '@/assets/images';
-import { deleteQuoteThunk } from '@/redux/thunk/deleteQuoteThunk';
+
 import { toggleFavourite } from '@/redux/slices/favouriteSlice';
 
 const CreateQuotes = ({ navigation }: any) => {
-  // ==========================================
-  // WRITE YOUR OWN
-  // ==========================================
   const dispatch = useDispatch<AppDispatch>();
 
+  // ==========================================
+  // AUTH
+  // ==========================================
+
   const token = useSelector((state: RootState) => state.auth.token);
+
+  // ==========================================
+  // FAVOURITES
+  // ==========================================
+
   const favourites = useSelector(
     (state: RootState) => state.favourites.favourites || [],
   );
-  const { quotes: recentQuotes, isLoading } = useSelector(
-    (state: RootState) => state.recentQuotes,
+
+  // ==========================================
+  // RECENT QUOTES
+  // ==========================================
+
+  const recentQuotes = useSelector(
+    (state: RootState) => state.recentQuotes.quotes || [],
   );
+
+  // ==========================================
+  // GET RECENT QUOTES
+  // SCREEN FOCUS
+  // ==========================================
 
   useFocusEffect(
     useCallback(() => {
-      if (!token) return;
+      if (!token) {
+        console.log('❌ Token missing');
+        return;
+      }
 
-      dispatch(getRecentQuotesThunk());
+      const fetchRecentQuotes = async () => {
+        try {
+          console.log('🕘 Fetching recent quotes...');
+
+          const response = await dispatch(getRecentQuotesThunk()).unwrap();
+
+          console.log(
+            '🔥 GET RECENT QUOTES RESPONSE:',
+            JSON.stringify(response, null, 2),
+          );
+        } catch (error) {
+          console.log('❌ GET RECENT QUOTES ERROR:', error);
+        }
+      };
+
+      fetchRecentQuotes();
     }, [dispatch, token]),
   );
+  // ==========================================
+  // WRITE YOUR OWN
+  // ==========================================
+
   const handleWriteOwn = () => {
     navigation.navigate(Routes.CREATE_OWN);
   };
@@ -57,16 +99,64 @@ const CreateQuotes = ({ navigation }: any) => {
   };
 
   // ==========================================
+  // DELETE QUOTE
+  // ==========================================
+
+  const handleDeletePress = (item: any) => {
+    Alert.alert('Delete Quote', 'Are you sure you want to delete this quote?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+
+        onPress: async () => {
+          try {
+            console.log('🗑️ Deleting quote:', item._id);
+
+            await dispatch(deleteQuoteThunk(item._id)).unwrap();
+
+            console.log('✅ QUOTE DELETED:', item._id);
+
+            // Refresh recent quotes
+            if (token) {
+              dispatch(getRecentQuotesThunk());
+            }
+          } catch (error) {
+            console.log('❌ DELETE QUOTE ERROR:', error);
+
+            Alert.alert(
+              'Error',
+              typeof error === 'string' ? error : 'Failed to delete quote',
+            );
+          }
+        },
+      },
+    ]);
+  };
+
+  // ==========================================
   // RECENT QUOTE ITEM
   // ==========================================
+
   const renderRecentQuote = ({ item }: any) => {
     const handleQuotePress = () => {
+      const index = recentQuotes.findIndex(
+        (quote: any) => quote._id === item._id,
+      );
+
       navigation.navigate(Routes.QUOTES_DETAILS, {
         item,
         quotes: recentQuotes,
-        index: recentQuotes.findIndex((quote: any) => quote._id === item._id),
+        index,
       });
     };
+
+    // ========================================
+    // FAVOURITE
+    // ========================================
 
     const handleFavoritePress = () => {
       dispatch(
@@ -78,6 +168,10 @@ const CreateQuotes = ({ navigation }: any) => {
       );
     };
 
+    // ========================================
+    // SHARE
+    // ========================================
+
     const handleSharePress = () => {
       console.log('Share:', item._id);
     };
@@ -88,7 +182,12 @@ const CreateQuotes = ({ navigation }: any) => {
         style={styles.recentCard}
         onPress={handleQuotePress}
       >
+        {/* QUOTE IMAGE */}
+
         <Image source={IMAGES.QUOTES} style={styles.quoteIcon} />
+
+        {/* CONTENT */}
+
         <View style={styles.recentContent}>
           <Text style={styles.recentText} numberOfLines={3}>
             {item.text}
@@ -96,6 +195,8 @@ const CreateQuotes = ({ navigation }: any) => {
 
           <Text style={styles.author}>— {item.author || 'Unknown'}</Text>
         </View>
+
+        {/* ACTIONS */}
 
         <View style={styles.recentActions}>
           <QuoteActions
@@ -113,32 +214,11 @@ const CreateQuotes = ({ navigation }: any) => {
       </TouchableOpacity>
     );
   };
-  const handleDeletePress = (item: any) => {
-    Alert.alert('Delete Quote', 'Are you sure you want to delete this quote?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await dispatch(deleteQuoteThunk(item._id)).unwrap();
 
-            console.log('QUOTE DELETED SUCCESSFULLY:', item._id);
-          } catch (error) {
-            console.log('DELETE QUOTE ERROR:', error);
+  // ==========================================
+  // UI
+  // ==========================================
 
-            Alert.alert(
-              'Error',
-              typeof error === 'string' ? error : 'Failed to delete quote',
-            );
-          }
-        },
-      },
-    ]);
-  };
   return (
     <SafeAreaView style={styles.container}>
       {/* ========================================
@@ -154,7 +234,7 @@ const CreateQuotes = ({ navigation }: any) => {
 
       <FlatList
         data={recentQuotes}
-        keyExtractor={item => item.text}
+        keyExtractor={item => item._id.toString()}
         renderItem={renderRecentQuote}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[

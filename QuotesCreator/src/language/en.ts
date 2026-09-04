@@ -26,6 +26,7 @@ const en = {
     FACEBOOK_LOGIN_FAILED: 'Facebook Login Failed',
     SOMETHING_WENT_WRONG: 'Something went wrong. Please try again.',
   },
+
   SIGNUP: {
     TITLE: 'Create Account 🚀',
     SUBTITLE: 'Sign up to start creating amazing quotes',
@@ -60,6 +61,7 @@ const en = {
     FACEBOOK_SIGNUP_FAILED: 'Facebook Sign Up Failed',
     SOMETHING_WENT_WRONG: 'Something went wrong. Please try again.',
   },
+
   DRAWER: {
     MAIN_MENU: 'MAIN MENU',
     HOME: 'Home',
@@ -78,6 +80,7 @@ const en = {
     APP_SUBTITLE: 'Create. Inspire. Share.',
     VERSION: 'QuoteCreator • v1.0.0',
   },
+
   HOME: {
     GOOD_MORNING: 'Good Morning! 👋',
     INSPIRATION: 'Find inspiration for your day',
@@ -88,8 +91,82 @@ const en = {
     POPULAR: 'Popular',
     POPULAR_QUOTES: 'Popular Quotes',
     TODAYS_THOUGHT: "Today's Thought",
-
     QUOTES: 'Quotes',
+  },
+
+  // ==========================================
+  // CREATE QUOTE
+  // ==========================================
+
+  CREATE_QUOTE: {
+    TITLE: 'Create Quote',
+
+    SUBTITLE:
+      'Create your own inspiring quote\nand share positivity with the world.',
+
+    WRITE_YOUR_OWN: 'Write Your Own',
+
+    WRITE_YOUR_OWN_DESCRIPTION:
+      'Write your own quote\nfrom scratch and\nmake it beautiful.',
+
+    USE_A_QUOTE: 'Use a Quote',
+
+    USE_A_QUOTE_DESCRIPTION:
+      'Choose from our\ncollection of quotes\nand customize it.',
+
+    RECENT_QUOTES: 'Recent Quotes',
+
+    SEE_ALL: 'See All',
+
+    NO_RECENT_QUOTES: 'No recent quotes yet',
+
+    LOADING: 'Loading...',
+
+    DELETE_QUOTE: 'Delete Quote',
+
+    DELETE_CONFIRMATION: 'Are you sure you want to delete this quote?',
+
+    CANCEL: 'Cancel',
+
+    DELETE: 'Delete',
+
+    ERROR: 'Error',
+
+    DELETE_FAILED: 'Failed to delete quote',
+  },
+  CREATE_OWN: {
+    HEADER_TITLE: 'Create Quote',
+
+    TITLE: 'Write Your Own Quote',
+
+    SUBTITLE:
+      'Create something inspiring and share your thoughts\nwith the world',
+
+    YOUR_QUOTE: 'Your Quote',
+
+    QUOTE_PLACEHOLDER: 'Write your quote here...',
+
+    AUTHOR: 'Author',
+
+    AUTHOR_PLACEHOLDER: 'Enter author name (optional)',
+
+    OPTIONAL: 'Optional',
+
+    PREVIEW: 'Preview',
+
+    PREVIEW_PLACEHOLDER: '"Your inspiring quote will appear here..."',
+
+    SAVE: 'Save',
+
+    SAVING: 'Saving...',
+
+    QUOTE_REQUIRED: 'Please enter your quote',
+
+    AUTHOR_OPTIONAL: 'Author is optional',
+
+    SUCCESS: 'Quote created successfully',
+
+    ERROR: 'Failed to create quote',
   },
 };
 

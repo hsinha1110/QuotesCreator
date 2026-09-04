@@ -34,6 +34,11 @@ const recentQuotesSlice = createSlice({
         state.isLoading = false;
 
         state.quotes = action.payload?.recentQuotes || [];
+
+        console.log(
+          '🔥 REDUX RECENT QUOTES:',
+          JSON.stringify(state.quotes, null, 2),
+        );
       })
 
       .addCase(getRecentQuotesThunk.rejected, (state, action) => {

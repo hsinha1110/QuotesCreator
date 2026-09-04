@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
-
+const Quote = require("../models/Quote");
 const User = require("../models/User");
 const cloudinary = require("../config/cloudinary");
 
@@ -340,14 +340,22 @@ const deleteAccount = async (req, res) => {
 // ======================================
 const saveRecentQuote = async (req, res) => {
   try {
+    console.log("=================================");
+    console.log("🔥 SAVE RECENT QUOTE");
+
+    console.log("🔥 req.user:", req.user);
+    console.log("🔥 req.body:", req.body);
+
     const userId = req.user?.userId || req.user?.id || req.user?._id;
 
     const { quoteId } = req.body || {};
 
-    console.log("🔥 SAVE RECENT QUOTE");
-    console.log("USER:", req.user);
-    console.log("USER ID:", userId);
-    console.log("QUOTE ID:", quoteId);
+    console.log("🔥 USER ID:", userId);
+    console.log("🔥 QUOTE ID:", quoteId);
+
+    // -----------------------------
+    // USER ID VALIDATION
+    // -----------------------------
 
     if (!userId) {
       return res.status(401).json({
@@ -362,6 +370,10 @@ const saveRecentQuote = async (req, res) => {
         message: "Invalid user ID",
       });
     }
+
+    // -----------------------------
+    // QUOTE ID VALIDATION
+    // -----------------------------
 
     if (!quoteId) {
       return res.status(400).json({
@@ -377,7 +389,28 @@ const saveRecentQuote = async (req, res) => {
       });
     }
 
+    // -----------------------------
+    // FIND QUOTE
+    // -----------------------------
+
+    const quote = await Quote.findById(quoteId);
+
+    console.log("🔥 QUOTE FOUND:", !!quote);
+
+    if (!quote) {
+      return res.status(404).json({
+        success: false,
+        message: "Quote not found",
+      });
+    }
+
+    // -----------------------------
+    // FIND USER
+    // -----------------------------
+
     const user = await User.findById(userId);
+
+    console.log("🔥 USER FOUND:", user ? user._id.toString() : null);
 
     if (!user) {
       return res.status(404).json({
@@ -386,18 +419,41 @@ const saveRecentQuote = async (req, res) => {
       });
     }
 
-    // Remove duplicate
-    user.recentQuotes = (user.recentQuotes || []).filter(
+    // -----------------------------
+    // INITIALIZE RECENT QUOTES
+    // -----------------------------
+
+    if (!Array.isArray(user.recentQuotes)) {
+      user.recentQuotes = [];
+    }
+
+    // -----------------------------
+    // REMOVE DUPLICATE
+    // -----------------------------
+
+    user.recentQuotes = user.recentQuotes.filter(
       (id) => id.toString() !== quoteId.toString(),
     );
 
-    // Add latest quote at beginning
-    user.recentQuotes.unshift(quoteId);
+    // -----------------------------
+    // ADD LATEST QUOTE
+    // -----------------------------
 
-    // Keep only last 10
+    user.recentQuotes.unshift(quote._id);
+
+    // -----------------------------
+    // KEEP LAST 10
+    // -----------------------------
+
     user.recentQuotes = user.recentQuotes.slice(0, 10);
 
+    // -----------------------------
+    // SAVE USER
+    // -----------------------------
+
     await user.save();
+
+    console.log("✅ RECENT QUOTES SAVED:", user.recentQuotes);
 
     return res.status(200).json({
       success: true,
@@ -405,7 +461,7 @@ const saveRecentQuote = async (req, res) => {
       recentQuotes: user.recentQuotes,
     });
   } catch (error) {
-    console.error("❌ Save Recent Quote Error:", error);
+    console.error("❌ SAVE RECENT QUOTE ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -418,25 +474,34 @@ const saveRecentQuote = async (req, res) => {
 // GET RECENT QUOTES
 // GET /api/users/recent-quotes
 // ======================================
-
+// ======================================
+// GET RECENT QUOTES
+// GET /api/users/recent-quotes
+// ======================================
 const getRecentQuotes = async (req, res) => {
   try {
+    console.log("=================================");
+    console.log("🔥 GET RECENT QUOTES");
+    console.log("🔥 req.user:", req.user);
+
+    // ======================================
+    // USER ID FROM JWT
+    // ======================================
+
     const userId = req.user?.userId || req.user?.id || req.user?._id;
 
-    console.log("🔥 JWT USER:", req.user);
-    console.log("🔥 JWT USER ID:", userId);
-    console.log("🔥 USER ID LENGTH:", userId?.length);
-    console.log(
-      "🔥 IS VALID OBJECT ID:",
-      mongoose.Types.ObjectId.isValid(userId),
-    );
+    console.log("🔥 USER ID FROM TOKEN:", userId);
 
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "User ID not found in token",
+        message: "User ID not found",
       });
     }
+
+    // ======================================
+    // VALIDATE USER ID
+    // ======================================
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -445,15 +510,36 @@ const getRecentQuotes = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId)
-      .populate({
-        path: "recentQuotes",
-        match: {
-          isActive: { $ne: false },
+    // ======================================
+    // LANGUAGE
+    // ======================================
+
+    const language =
+      String(req.query.language || "English").toLowerCase() === "hindi"
+        ? "Hindi"
+        : "English";
+
+    console.log("🔥 LANGUAGE:", language);
+
+    // ======================================
+    // FIND USER + POPULATE RECENT QUOTES
+    // ======================================
+
+    const user = await User.findById(userId).populate({
+      path: "recentQuotes",
+
+      match: {
+        isActive: {
+          $ne: false,
         },
-        select: "_id text author language image categoryId subcategoryId",
-      })
-      .lean();
+        isDraft: false,
+      },
+
+      select:
+        "_id text author language image categoryId subcategoryId translations likes views createdAt",
+    });
+
+    console.log("🔥 USER FOUND:", !!user);
 
     if (!user) {
       return res.status(404).json({
@@ -462,16 +548,51 @@ const getRecentQuotes = async (req, res) => {
       });
     }
 
+    console.log("🔥 RECENT QUOTES:", user.recentQuotes);
+
+    // ======================================
+    // LOCALIZE RECENT QUOTES
+    // ======================================
+
+    const recentQuotes = (user.recentQuotes || []).map((quote) => {
+      const quoteObject = quote.toObject ? quote.toObject() : quote;
+
+      const translations = quoteObject.translations || {};
+
+      let displayText = quoteObject.text || "";
+
+      if (language === "Hindi" && translations.Hindi) {
+        displayText = translations.Hindi;
+      }
+
+      if (language === "English" && translations.English) {
+        displayText = translations.English;
+      }
+
+      return {
+        ...quoteObject,
+
+        displayText,
+        displayLanguage: language,
+      };
+    });
+
+    // ======================================
+    // RESPONSE
+    // ======================================
+
     return res.status(200).json({
       success: true,
-      recentQuotes: user.recentQuotes || [],
+      message: "Recent quotes fetched successfully",
+      language,
+      recentQuotes,
     });
   } catch (error) {
-    console.error("❌ Get Recent Quotes Error:", error);
+    console.error("❌ GET RECENT QUOTES ERROR:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Failed to get recent quotes",
+      message: "Failed to fetch recent quotes",
       error: error.message,
     });
   }
