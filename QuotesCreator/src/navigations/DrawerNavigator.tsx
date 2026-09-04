@@ -100,6 +100,14 @@ const DrawerNavigator = () => {
         name={Routes.EDIT_PROFILE}
         component={Screens.EditProfile}
       />
+      <Drawer.Screen
+        name={Routes.CREATE_QUOTE}
+        component={Screens.CreateQuote}
+      />
+      <Drawer.Screen
+        name={Routes.CREATE_OWN}
+        component={Screens.CreateOwn}
+      />
     </Drawer.Navigator>
   );
 };

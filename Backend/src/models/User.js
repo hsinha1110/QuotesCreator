@@ -77,6 +77,17 @@ const userSchema = new mongoose.Schema(
     },
 
     // ==========================================
+    // RECENT QUOTES
+    // ==========================================
+
+    recentQuotes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Quote",
+      },
+    ],
+
+    // ==========================================
     // NOTIFICATION SETTINGS
     // ==========================================
 

@@ -1,24 +1,18 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { deleteAccountService } from '../services/deleteAccountService';
 import { ASYNC_ROUTES } from '../constants';
+import { deleteAccountService } from '../services/deleteAccountService';
 
 export const deleteAccountThunk = createAsyncThunk(
-  ASYNC_ROUTES.ME,
-  async (_, { rejectWithValue }) => {
+  ASYNC_ROUTES.DELETE_ACCOUNT,
+  async (
+    { userId, token }: { userId: string; token: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await deleteAccountService();
-
-      console.log('DELETE ACCOUNT RESPONSE:', response);
-
-      return response;
+      return await deleteAccountService(userId, token);
     } catch (error: any) {
-      console.log('DELETE ACCOUNT ERROR:', error?.response?.data || error);
-
       return rejectWithValue(
-        error?.response?.data || {
-          success: false,
-          message: 'Failed to delete account',
-        },
+        error?.response?.data?.message || 'Failed to delete account',
       );
     }
   },

@@ -1,4 +1,9 @@
+import Header from '@/components/Header/Header';
 import Routes from '@/navigations/Routes';
+import { setLanguage } from '@/redux/slices/languageSlice';
+import { AppDispatch, RootState } from '@/redux/store';
+import { SettingRowProps, SettingsProps } from '@/types';
+import { goBack } from '@/utils/NavigationUtils';
 import React from 'react';
 import {
   View,
@@ -6,28 +11,30 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  GestureResponderEvent,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-interface SettingsProps {
-  navigation?: {
-    goBack: () => void;
-    navigate: (screen: string) => void;
-  };
-}
-
-interface SettingRowProps {
-  icon: string;
-  title: string;
-  subtitle?: string;
-  value?: string;
-  onPress?: (event: GestureResponderEvent) => void;
-  showArrow?: boolean;
-  rightComponent?: React.ReactNode;
-}
+import { useDispatch, useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import styles from './styles';
 
 const Settings = ({ navigation }: SettingsProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+
+  const language = useSelector((state: RootState) => state.language.language);
+  const isHindi = language === 'Hindi';
+
+  const handleLanguageToggle = async (value: boolean) => {
+    const newLanguage = value ? 'Hindi' : 'English';
+    dispatch(setLanguage(newLanguage));
+    try {
+      await AsyncStorage.setItem('APP_LANGUAGE', newLanguage);
+
+      console.log('LANGUAGE SAVED:', newLanguage);
+    } catch (error) {
+      console.log('LANGUAGE SAVE ERROR:', error);
+    }
+  };
   const SettingRow = ({
     icon,
     title,
@@ -69,22 +76,18 @@ const Settings = ({ navigation }: SettingsProps) => {
       </TouchableOpacity>
     );
   };
-
+  const handleSearch = () => {};
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation?.goBack()}
-        >
-          <Text style={styles.backIcon}>‹</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Settings</Text>
-
-        <View style={styles.headerRight} />
-      </View>
+      <Header
+        title="Settings"
+        icon="chevron-back"
+        onMenuPress={goBack}
+        showNotification={false}
+        rightIcon=""
+        onRightPress={handleSearch}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -98,8 +101,25 @@ const Settings = ({ navigation }: SettingsProps) => {
             icon="◎"
             title="Language"
             subtitle="Choose your preferred language"
-            value="English"
-            onPress={() => navigation?.navigate('Language')}
+            showArrow={false}
+            rightComponent={
+              <View style={styles.switchContainer}>
+                <Text style={styles.languageValue}>
+                  {isHindi ? 'Hindi' : 'English'}
+                </Text>
+
+                <Switch
+                  value={isHindi}
+                  onValueChange={handleLanguageToggle}
+                  trackColor={{
+                    false: '#D9D9E0',
+                    true: '#CDB3FF',
+                  }}
+                  thumbColor={isHindi ? '#7437E8' : '#FFFFFF'}
+                  ios_backgroundColor="#D9D9E0"
+                />
+              </View>
+            }
           />
 
           <SettingRow
@@ -193,16 +213,6 @@ const Settings = ({ navigation }: SettingsProps) => {
           />
         </View>
 
-        {/* Logout */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.logoutButton}
-          onPress={() => {}}
-        >
-          <Text style={styles.logoutIcon}>⇥</Text>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-
         <Text style={styles.version}>QuoteCreator • Version 1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
@@ -210,169 +220,3 @@ const Settings = ({ navigation }: SettingsProps) => {
 };
 
 export default Settings;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-
-  header: {
-    height: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F3F3',
-  },
-
-  backButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-
-  backIcon: {
-    fontSize: 34,
-    lineHeight: 36,
-    color: '#171717',
-    fontWeight: '300',
-  },
-
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#151515',
-  },
-
-  headerRight: {
-    width: 36,
-  },
-
-  content: {
-    paddingHorizontal: 18,
-    paddingTop: 20,
-    paddingBottom: 35,
-  },
-
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#7437E8',
-    letterSpacing: 0.5,
-    marginTop: 8,
-    marginBottom: 10,
-    marginLeft: 4,
-  },
-
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#EEEEF2',
-    overflow: 'hidden',
-    marginBottom: 22,
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-
-  row: {
-    minHeight: 76,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F1F4',
-  },
-
-  iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#F4EEFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-
-  icon: {
-    color: '#7437E8',
-    fontSize: 21,
-    fontWeight: '600',
-  },
-
-  rowContent: {
-    flex: 1,
-    paddingVertical: 10,
-  },
-
-  rowTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#191919',
-    marginBottom: 4,
-  },
-
-  rowSubtitle: {
-    fontSize: 12,
-    color: '#8A8A91',
-    lineHeight: 17,
-  },
-
-  rightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-
-  value: {
-    fontSize: 12,
-    color: '#77777F',
-    marginRight: 7,
-  },
-
-  arrow: {
-    fontSize: 25,
-    color: '#8C8C93',
-    fontWeight: '300',
-  },
-
-  logoutButton: {
-    height: 58,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#EEEEF2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    marginTop: 2,
-  },
-
-  logoutIcon: {
-    fontSize: 23,
-    color: '#EF3340',
-    marginRight: 9,
-  },
-
-  logoutText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#EF3340',
-  },
-
-  version: {
-    textAlign: 'center',
-    fontSize: 11,
-    color: '#A0A0A6',
-    marginTop: 18,
-  },
-});

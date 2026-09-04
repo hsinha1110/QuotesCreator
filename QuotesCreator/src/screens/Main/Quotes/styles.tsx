@@ -10,17 +10,6 @@ const styles = StyleSheet.create({
   },
 
   // ==========================================
-  // LIST
-  // ==========================================
-
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: moderateScale(16),
-    paddingTop: moderateScale(16),
-    paddingBottom: moderateScale(30),
-  },
-
-  // ==========================================
   // QUOTE CARD
   // ==========================================
 
@@ -171,6 +160,25 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(15),
 
     color: '#777',
+  },
+  listContainer: {
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(16),
+    paddingBottom: moderateScale(30),
+  },
+
+  quoteList: {
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(16),
+    paddingBottom: moderateScale(50),
+  },
+
+  quoteSeparator: {
+    height: moderateScale(12),
+  },
+
+  quotePressable: {
+    width: '100%',
   },
 });
 

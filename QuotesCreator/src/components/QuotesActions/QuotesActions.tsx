@@ -10,14 +10,16 @@ import { QuoteActionsProps } from '@/types';
 const QuoteActions = ({
   onFavoritePress,
   onSharePress,
+  onDeletePress,
   favoriteSize = moderateScale(22),
   isFavorite = false,
   likes = 0,
-  showLikes,
+  showLikes = false,
+  showDelete = false,
 }: QuoteActionsProps) => {
   return (
     <View style={styles.actions}>
-      {/* FAVOURITE */}
+      {/* FAVORITE */}
       <TouchableOpacity
         activeOpacity={0.7}
         style={styles.actionButton}
@@ -46,6 +48,21 @@ const QuoteActions = ({
           color={COLORS.black}
         />
       </TouchableOpacity>
+
+      {/* DELETE */}
+      {showDelete && (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={styles.actionButton}
+          onPress={onDeletePress}
+        >
+          <Ionicons
+            name="trash-outline"
+            size={favoriteSize}
+            color={COLORS.red}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

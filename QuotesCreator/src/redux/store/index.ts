@@ -23,25 +23,66 @@ import quotesReducer from '@/redux/slices/quotesSlice';
 import subCategoriesReducer from '@/redux/slices/subCategories';
 import favouritesReducer from '@/redux/slices/favouriteSlice';
 import profileReducer from '@/redux/slices/profileSlice';
+import recentReducer from '@/redux/slices/recentQuotesSlice';
+import languageReducer from '@/redux/slices/languageSlice';
+
+// =====================================================
+// AUTH PERSIST
+// =====================================================
+
 const authPersistConfig = {
   key: 'auth',
   storage: AsyncStorage,
   whitelist: ['token', 'user'],
 };
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
+
+// =====================================================
+// LANGUAGE PERSIST
+// =====================================================
+
+const languagePersistConfig = {
+  key: 'language',
+  storage: AsyncStorage,
+  whitelist: ['language'],
+};
+
+const persistedLanguageReducer = persistReducer(
+  languagePersistConfig,
+  languageReducer,
+);
+
+// =====================================================
+// STORE
+// =====================================================
 
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
+
     notifications: notificationReducer,
+
     categories: categoriesReducer,
+
     latestQuotes: latestQuotesReducer,
+
     popularQuotes: popularReducer,
+
     deleteAccount: deleteAccountReducer,
+
     quotes: quotesReducer,
+
     subCategories: subCategoriesReducer,
+
     favourites: favouritesReducer,
+
     profile: profileReducer,
+
+    recentQuotes: recentReducer,
+
+    // IMPORTANT
+    language: persistedLanguageReducer,
   },
 
   middleware: getDefaultMiddleware =>
@@ -53,5 +94,7 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+
 export type RootState = ReturnType<typeof store.getState>;
+
 export type AppDispatch = typeof store.dispatch;

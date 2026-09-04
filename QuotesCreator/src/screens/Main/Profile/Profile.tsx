@@ -5,8 +5,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-
 import { DrawerNavigationProp } from '@react-navigation/drawer';
+
 import { useDispatch, useSelector } from 'react-redux';
 
 import Routes from '@/navigations/Routes';
@@ -15,13 +15,14 @@ import { DrawerParamList } from '@/navigations/types';
 import { AppDispatch, RootState } from '@/redux/store';
 import { getProfileThunk } from '@/redux/thunk/getProfileThunk';
 
+import { logout } from '@/redux/slices/authSlice';
+
 import styles from './styles';
 
-type ProfileNavigationProp = DrawerNavigationProp<DrawerParamList>;
-
 const Profile = () => {
-  const navigation = useNavigation<ProfileNavigationProp>();
+  type ProfileNavigationProp = DrawerNavigationProp<DrawerParamList>;
 
+  const navigation = useNavigation<ProfileNavigationProp>();
   const dispatch = useDispatch<AppDispatch>();
 
   // ==========================================
@@ -32,7 +33,6 @@ const Profile = () => {
 
   const profileState = useSelector((state: RootState) => state.profile);
 
-  // Actual latest profile returned by API
   const profileUser = profileState.user;
 
   // ==========================================
@@ -46,13 +46,8 @@ const Profile = () => {
   const profileImage =
     profileUser?.profileImage || authUser?.profileImage || null;
 
-  console.log('PROFILE USER:', profileUser);
-  console.log('PROFILE NAME:', profileName);
-  console.log('PROFILE EMAIL:', profileEmail);
-  console.log('PROFILE IMAGE:', profileImage);
-
   // ==========================================
-  // GET PROFILE WHEN SCREEN FOCUSES
+  // GET PROFILE
   // ==========================================
 
   useFocusEffect(
@@ -103,8 +98,23 @@ const Profile = () => {
     navigation.navigate(Routes.SETTINGS);
   };
 
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
   const handleLogout = () => {
-    console.log('LOGOUT');
+    console.log('🔴 LOGOUT');
+
+    dispatch(logout());
+
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: Routes.LOGIN,
+        },
+      ],
+    });
   };
 
   // ==========================================
@@ -123,7 +133,11 @@ const Profile = () => {
     danger?: boolean;
   }) => {
     return (
-      <Pressable style={styles.profileRow} onPress={onPress}>
+      <Pressable
+        style={styles.profileRow}
+        onPress={onPress}
+        android_ripple={{ color: '#EEEEEE' }}
+      >
         <View style={styles.rowLeft}>
           <View
             style={[
@@ -158,9 +172,7 @@ const Profile = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* ======================================
-            PROFILE HEADER
-        ====================================== */}
+        {/* PROFILE HEADER */}
 
         <View style={styles.profileHeader}>
           <View style={styles.profileImageWrapper}>
@@ -184,9 +196,7 @@ const Profile = () => {
           <Text style={styles.profileEmail}>{profileEmail}</Text>
         </View>
 
-        {/* ======================================
-            ACCOUNT
-        ====================================== */}
+        {/* ACCOUNT */}
 
         <Text style={styles.sectionTitle}>Account</Text>
 
@@ -214,9 +224,7 @@ const Profile = () => {
           />
         </View>
 
-        {/* ======================================
-            GENERAL
-        ====================================== */}
+        {/* GENERAL */}
 
         <Text style={styles.sectionTitle}>General</Text>
 
@@ -244,11 +252,13 @@ const Profile = () => {
           />
         </View>
 
-        {/* ======================================
-            LOGOUT
-        ====================================== */}
+        {/* LOGOUT */}
 
-        <Pressable style={styles.logoutButton} onPress={handleLogout}>
+        <Pressable
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          android_ripple={{ color: '#FDECEC' }}
+        >
           <Ionicons name="log-out-outline" size={21} color="#E53935" />
 
           <Text style={styles.logoutText}>Logout</Text>

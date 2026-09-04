@@ -3,30 +3,33 @@ import { moderateScale } from '@/styles/scaling';
 import COLORS from '@/constants/Colors';
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.white,
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: COLORS.white },
   categoryList: {
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(12),
+    paddingBottom: moderateScale(30),
+  },
+
+  categoryItem: {
     width: '100%',
-    paddingHorizontal: moderateScale(12),
-  },
-  categoryCard: {
-    width: moderateScale(100),
-  },
-  categoryContent: {
-    paddingVertical: moderateScale(2),
-    paddingBottom: moderateScale(8),
   },
 
   categorySeparator: {
     height: moderateScale(12),
   },
-  categoryItem: {
-    width: '100%',
-  },
+
   footerLoader: {
-    paddingVertical: moderateScale(20),
+    height: moderateScale(70),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  footerSpace: {
+    height: moderateScale(30),
+  },
+
+  loadingContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

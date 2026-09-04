@@ -1,7 +1,11 @@
 import React from 'react';
-import { Pressable, Text, TouchableOpacity, View } from 'react-native';
-import { ItemCategoriesProps } from '@/types';
+import { Pressable, Text, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+import { ItemCategoriesProps } from '@/types';
+import { RootState } from '@/redux/store';
+import { translations } from '@/language';
 
 import styles from './styles';
 
@@ -10,6 +14,10 @@ const ItemCategories = ({
   fullWidth = false,
   onPress,
 }: ItemCategoriesProps) => {
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const t = translations[language];
+
   return (
     <Pressable
       onPress={onPress}
@@ -29,13 +37,13 @@ const ItemCategories = ({
             style={[styles.categoryName, !fullWidth && styles.homeCategoryName]}
             numberOfLines={fullWidth ? 1 : 2}
           >
-            {item.displayName}
+            {item.displayName || item.name}
           </Text>
 
           <Text
             style={[styles.quoteCount, !fullWidth && styles.homeQuoteCount]}
           >
-            {item.quoteCount ?? 0}+ Quotes
+            {item.quoteCount ?? 0}+ {t.HOME.QUOTES}
           </Text>
         </View>
 

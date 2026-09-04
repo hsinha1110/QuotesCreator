@@ -12,13 +12,21 @@ const {
 
 const imageUpload = require("../middleware/imageUpload");
 const verifyToken = require("../middleware/verifyToken");
-
+const userController = require("../controllers/userController");
 // ======================================
 // ADMIN - GET ALL USERS
 // ======================================
 
 router.get("/", getUsers);
+router.get("/recent-quotes", verifyToken, userController.getRecentQuotes);
 
+router.post("/recent-quotes", verifyToken, userController.saveRecentQuote);
+
+router.delete(
+  "/recent-quotes/:quoteId",
+  verifyToken,
+  userController.deleteRecentQuote,
+);
 router.get("/:id", getProfile);
 // ======================================
 // GET SINGLE USER

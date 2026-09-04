@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { moderateScale } from '@/styles/scaling';
+import { moderateScale } from 'react-native-size-matters';
+
 import COLORS from '@/constants/Colors';
 
 const styles = StyleSheet.create({
@@ -16,20 +17,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionLike: {
-    flexDirection: 'row',
-  },
 
   likeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
   },
 
   likesText: {
-    marginLeft: moderateScale(5),
+    marginLeft: moderateScale(4),
     fontSize: moderateScale(12),
-    fontWeight: '600',
     color: COLORS.black,
   },
 });

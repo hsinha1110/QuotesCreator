@@ -19,7 +19,12 @@ const quoteSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
+    recentQuotes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Quote",
+      },
+    ],
     author: {
       type: String,
       default: "Unknown",

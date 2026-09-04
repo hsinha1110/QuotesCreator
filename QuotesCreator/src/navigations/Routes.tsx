@@ -26,6 +26,8 @@ enum Routes {
   TIME_ZONE = 'TimeZone',
   QUOTES_DETAILS = 'QuotesDetails',
   EDIT_PROFILE = 'EditProfile',
+  CREATE_QUOTE = 'CreateQuote',
+  CREATE_OWN = 'CreateOwn',
 }
 
 export default Routes;

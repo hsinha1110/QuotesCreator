@@ -23,3 +23,5 @@ export { default as DrawerNavigator } from '@/navigations/DrawerNavigator';
 export { default as Latest } from '@/screens/Main/Latest/Latest';
 export { default as Popular } from '@/screens/Main/Popular/Popular';
 export { default as EditProfile } from '@/screens/Main/Edit/EditProfile';
+export { default as CreateQuote } from '@/screens/Main/CreateQuotes/CreateQuotes';
+export { default as CreateOwn } from '@/screens/Main/CreateOwn/CreateOwn';

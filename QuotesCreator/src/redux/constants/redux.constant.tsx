@@ -26,6 +26,12 @@ export const ASYNC_ROUTES = {
   NOTIFICATIONS_SETTINGS: 'notificationsSettings',
   GET_PROFILE: 'getProfile',
   UPDATE_PROFILE: 'updateProfile',
+  DELETE_ACCOUNT: 'deleteAccount',
+  CREATE_QUOTE: 'createQuote',
+  RECENT_QUOTE: 'recentQuote',
+  SAVE_RECENT_QUOTE: 'saveRecentQuote',
+  GET_RECENT_QUOTE: 'getRecentQuote',
+  DELETE_QUOTE: 'deleteQuote',
 } as const;
 
 //==================== Thunk Status =====================

@@ -17,13 +17,16 @@ import COLORS from '@/constants/Colors';
 import { AppDispatch, RootState } from '@/redux/store';
 import { updateProfileThunk } from '@/redux/thunk/updateProfileThunk';
 
-import { updateProfileLocal } from '@/redux/slices/profileSlice';
+import { clearProfile, updateProfileLocal } from '@/redux/slices/profileSlice';
 
 import styles from './styles';
 
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { DrawerParamList } from '@/navigations/types';
+import { deleteAccountThunk } from '@/redux/thunk/deleteAccountThunk';
+import Routes from '@/navigations/Routes';
+import { logout } from '@/redux/slices/authSlice';
 
 type ProfileNavigationProp = DrawerNavigationProp<DrawerParamList>;
 
@@ -51,7 +54,7 @@ const EditProfile = () => {
   // ==========================================
 
   const authUser = useSelector((state: RootState) => state.auth.user);
-
+  const token = useSelector((state: RootState) => state.auth.token);
   const profileState = useSelector((state: RootState) => state.profile);
 
   const profileUser = profileState.user;
@@ -183,27 +186,7 @@ const EditProfile = () => {
 
       console.log('✅ UPDATE PROFILE RESPONSE:', result);
 
-      // ========================================
-      // API RESPONSE
-      //
-      // {
-      //   success: true,
-      //   user: {
-      //      _id,
-      //      name,
-      //      email,
-      //      profileImage,
-      //      language
-      //   }
-      // }
-      // ========================================
-
       const updatedUser = result?.user || result;
-
-      // ========================================
-      // UPDATE PROFILE REDUX LOCALLY
-      // ========================================
-
       dispatch(updateProfileLocal(updatedUser));
 
       console.log('✅ PROFILE REDUX UPDATED:', updatedUser);
@@ -226,7 +209,52 @@ const EditProfile = () => {
   // ==========================================
   // BACK
   // ==========================================
+  const handleDeleteAccount = async () => {
+    if (!authUser?.id || !token) {
+      Alert.alert('Error', 'User information or token not found.');
+      return;
+    }
 
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to permanently delete your account?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await dispatch(
+                deleteAccountThunk({
+                  userId: authUser.id,
+                  token,
+                }),
+              ).unwrap();
+
+              // Clear profile
+              dispatch(clearProfile());
+
+              // Logout user
+              dispatch(logout());
+
+              // Don't navigate manually here.
+            } catch (error: any) {
+              console.log('DELETE ACCOUNT ERROR:', error);
+
+              Alert.alert(
+                'Error',
+                error?.message || 'Failed to delete account.',
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
   const handleBack = () => {
     navigation.goBack();
   };
@@ -326,10 +354,7 @@ const EditProfile = () => {
             DELETE
         ====================================== */}
 
-        <Pressable
-          style={styles.deleteButton}
-          onPress={() => console.log('DELETE ACCOUNT')}
-        >
+        <Pressable style={styles.deleteButton} onPress={handleDeleteAccount}>
           <Text style={styles.deleteText}>Delete Account</Text>
         </Pressable>
       </ScrollView>

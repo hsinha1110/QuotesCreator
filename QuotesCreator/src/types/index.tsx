@@ -1,7 +1,8 @@
 import { RouteProp } from '@react-navigation/native';
-import { TextInputProps } from 'react-native';
+import { GestureResponderEvent, TextInputProps } from 'react-native';
 
 import Routes from '@/navigations/Routes';
+import { AppLanguage } from '@/redux/slices/languageSlice';
 
 // ==================================================
 // INPUT
@@ -98,6 +99,8 @@ export type QuoteActionsProps = {
   isLiked?: boolean;
   likes?: number;
   showLikes?: boolean;
+  onDeletePress?: () => void;
+  showDelete?: boolean;
 };
 
 // ==================================================
@@ -237,17 +240,33 @@ export type popularQuotesParams = {
 
 export type Quote = {
   _id: string;
+
   text: string;
+
   author?: string;
+
   image?: string | null;
+
   language: Language;
+
+  categoryId: string;
+
+  subcategoryId: string;
+
   views?: number;
+
   likes?: number;
+
   isLiked?: boolean;
+
   isDraft?: boolean;
+
   isActive?: boolean;
+
   createdAt?: string;
+
   updatedAt?: string;
+
   displayText: string;
 };
 
@@ -591,3 +610,60 @@ export type UpdateProfileParams = {
     fileName?: string;
   } | null;
 };
+
+export interface CreateQuotePayload {
+  text: string;
+  author?: string;
+  language: 'English' | 'Hindi';
+
+  categoryId?: string;
+  subcategoryId?: string;
+
+  image?: string;
+  isActive?: boolean;
+  source?: 'admin' | 'user' | 'ai';
+}
+export interface RecentQuotesResponse {
+  success: boolean;
+  recentQuotes: Quote[];
+}
+
+export interface RecentQuote {
+  _id: string;
+  text: string;
+  author?: string;
+  image?: string;
+  language?: string;
+  categoryId?: string | null;
+  subcategoryId?: string | null;
+  likes?: number;
+  views?: number;
+}
+
+export interface RecentQuotesState {
+  quotes: RecentQuote[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface SettingsProps {
+  navigation?: {
+    goBack: () => void;
+    navigate: (screen: string) => void;
+  };
+}
+
+export interface SettingRowProps {
+  icon: string;
+  title: string;
+  subtitle?: string;
+  value?: string;
+  onPress?: (event: GestureResponderEvent) => void;
+  showArrow?: boolean;
+  rightComponent?: React.ReactNode;
+}
+
+export interface LanguageState {
+  language: AppLanguage;
+  isLoading: boolean;
+}

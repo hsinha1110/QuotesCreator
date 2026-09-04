@@ -59,21 +59,9 @@ const Quotes = ({
   categoryId,
   subcategoryId,
 }: QuotesProps) => {
-  // =====================================================
-  // NAVIGATION
-  // =====================================================
-
   const navigation = useNavigation<QuotesNavigationProp>();
 
-  // =====================================================
-  // DISPATCH
-  // =====================================================
-
   const dispatch = useDispatch<AppDispatch>();
-
-  // =====================================================
-  // LOCAL STATE
-  // =====================================================
 
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -174,11 +162,13 @@ const Quotes = ({
         }
 
         // ==========================================
-        // SUBCATEGORY
+        // SUBCATEGORY / CATEGORY
         // ==========================================
 
         if (type === 'subcategory' && categoryId) {
-          console.log('🔥 FETCH SUBCATEGORY PAGE 1');
+          console.log('🔥 FETCH CATEGORY QUOTES PAGE 1');
+          console.log('CATEGORY ID:', categoryId);
+          console.log('SUBCATEGORY ID:', subcategoryId);
 
           await dispatch(
             getQuotesAsyncThunk({
@@ -195,6 +185,8 @@ const Quotes = ({
               language: 'English',
             }),
           ).unwrap();
+
+          return;
         }
       } catch (error) {
         console.log('❌ FETCH QUOTES ERROR:', error);
@@ -223,14 +215,13 @@ const Quotes = ({
   // =====================================================
 
   const loadMoreQuotes = async () => {
-    // Prevent multiple API calls
     if (loadingMore) {
       return;
     }
 
-    // =====================================================
-    // SUBCATEGORY CHECK
-    // =====================================================
+    // ==========================================
+    // SUBCATEGORY / CATEGORY
+    // ==========================================
 
     if (type === 'subcategory') {
       if (!categoryId) {
@@ -244,12 +235,10 @@ const Quotes = ({
     }
 
     try {
-      // IMPORTANT:
-      // Loader starts BEFORE pagination API call
       setLoadingMore(true);
 
       // ==========================================
-      // SUBCATEGORY
+      // CATEGORY
       // ==========================================
 
       if (type === 'subcategory') {
@@ -281,17 +270,11 @@ const Quotes = ({
       // ==========================================
 
       if (type === 'latest') {
-        console.log('🔥 LOAD MORE LATEST');
-
         const latestState = (await import('@/redux/store')).store.getState()
           .latestQuotes;
 
         const currentPage = latestState.page || 1;
         const totalPages = latestState.totalPages || 1;
-
-        console.log('📄 LATEST CURRENT PAGE:', currentPage);
-
-        console.log('📄 LATEST TOTAL PAGES:', totalPages);
 
         if (currentPage >= totalPages) {
           console.log('❌ NO MORE LATEST PAGES');
@@ -318,17 +301,11 @@ const Quotes = ({
       // ==========================================
 
       if (type === 'popular') {
-        console.log('🔥 LOAD MORE POPULAR');
-
         const popularState = (await import('@/redux/store')).store.getState()
           .popularQuotes;
 
         const currentPage = popularState.page || 1;
         const totalPages = popularState.totalPages || 1;
-
-        console.log('📄 POPULAR CURRENT PAGE:', currentPage);
-
-        console.log('📄 POPULAR TOTAL PAGES:', totalPages);
 
         if (currentPage >= totalPages) {
           console.log('❌ NO MORE POPULAR PAGES');
@@ -352,7 +329,6 @@ const Quotes = ({
     } catch (error) {
       console.log('❌ LOAD MORE ERROR:', error);
     } finally {
-      // Hide bottom loader after API finishes
       setLoadingMore(false);
     }
   };
@@ -364,10 +340,6 @@ const Quotes = ({
   const renderQuote = ({ item, index }: { item: Quote; index: number }) => {
     const isFavorite = favourites.some(favourite => favourite._id === item._id);
 
-    // ==========================================
-    // FAVORITE
-    // ==========================================
-
     const handleFavoritePress = () => {
       dispatch(
         toggleFavourite({
@@ -378,19 +350,16 @@ const Quotes = ({
       );
     };
 
-    // ==========================================
-    // SHARE
-    // ==========================================
-
     const handleSharePress = () => {
       console.log('📤 SHARE QUOTE:', item._id);
     };
 
     return (
       <View style={styles.quoteCard}>
-        {/* QUOTE */}
-
-        <Pressable onPress={() => handleQuotesDetails(item, index)}>
+        <Pressable
+          onPress={() => handleQuotesDetails(item, index)}
+          style={styles.quotePressable}
+        >
           <Image
             source={IMAGES.QUOTES}
             style={styles.quoteIcon}
@@ -398,14 +367,15 @@ const Quotes = ({
           />
 
           <Text style={styles.quoteText}>{item.displayText || item.text}</Text>
-        </Pressable>
 
-        {/* ACTIONS */}
+          <Text style={styles.author}>— {item.author || 'Unknown'}</Text>
+        </Pressable>
 
         <View style={styles.quoteBottom}>
           <QuoteActions
             isFavorite={isFavorite}
             likes={item.likes ?? 0}
+            showLikes={false}
             onFavoritePress={handleFavoritePress}
             onSharePress={handleSharePress}
           />
@@ -419,7 +389,6 @@ const Quotes = ({
   // =====================================================
 
   const renderFooter = () => {
-    // Don't show loader on empty list
     if (!loadingMore || quotes.length === 0) {
       return null;
     }
@@ -435,7 +404,12 @@ const Quotes = ({
   // INITIAL LOADING
   // =====================================================
 
-  if (type === 'subcategory' && categoryLoading && categoryPage === 1) {
+  if (
+    type === 'subcategory' &&
+    categoryLoading &&
+    categoryPage === 1 &&
+    quotes.length === 0
+  ) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.accent} />
@@ -448,18 +422,19 @@ const Quotes = ({
   // =====================================================
 
   return (
-    <View style={styles.listContainer}>
+    <View style={styles.container}>
       <FlatList
         data={quotes}
         keyExtractor={item => item._id}
         renderItem={renderQuote}
         showsVerticalScrollIndicator={false}
-        onEndReached={loadMoreQuotes}
-        onEndReachedThreshold={0.2}
-        ListFooterComponent={renderFooter}
         contentContainerStyle={
-          quotes.length === 0 ? styles.emptyListContainer : styles.listContainer
+          quotes.length === 0 ? styles.emptyListContainer : styles.quoteList
         }
+        ItemSeparatorComponent={() => <View style={styles.quoteSeparator} />}
+        onEndReached={loadMoreQuotes}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
         ListEmptyComponent={
           <EmptyState
             icon="chatbubble-ellipses-outline"

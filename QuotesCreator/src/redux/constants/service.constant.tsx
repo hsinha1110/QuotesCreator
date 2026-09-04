@@ -27,6 +27,11 @@ export const SERVICE_ROUTES = {
   NOTIFICATIONS_SETTINGS: 'api/notifications/notification-settings',
   GET_PROFILE: 'api/users',
   UPDATE_PROFILE: 'api/users',
+  DELETE_ACCOUNT: 'api/users',
+  CREATE_QUOTE: 'api/quotes',
+  SAVE_RECENT_QUOTE: 'api/users/recent-quotes',
+  GET_RECENT_QUOTE: 'api/users/recent-quotes',
+  DELETE_QUOTE: 'api/users',
 } as const;
 //=================== METHODS ==============================
 

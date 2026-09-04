@@ -338,7 +338,144 @@ const deleteAccount = async (req, res) => {
 // ======================================
 // GET ALL USERS - ADMIN
 // ======================================
+const saveRecentQuote = async (req, res) => {
+  try {
+    const userId = req.user?.userId || req.user?.id || req.user?._id;
 
+    const { quoteId } = req.body || {};
+
+    console.log("🔥 SAVE RECENT QUOTE");
+    console.log("USER:", req.user);
+    console.log("USER ID:", userId);
+    console.log("QUOTE ID:", quoteId);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User ID not found in token",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    if (!quoteId) {
+      return res.status(400).json({
+        success: false,
+        message: "Quote ID is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(quoteId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid quote ID",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Remove duplicate
+    user.recentQuotes = (user.recentQuotes || []).filter(
+      (id) => id.toString() !== quoteId.toString(),
+    );
+
+    // Add latest quote at beginning
+    user.recentQuotes.unshift(quoteId);
+
+    // Keep only last 10
+    user.recentQuotes = user.recentQuotes.slice(0, 10);
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Recent quote saved successfully",
+      recentQuotes: user.recentQuotes,
+    });
+  } catch (error) {
+    console.error("❌ Save Recent Quote Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to save recent quote",
+      error: error.message,
+    });
+  }
+};
+// ======================================
+// GET RECENT QUOTES
+// GET /api/users/recent-quotes
+// ======================================
+
+const getRecentQuotes = async (req, res) => {
+  try {
+    const userId = req.user?.userId || req.user?.id || req.user?._id;
+
+    console.log("🔥 JWT USER:", req.user);
+    console.log("🔥 JWT USER ID:", userId);
+    console.log("🔥 USER ID LENGTH:", userId?.length);
+    console.log(
+      "🔥 IS VALID OBJECT ID:",
+      mongoose.Types.ObjectId.isValid(userId),
+    );
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User ID not found in token",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const user = await User.findById(userId)
+      .populate({
+        path: "recentQuotes",
+        match: {
+          isActive: { $ne: false },
+        },
+        select: "_id text author language image categoryId subcategoryId",
+      })
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      recentQuotes: user.recentQuotes || [],
+    });
+  } catch (error) {
+    console.error("❌ Get Recent Quotes Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get recent quotes",
+      error: error.message,
+    });
+  }
+};
 const getUsers = async (req, res) => {
   try {
     const { page = 1, limit = 20, search = "", language = "" } = req.query;
@@ -407,10 +544,97 @@ const getUsers = async (req, res) => {
     });
   }
 };
+
+// ======================================
+// SAVE RECENT QUOTE
+// POST /api/users/recent-quotes
+// ======================================
+
+// ======================================
+// GET RECENT QUOTES
+// GET /api/users/recent-quotes
+// ======================================
+
+// ======================================
+// DELETE RECENT QUOTE
+// DELETE /api/users/recent-quotes/:quoteId
+// ======================================
+
+const deleteRecentQuote = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { quoteId } = req.params;
+
+    console.log("DELETE RECENT QUOTE USER ID:", userId);
+    console.log("DELETE RECENT QUOTE ID:", quoteId);
+
+    // Validate user ID
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    // Validate quote ID
+    if (!quoteId) {
+      return res.status(400).json({
+        success: false,
+        message: "Quote ID is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(quoteId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid quote ID",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    user.recentQuotes = (user.recentQuotes || []).filter(
+      (id) => id.toString() !== quoteId.toString(),
+    );
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Recent quote deleted successfully",
+      recentQuotes: user.recentQuotes,
+    });
+  } catch (error) {
+    console.error("Delete Recent Quote Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete recent quote",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   getProfile,
   getUsers,
   updateProfile,
   changePassword,
   deleteAccount,
+  saveRecentQuote,
+  getRecentQuotes,
+  deleteRecentQuote,
 };

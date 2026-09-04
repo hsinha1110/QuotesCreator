@@ -43,7 +43,6 @@ export type DrawerParamList = {
   [Routes.ABOUT]: undefined;
   [Routes.CATEGORIES]: undefined;
   [Routes.NOTIFICATIONS]: undefined;
-
   [Routes.EDIT_PROFILE]: undefined;
   [Routes.PROFILE]: undefined;
   [Routes.SUB_CATEGORIES]: {
@@ -70,6 +69,8 @@ export type DrawerParamList = {
     quotes: Quote[];
     index: number;
   };
+  [Routes.CREATE_QUOTE]: undefined;
+  [Routes.CREATE_OWN]: undefined;
 };
 
 // =====================================================

@@ -9,6 +9,12 @@ export const categoriesService = async ({
   limit,
 }: CategoriesParams) => {
   try {
+    console.log('🌐 CATEGORIES API PARAMS:', {
+      language,
+      page,
+      limit,
+    });
+
     const response = await api.get(SERVICE_ROUTES.CATEGORIES, {
       params: {
         language,
@@ -17,10 +23,12 @@ export const categoriesService = async ({
       },
     });
 
+    console.log('📦 CATEGORIES API RESPONSE:', response.data);
+
     return response.data;
   } catch (error: any) {
     console.log(
-      'CATEGORIES SERVICE ERROR:',
+      '❌ CATEGORIES SERVICE ERROR:',
       error?.response?.data || error?.message,
     );
 

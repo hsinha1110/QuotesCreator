@@ -19,6 +19,16 @@ const styles = StyleSheet.create({
     paddingBottom: moderateScale(30),
   },
 
+  quoteList: {
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(16),
+    paddingBottom: moderateScale(50),
+  },
+
+  quoteSeparator: {
+    height: moderateScale(12),
+  },
+
   // ==========================================
   // SUBCATEGORY
   // ==========================================
@@ -26,25 +36,17 @@ const styles = StyleSheet.create({
   subCategoryCard: {
     width: '100%',
     minHeight: moderateScale(75),
-
     paddingHorizontal: moderateScale(18),
     paddingVertical: moderateScale(14),
-
     marginBottom: moderateScale(12),
-
     borderRadius: moderateScale(16),
-
     backgroundColor: COLORS.white,
-
     elevation: moderateScale(3),
-
     shadowColor: COLORS.black,
-
     shadowOffset: {
       width: 0,
       height: moderateScale(2),
     },
-
     shadowOpacity: 0.08,
     shadowRadius: moderateScale(5),
   },
@@ -53,7 +55,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-
     width: '100%',
   },
 
@@ -81,24 +82,16 @@ const styles = StyleSheet.create({
 
   quoteCard: {
     width: '100%',
-
     padding: moderateScale(18),
-
-    marginBottom: moderateScale(14),
-
+    minHeight: moderateScale(150),
     borderRadius: moderateScale(18),
-
     backgroundColor: COLORS.light_grey,
-
     elevation: moderateScale(3),
-
     shadowColor: COLORS.black,
-
     shadowOffset: {
       width: 0,
       height: moderateScale(2),
     },
-
     shadowOpacity: 0.08,
     shadowRadius: moderateScale(5),
   },
@@ -108,7 +101,6 @@ const styles = StyleSheet.create({
     lineHeight: moderateScale(25),
     fontWeight: '600',
     color: COLORS.black,
-
     marginTop: moderateScale(4),
   },
 
@@ -122,7 +114,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-
     marginTop: moderateScale(14),
   },
 
@@ -151,22 +142,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // ==========================================
-  // EMPTY
-  // ==========================================
-
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    paddingTop: moderateScale(100),
-  },
-
-  emptyText: {
-    fontSize: moderateScale(15),
-    color: '#777',
-  },
   footerLoader: {
     width: '100%',
     minHeight: moderateScale(60),
@@ -174,18 +149,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: moderateScale(12),
   },
-  displayText: {
-    fontSize: moderateScale(18),
-    lineHeight: moderateScale(24),
-    fontWeight: '700',
-    color: COLORS.black,
+
+  // ==========================================
+  // EMPTY
+  // ==========================================
+
+  emptyListContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: moderateScale(20),
   },
+
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: moderateScale(100),
+  },
+
+  emptyText: {
+    fontSize: moderateScale(15),
+    color: '#777',
+  },
+
+  // ==========================================
+  // QUOTE IMAGE
+  // ==========================================
+
   quoteIcon: {
     position: 'absolute',
     top: moderateScale(7),
     left: moderateScale(10),
     width: moderateScale(28),
     height: moderateScale(28),
+    resizeMode: 'contain',
+  },
+
+  displayText: {
+    fontSize: moderateScale(18),
+    lineHeight: moderateScale(24),
+    fontWeight: '700',
+    color: COLORS.black,
   },
 });
 

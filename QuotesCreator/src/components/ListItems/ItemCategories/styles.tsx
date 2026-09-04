@@ -9,12 +9,13 @@ const styles = StyleSheet.create({
   // =========================
 
   categoryList: {
-    paddingHorizontal: moderateScale(2),
-    paddingBottom: moderateScale(8),
+    paddingHorizontal: moderateScale(16),
+    paddingTop: moderateScale(12),
+    paddingBottom: moderateScale(30),
   },
 
   categorySeparator: {
-    width: moderateScale(12),
+    height: moderateScale(12),
   },
 
   // =========================
@@ -22,19 +23,17 @@ const styles = StyleSheet.create({
   // =========================
 
   categoryCard: {
+    width: '100%',
     borderRadius: moderateScale(18),
-
     backgroundColor: COLORS.white,
 
     elevation: moderateScale(3),
 
     shadowColor: COLORS.black,
-
     shadowOffset: {
       width: 0,
       height: moderateScale(2),
     },
-
     shadowOpacity: 0.08,
     shadowRadius: moderateScale(5),
   },
@@ -45,16 +44,17 @@ const styles = StyleSheet.create({
 
   fullWidthCard: {
     width: '100%',
-    minHeight: moderateScale(80),
+    height: moderateScale(80),
     paddingHorizontal: moderateScale(24),
+    paddingVertical: moderateScale(14),
   },
 
   categoryContent: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    flex: 1,
   },
 
   categoryName: {
@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     height: moderateScale(80),
     paddingHorizontal: moderateScale(14),
     paddingVertical: moderateScale(12),
-
     borderRadius: moderateScale(18),
   },
 
@@ -116,6 +115,30 @@ const styles = StyleSheet.create({
   arrow: {
     marginLeft: moderateScale(6),
     flexShrink: 0,
+  },
+
+  // =========================
+  // FOOTER
+  // =========================
+
+  footerLoader: {
+    height: moderateScale(70),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  footerSpace: {
+    height: moderateScale(30),
+  },
+
+  // =========================
+  // LOADING
+  // =========================
+
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

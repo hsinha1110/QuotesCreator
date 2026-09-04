@@ -8,6 +8,7 @@ export const latestQuotesThunk = createAsyncThunk(
   async (params: LatestQuotesParams, { rejectWithValue }) => {
     try {
       const response = await latestQuotesService(params);
+      console.log('🔥 LATEST RESPONSE:', response);
       return response;
     } catch (error: any) {
       return rejectWithValue(

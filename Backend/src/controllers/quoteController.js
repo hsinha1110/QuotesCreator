@@ -489,14 +489,7 @@ const deleteQuote = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid quote ID",
-      });
-    }
-
-    const quote = await Quote.findByIdAndDelete(id);
+    const quote = await Quote.findById(id);
 
     if (!quote) {
       return res.status(404).json({
@@ -505,17 +498,19 @@ const deleteQuote = async (req, res) => {
       });
     }
 
+    await Quote.findByIdAndDelete(id);
+
     return res.status(200).json({
       success: true,
       message: "Quote deleted successfully",
+      quote,
     });
   } catch (error) {
-    console.error("❌ Delete Quote Error:", error);
+    console.error("DELETE QUOTE ERROR:", error);
 
     return res.status(500).json({
       success: false,
       message: "Failed to delete quote",
-      error: error.message,
     });
   }
 };
