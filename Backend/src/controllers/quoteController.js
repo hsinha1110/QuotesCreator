@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const Quote = require("../models/Quote");
-const { getRecentQuotes, saveRecentQuote } = require("./userController");
 // =====================================================
 // GET ALL QUOTES
 // GET /api/quotes
@@ -17,24 +16,38 @@ const getQuotes = async (req, res) => {
       limit = 20,
     } = req.query;
 
+    // ==========================================
+    // LANGUAGE
+    // ==========================================
+
+    const selectedLanguage =
+      String(language).toLowerCase() === "hindi" ? "Hindi" : "English";
+
+    console.log("🔥 GET QUOTES");
+    console.log("🔥 LANGUAGE:", selectedLanguage);
+
+    // ==========================================
+    // PAGINATION
+    // ==========================================
+
     const pageNumber = Math.max(Number(page) || 1, 1);
+
     const limitNumber = Math.min(Math.max(Number(limit) || 20, 1), 100);
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // ==========================================
+    // FILTER
+    // ==========================================
 
     const filter = {
       isActive: { $ne: false },
+      isDraft: false,
     };
 
-    // -----------------------------------------------
-    // LANGUAGE
-    // -----------------------------------------------
-
-    if (language) {
-      filter.language = language;
-    }
-
-    // -----------------------------------------------
+    // ==========================================
     // CATEGORY
-    // -----------------------------------------------
+    // ==========================================
 
     if (categoryId) {
       if (!mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -47,9 +60,9 @@ const getQuotes = async (req, res) => {
       filter.categoryId = categoryId;
     }
 
-    // -----------------------------------------------
+    // ==========================================
     // SUBCATEGORY
-    // -----------------------------------------------
+    // ==========================================
 
     if (subcategoryId) {
       if (!mongoose.Types.ObjectId.isValid(subcategoryId)) {
@@ -62,11 +75,16 @@ const getQuotes = async (req, res) => {
       filter.subcategoryId = subcategoryId;
     }
 
-    const skip = (pageNumber - 1) * limitNumber;
+    // ==========================================
+    // GET QUOTES
+    // ==========================================
 
     const [quotes, total] = await Promise.all([
       Quote.find(filter)
-        .sort({ createdAt: -1 })
+        .sort({
+          createdAt: -1,
+          _id: -1,
+        })
         .skip(skip)
         .limit(limitNumber)
         .lean(),
@@ -74,13 +92,43 @@ const getQuotes = async (req, res) => {
       Quote.countDocuments(filter),
     ]);
 
+    // ==========================================
+    // LOCALIZE
+    // ==========================================
+
+    const localizedQuotes = quotes.map((quote) => {
+      const translations = quote.translations || {};
+
+      const translation = translations[selectedLanguage];
+
+      return {
+        ...quote,
+
+        displayText:
+          translation && String(translation).trim() ? translation : quote.text,
+
+        displayLanguage: selectedLanguage,
+      };
+    });
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
     return res.status(200).json({
       success: true,
+
+      language: selectedLanguage,
+
       total,
+
       page: pageNumber,
+
       limit: limitNumber,
+
       totalPages: Math.ceil(total / limitNumber),
-      quotes,
+
+      quotes: localizedQuotes,
     });
   } catch (error) {
     console.error("❌ Get Quotes Error:", error);
@@ -92,7 +140,6 @@ const getQuotes = async (req, res) => {
     });
   }
 };
-
 // =====================================================
 // GET SINGLE QUOTE
 // GET /api/quotes/:id
@@ -340,7 +387,6 @@ const getLatestQuotes = async (req, res) => {
 // GET POPULAR QUOTES
 // GET /api/quotes/popular?language=English&page=1&limit=10
 // =====================================================
-
 const getPopularQuotes = async (req, res) => {
   try {
     const {
@@ -351,14 +397,20 @@ const getPopularQuotes = async (req, res) => {
       subcategoryId,
     } = req.query;
 
+    const selectedLanguage =
+      String(language).toLowerCase() === "hindi" ? "Hindi" : "English";
+
     const pageNumber = Math.max(Number(page) || 1, 1);
     const limitNumber = Math.min(Math.max(Number(limit) || 10, 1), 100);
 
     const filter = {
-      language,
       isActive: true,
       isDraft: false,
     };
+
+    // -----------------------------
+    // CATEGORY
+    // -----------------------------
 
     if (categoryId) {
       if (!mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -370,6 +422,10 @@ const getPopularQuotes = async (req, res) => {
 
       filter.categoryId = categoryId;
     }
+
+    // -----------------------------
+    // SUBCATEGORY
+    // -----------------------------
 
     if (subcategoryId) {
       if (!mongoose.Types.ObjectId.isValid(subcategoryId)) {
@@ -398,14 +454,34 @@ const getPopularQuotes = async (req, res) => {
       Quote.countDocuments(filter),
     ]);
 
+    // -----------------------------
+    // LANGUAGE
+    // -----------------------------
+
+    const localizedQuotes = quotes.map((quote) => {
+      const translations = quote.translations || {};
+
+      return {
+        ...quote,
+
+        displayText:
+          selectedLanguage === "Hindi"
+            ? translations.Hindi || quote.text
+            : translations.English || quote.text,
+
+        displayLanguage: selectedLanguage,
+      };
+    });
+
     return res.status(200).json({
       success: true,
       message: "Popular quotes fetched successfully",
+      language: selectedLanguage,
       total,
       page: pageNumber,
       limit: limitNumber,
       totalPages: Math.ceil(total / limitNumber),
-      quotes,
+      quotes: localizedQuotes,
     });
   } catch (error) {
     console.error("❌ Get Popular Quotes Error:", error);
@@ -423,9 +499,21 @@ const getPopularQuotes = async (req, res) => {
 // POST /api/quotes
 // =====================================================
 
+// =====================================================
+// CREATE QUOTE
+// POST /api/quotes
+// =====================================================
+
+// =====================================================
+// CREATE QUOTE
+// POST /api/quotes
+// =====================================================
+
 const createQuote = async (req, res) => {
   try {
-    console.log("🔥 CREATE QUOTE BODY:", req.body);
+    console.log("=================================");
+    console.log("🔥 CREATE QUOTE");
+    console.log("🔥 BODY:", req.body);
 
     const {
       quote,
@@ -440,6 +528,10 @@ const createQuote = async (req, res) => {
 
     const quoteText = quote || text;
 
+    // ==========================================
+    // VALIDATE QUOTE
+    // ==========================================
+
     if (!quoteText || !String(quoteText).trim()) {
       return res.status(400).json({
         success: false,
@@ -447,17 +539,64 @@ const createQuote = async (req, res) => {
       });
     }
 
+    // ==========================================
+    // NORMALIZE LANGUAGE
+    // ==========================================
+
+    const selectedLanguage =
+      String(language).toLowerCase() === "hindi" ? "Hindi" : "English";
+
+    const finalText = String(quoteText).trim();
+
+    console.log("🌐 LANGUAGE:", selectedLanguage);
+    console.log("📝 TEXT:", finalText);
+
+    // ==========================================
+    // TRANSLATIONS
+    // No paid API
+    // ==========================================
+
+    const translations = {
+      English: selectedLanguage === "English" ? finalText : "",
+
+      Hindi: selectedLanguage === "Hindi" ? finalText : "",
+    };
+
+    console.log("🌐 TRANSLATIONS:", translations);
+
+    // ==========================================
+    // CREATE QUOTE
+    // ==========================================
+
     const newQuote = await Quote.create({
-      quote: String(quoteText).trim(),
-      text: String(quoteText).trim(),
+      quote: finalText,
+
+      text: finalText,
+
       author: author ? String(author).trim() : "",
-      language,
+
+      language: selectedLanguage,
+
       categoryId: categoryId || null,
+
       subcategoryId: subcategoryId || null,
+
       image: image || "",
+
       isActive,
+
+      isDraft: false,
+
       likes: 0,
+
+      views: 0,
+
+      translations,
     });
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
 
     return res.status(201).json({
       success: true,
@@ -465,7 +604,7 @@ const createQuote = async (req, res) => {
       quote: newQuote,
     });
   } catch (error) {
-    console.error("❌ Create Quote Error:", error);
+    console.error("❌ CREATE QUOTE ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -474,7 +613,6 @@ const createQuote = async (req, res) => {
     });
   }
 };
-
 // =====================================================
 // UPDATE QUOTE
 // PUT /api/quotes/:id

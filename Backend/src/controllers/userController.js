@@ -480,17 +480,7 @@ const saveRecentQuote = async (req, res) => {
 // ======================================
 const getRecentQuotes = async (req, res) => {
   try {
-    console.log("=================================");
-    console.log("🔥 GET RECENT QUOTES");
-    console.log("🔥 req.user:", req.user);
-
-    // ======================================
-    // USER ID FROM JWT
-    // ======================================
-
     const userId = req.user?.userId || req.user?.id || req.user?._id;
-
-    console.log("🔥 USER ID FROM TOKEN:", userId);
 
     if (!userId) {
       return res.status(401).json({
@@ -499,47 +489,23 @@ const getRecentQuotes = async (req, res) => {
       });
     }
 
-    // ======================================
-    // VALIDATE USER ID
-    // ======================================
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID",
-      });
-    }
-
-    // ======================================
     // LANGUAGE
-    // ======================================
-
     const language =
       String(req.query.language || "English").toLowerCase() === "hindi"
         ? "Hindi"
         : "English";
 
-    console.log("🔥 LANGUAGE:", language);
-
-    // ======================================
-    // FIND USER + POPULATE RECENT QUOTES
-    // ======================================
+    console.log("🌐 RECENT QUOTES LANGUAGE:", language);
 
     const user = await User.findById(userId).populate({
       path: "recentQuotes",
-
       match: {
-        isActive: {
-          $ne: false,
-        },
+        isActive: { $ne: false },
         isDraft: false,
       },
-
       select:
         "_id text author language image categoryId subcategoryId translations likes views createdAt",
     });
-
-    console.log("🔥 USER FOUND:", !!user);
 
     if (!user) {
       return res.status(404).json({
@@ -547,12 +513,6 @@ const getRecentQuotes = async (req, res) => {
         message: "User not found",
       });
     }
-
-    console.log("🔥 RECENT QUOTES:", user.recentQuotes);
-
-    // ======================================
-    // LOCALIZE RECENT QUOTES
-    // ======================================
 
     const recentQuotes = (user.recentQuotes || []).map((quote) => {
       const quoteObject = quote.toObject ? quote.toObject() : quote;
@@ -571,15 +531,10 @@ const getRecentQuotes = async (req, res) => {
 
       return {
         ...quoteObject,
-
         displayText,
         displayLanguage: language,
       };
     });
-
-    // ======================================
-    // RESPONSE
-    // ======================================
 
     return res.status(200).json({
       success: true,
