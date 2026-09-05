@@ -1,8 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { getQuotesAsyncThunk } from '@/redux/thunk/quotesThunk';
-
 import { Quote, QuotesState } from '@/types';
+import { getQuotesThunk } from '../thunk/getQuotesThunk';
 
 const initialState: QuotesState = {
   quotes: [],
@@ -56,7 +55,7 @@ const quotesSlice = createSlice({
     // PENDING
     // ==========================================
 
-    builder.addCase(getQuotesAsyncThunk.pending, state => {
+    builder.addCase(getQuotesThunk.pending, state => {
       state.loading = true;
       state.error = null;
     });
@@ -66,7 +65,7 @@ const quotesSlice = createSlice({
     // ==========================================
 
     builder.addCase(
-      getQuotesAsyncThunk.fulfilled,
+      getQuotesThunk.fulfilled,
       (
         state,
         action: PayloadAction<{
@@ -118,7 +117,7 @@ const quotesSlice = createSlice({
     // ERROR
     // ==========================================
 
-    builder.addCase(getQuotesAsyncThunk.rejected, (state, action) => {
+    builder.addCase(getQuotesThunk.rejected, (state, action) => {
       state.loading = false;
 
       state.error =

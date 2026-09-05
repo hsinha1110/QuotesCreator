@@ -1,46 +1,39 @@
 import api from '@/api/axiosinterceptors';
-import { SERVICE_ROUTES } from '@/redux/constants';
+import { AppLanguage } from '@/language';
 
-export interface GetQuotesParams {
+interface GetQuotesParams {
   categoryId?: string;
   subcategoryId?: string;
   page?: number;
   limit?: number;
-  language?: 'English' | 'Hindi';
+  language: AppLanguage;
 }
 
-export const getQuotesService = async ({
-  categoryId,
-  subcategoryId,
-  page = 1,
-  limit = 10,
-  language = 'English',
-}: GetQuotesParams) => {
-  try {
-    console.log('GET QUOTES PARAMS:', {
-      categoryId,
-      subcategoryId,
-      page,
-      limit,
-      language,
-    });
+export const getQuotesService = async (
+  token: string,
+  params: GetQuotesParams,
+) => {
+  const { categoryId, subcategoryId, page = 1, limit = 10, language } = params;
 
-    const response = await api.get(SERVICE_ROUTES.QUOTES, {
-      params: {
-        categoryId,
-        ...(subcategoryId ? { subcategoryId } : {}),
-        page,
-        limit,
-        language,
-      },
-    });
+  const queryParams = new URLSearchParams();
 
-    console.log('GET QUOTES RESPONSE:', response.data);
-
-    return response.data;
-  } catch (error: any) {
-    console.log('GET QUOTES SERVICE ERROR:', error?.response?.data || error);
-
-    throw error;
+  if (categoryId) {
+    queryParams.append('categoryId', categoryId);
   }
+
+  if (subcategoryId) {
+    queryParams.append('subcategoryId', subcategoryId);
+  }
+
+  queryParams.append('page', String(page));
+  queryParams.append('limit', String(limit));
+  queryParams.append('language', language);
+
+  const response = await api.get(`/api/quotes?${queryParams.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
 };

@@ -14,7 +14,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { AppDispatch, RootState } from '@/redux/store';
 
-import { getQuotesAsyncThunk } from '@/redux/thunk/quotesThunk';
 import { latestQuotesThunk } from '@/redux/thunk/latestThunk';
 import { popularQuotesThunk } from '@/redux/thunk/popularThunk';
 
@@ -31,6 +30,7 @@ import { DrawerParamList } from '@/navigations/types';
 
 import styles from './styles';
 import COLORS from '@/constants/Colors';
+import { getQuotesThunk } from '@/redux/thunk/getQuotesThunk';
 
 // =====================================================
 // TYPES
@@ -188,7 +188,7 @@ const Quotes = ({
           console.log('🌐 LANGUAGE:', language);
 
           await dispatch(
-            getQuotesAsyncThunk({
+            getQuotesThunk({
               categoryId,
 
               ...(subcategoryId
@@ -266,7 +266,7 @@ const Quotes = ({
         console.log('🌐 LANGUAGE:', language);
 
         await dispatch(
-          getQuotesAsyncThunk({
+          getQuotesThunk({
             categoryId: categoryId!,
 
             ...(subcategoryId

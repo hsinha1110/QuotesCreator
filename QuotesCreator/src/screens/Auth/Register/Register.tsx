@@ -31,26 +31,40 @@ import Routes from '@/navigations/Routes';
 import { AppDispatch, RootState } from '@/redux/store';
 
 import { registerAsyncThunk } from '@/redux/thunk/registerThunk';
-import useStyles from './styles';
+
+import { translations } from '@/language';
+
 import styles from './styles';
 
 const Register = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const { isLoading, error } = useSelector((state: RootState) => state.auth);
+  // =====================================================
+  // AUTH STATE
+  // =====================================================
 
-  // ==========================================
+  const { isLoading } = useSelector((state: RootState) => state.auth);
+
+  // =====================================================
+  // LANGUAGE
+  // =====================================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const t = translations[language].SIGNUP;
+
+  // =====================================================
   // FORM STATES
-  // ==========================================
+  // =====================================================
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // ==========================================
+  // =====================================================
   // PROFILE IMAGE
-  // ==========================================
+  // =====================================================
 
   const [profileImage, setProfileImage] = useState<{
     uri: string;
@@ -60,18 +74,18 @@ const Register = () => {
 
   const [imagePickerVisible, setImagePickerVisible] = useState(false);
 
-  // ==========================================
+  // =====================================================
   // ERROR STATES
-  // ==========================================
+  // =====================================================
 
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
-  // ==========================================
+  // =====================================================
   // CAMERA
-  // ==========================================
+  // =====================================================
 
   const handleCamera = async () => {
     try {
@@ -98,9 +112,9 @@ const Register = () => {
     }
   };
 
-  // ==========================================
+  // =====================================================
   // GALLERY
-  // ==========================================
+  // =====================================================
 
   const handleGallery = async () => {
     try {
@@ -127,76 +141,81 @@ const Register = () => {
     }
   };
 
-  // ==========================================
+  // =====================================================
   // REGISTER
-  // ==========================================
+  // =====================================================
 
   const handleRegister = async () => {
     let isValid = true;
 
+    // Clear previous errors
     setNameError('');
     setEmailError('');
     setPasswordError('');
     setConfirmPasswordError('');
 
-    // ========================================
-    // NAME
-    // ========================================
+    // ===================================================
+    // NAME VALIDATION
+    // ===================================================
 
     if (!name.trim()) {
-      setNameError('Please enter your name');
+      setNameError(t.NAME_REQUIRED);
       isValid = false;
     }
 
-    // ========================================
-    // EMAIL
-    // ========================================
+    // ===================================================
+    // EMAIL VALIDATION
+    // ===================================================
 
     if (!email.trim()) {
-      setEmailError('Please enter your email');
+      setEmailError(t.EMAIL_REQUIRED);
       isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError('Please enter a valid email');
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
+      setEmailError(t.INVALID_EMAIL);
       isValid = false;
     }
 
-    // ========================================
-    // PASSWORD
-    // ========================================
+    // ===================================================
+    // PASSWORD VALIDATION
+    // ===================================================
 
     if (!password.trim()) {
-      setPasswordError('Please enter your password');
+      setPasswordError(t.PASSWORD_REQUIRED);
       isValid = false;
     } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setPasswordError(t.INVALID_PASSWORD);
       isValid = false;
     }
 
-    // ========================================
-    // CONFIRM PASSWORD
-    // ========================================
+    // ===================================================
+    // CONFIRM PASSWORD VALIDATION
+    // ===================================================
 
     if (!confirmPassword.trim()) {
-      setConfirmPasswordError('Please confirm your password');
+      setConfirmPasswordError(t.CONFIRM_PASSWORD_REQUIRED);
       isValid = false;
     } else if (confirmPassword !== password) {
-      setConfirmPasswordError('Passwords do not match');
+      setConfirmPasswordError(t.PASSWORD_NOT_MATCH);
       isValid = false;
     }
+
+    // ===================================================
+    // STOP IF INVALID
+    // ===================================================
 
     if (!isValid) {
       return;
     }
 
-    // ========================================
+    // ===================================================
     // REGISTER API
-    // ========================================
+    // ===================================================
 
     try {
       const result = await dispatch(
         registerAsyncThunk({
           name: name.trim(),
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
           password,
           confirmPassword,
           profileImage,
@@ -205,28 +224,35 @@ const Register = () => {
 
       console.log('REGISTER SUCCESS:', result);
 
-      // Go to Login after registration
+      // =================================================
+      // GO TO LOGIN
+      // =================================================
+
       navigate(Routes.LOGIN);
-    } catch (error) {
+    } catch (error: any) {
       console.log('REGISTER ERROR:', error);
     }
   };
 
-  // ==========================================
+  // =====================================================
   // GOOGLE
-  // ==========================================
+  // =====================================================
 
   const handleGoogleLogin = () => {
     console.log('Google Login');
   };
 
-  // ==========================================
+  // =====================================================
   // FACEBOOK
-  // ==========================================
+  // =====================================================
 
   const handleFacebookLogin = () => {
     console.log('Facebook Login');
   };
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
     <KeyboardAvoidingView
@@ -276,16 +302,16 @@ const Register = () => {
             </View>
           </TouchableOpacity>
 
-          {/* Photo Title */}
+          {/* =====================================
+              PHOTO TITLE
+          ===================================== */}
 
           <Text style={styles.photoTitle}>
-            {profileImage ? 'Change Profile Photo' : 'Add Profile Photo'}
+            {profileImage ? t.CHANGE_PROFILE_PHOTO : t.ADD_PROFILE_PHOTO}
           </Text>
 
           <Text style={styles.photoSubtitle}>
-            {profileImage
-              ? 'Tap to choose another photo'
-              : 'Upload your profile photo'}
+            {profileImage ? t.CHOOSE_ANOTHER_PHOTO : t.UPLOAD_PROFILE_PHOTO}
           </Text>
 
           {/* =====================================
@@ -293,11 +319,9 @@ const Register = () => {
           ===================================== */}
 
           <View style={styles.header}>
-            <Text style={styles.title}>Create Account ✨</Text>
+            <Text style={styles.title}>{t.TITLE}</Text>
 
-            <Text style={styles.subtitle}>
-              Sign up to start creating amazing quotes
-            </Text>
+            <Text style={styles.subtitle}>{t.SUBTITLE}</Text>
           </View>
 
           {/* =====================================
@@ -306,7 +330,7 @@ const Register = () => {
 
           <InputComponent
             leftIcon="person-outline"
-            placeholder="Enter your name"
+            placeholder={t.NAME_PLACEHOLDER}
             value={name}
             onChangeText={text => {
               setName(text);
@@ -325,7 +349,7 @@ const Register = () => {
 
           <InputComponent
             leftIcon="mail-outline"
-            placeholder="Enter your email"
+            placeholder={t.EMAIL_PLACEHOLDER}
             value={email}
             onChangeText={text => {
               setEmail(text);
@@ -346,7 +370,7 @@ const Register = () => {
 
           <InputComponent
             leftIcon="lock-closed-outline"
-            placeholder="Create a password"
+            placeholder={t.PASSWORD_PLACEHOLDER}
             value={password}
             onChangeText={text => {
               setPassword(text);
@@ -365,7 +389,7 @@ const Register = () => {
 
           <InputComponent
             leftIcon="lock-closed-outline"
-            placeholder="Confirm your password"
+            placeholder={t.CONFIRM_PASSWORD_PLACEHOLDER}
             value={confirmPassword}
             onChangeText={text => {
               setConfirmPassword(text);
@@ -379,20 +403,16 @@ const Register = () => {
           />
 
           {/* =====================================
-              CREATE ACCOUNT
+              SIGN UP BUTTON
           ===================================== */}
 
           <View style={styles.buttonContainer}>
             <Button
-              title={isLoading ? 'Creating Account...' : 'Create Account'}
+              title={isLoading ? t.CREATING_ACCOUNT : t.SIGNUP_BUTTON}
               onPress={handleRegister}
               disabled={isLoading}
             />
           </View>
-
-          {/* =====================================
-              API ERROR
-          ===================================== */}
 
           {/* =====================================
               DIVIDER
@@ -401,7 +421,7 @@ const Register = () => {
           <View style={styles.dividerContainer}>
             <View style={styles.divider} />
 
-            <Text style={styles.dividerText}>or continue with</Text>
+            <Text style={styles.dividerText}>{t.OR_CONTINUE_WITH}</Text>
 
             <View style={styles.divider} />
           </View>
@@ -412,13 +432,13 @@ const Register = () => {
 
           <View style={styles.socialContainer}>
             <SocialButton
-              title="Google"
+              title={t.GOOGLE}
               icon={<GoogleIcon size={19} />}
               onPress={handleGoogleLogin}
             />
 
             <SocialButton
-              title="Facebook"
+              title={t.FACEBOOK}
               icon={<FacebookIcon size={19} />}
               onPress={handleFacebookLogin}
             />
@@ -429,8 +449,8 @@ const Register = () => {
           ===================================== */}
 
           <AuthFooter
-            text="Already have an account?"
-            linkText="Login"
+            text={t.HAVE_ACCOUNT}
+            linkText={t.LOGIN}
             onPress={() => navigate(Routes.LOGIN)}
           />
         </View>

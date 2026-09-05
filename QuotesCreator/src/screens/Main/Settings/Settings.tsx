@@ -8,7 +8,6 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Switch,
@@ -17,24 +16,54 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './styles';
+import { translations } from '@/language';
 
 const Settings = ({ navigation }: SettingsProps) => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const language = useSelector((state: RootState) => state.language.language);
+  // =========================
+  // LANGUAGE
+  // =========================
+
+  const language = useSelector(
+    (state: RootState) => state.language.language,
+  );
+
   const isHindi = language === 'Hindi';
+
+  const t = translations[language].SETTINGS;
+
+  // =========================
+  // LANGUAGE TOGGLE
+  // =========================
 
   const handleLanguageToggle = async (value: boolean) => {
     const newLanguage = value ? 'Hindi' : 'English';
-    dispatch(setLanguage(newLanguage));
-    try {
-      await AsyncStorage.setItem('APP_LANGUAGE', newLanguage);
 
-      console.log('LANGUAGE SAVED:', newLanguage);
+    dispatch(setLanguage(newLanguage));
+
+    try {
+      await AsyncStorage.setItem(
+        'APP_LANGUAGE',
+        newLanguage,
+      );
+
+      console.log(
+        'LANGUAGE SAVED:',
+        newLanguage,
+      );
     } catch (error) {
-      console.log('LANGUAGE SAVE ERROR:', error);
+      console.log(
+        'LANGUAGE SAVE ERROR:',
+        error,
+      );
     }
   };
+
+  // =========================
+  // SETTING ROW
+  // =========================
+
   const SettingRow = ({
     icon,
     title,
@@ -52,36 +81,58 @@ const Settings = ({ navigation }: SettingsProps) => {
         disabled={!onPress}
       >
         {/* Icon */}
+
         <View style={styles.iconContainer}>
-          <Text style={styles.icon}>{icon}</Text>
+          <Text style={styles.icon}>
+            {icon}
+          </Text>
         </View>
 
         {/* Content */}
-        <View style={styles.rowContent}>
-          <Text style={styles.rowTitle}>{title}</Text>
 
-          {subtitle ? <Text style={styles.rowSubtitle}>{subtitle}</Text> : null}
+        <View style={styles.rowContent}>
+          <Text style={styles.rowTitle}>
+            {title}
+          </Text>
+
+          {subtitle ? (
+            <Text style={styles.rowSubtitle}>
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
 
         {/* Right Side */}
+
         {rightComponent ? (
           rightComponent
         ) : (
           <View style={styles.rightContainer}>
-            {value ? <Text style={styles.value}>{value}</Text> : null}
+            {value ? (
+              <Text style={styles.value}>
+                {value}
+              </Text>
+            ) : null}
 
-            {showArrow ? <Text style={styles.arrow}>›</Text> : null}
+            {showArrow ? (
+              <Text style={styles.arrow}>
+                ›
+              </Text>
+            ) : null}
           </View>
         )}
       </TouchableOpacity>
     );
   };
+
   const handleSearch = () => {};
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {/* HEADER */}
+
       <Header
-        title="Settings"
+        title={t.TITLE}
         icon="chevron-back"
         onMenuPress={goBack}
         showNotification={false}
@@ -93,127 +144,228 @@ const Settings = ({ navigation }: SettingsProps) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        {/* Preferences */}
-        <Text style={styles.sectionTitle}>PREFERENCES</Text>
+        {/* =========================
+            PREFERENCES
+        ========================= */}
+
+        <Text style={styles.sectionTitle}>
+          {t.PREFERENCES}
+        </Text>
 
         <View style={styles.card}>
+          {/* LANGUAGE */}
+
           <SettingRow
             icon="◎"
-            title="Language"
-            subtitle="Choose your preferred language"
+            title={t.LANGUAGE}
+            subtitle={t.LANGUAGE_SUBTITLE}
             showArrow={false}
             rightComponent={
               <View style={styles.switchContainer}>
-                <Text style={styles.languageValue}>
-                  {isHindi ? 'Hindi' : 'English'}
+                <Text
+                  style={
+                    styles.languageValue
+                  }
+                >
+                  {isHindi
+                    ? t.HINDI
+                    : t.ENGLISH}
                 </Text>
 
                 <Switch
                   value={isHindi}
-                  onValueChange={handleLanguageToggle}
+                  onValueChange={
+                    handleLanguageToggle
+                  }
                   trackColor={{
                     false: '#D9D9E0',
                     true: '#CDB3FF',
                   }}
-                  thumbColor={isHindi ? '#7437E8' : '#FFFFFF'}
+                  thumbColor={
+                    isHindi
+                      ? '#7437E8'
+                      : '#FFFFFF'
+                  }
                   ios_backgroundColor="#D9D9E0"
                 />
               </View>
             }
           />
 
+          {/* THEME */}
+
           <SettingRow
             icon="◉"
-            title="Theme"
-            subtitle="Customize app appearance"
-            value="Light"
-            onPress={() => navigation?.navigate('Theme')}
+            title={t.THEME}
+            subtitle={t.THEME_SUBTITLE}
+            value={t.LIGHT}
+            onPress={() =>
+              navigation?.navigate(
+                'Theme',
+              )
+            }
           />
+
+          {/* FONT SIZE */}
 
           <SettingRow
             icon="Aa"
-            title="Font Size"
-            subtitle="Adjust text size"
-            value="Medium"
-            onPress={() => navigation?.navigate('FontSize')}
+            title={t.FONT_SIZE}
+            subtitle={
+              t.FONT_SIZE_SUBTITLE
+            }
+            value={t.MEDIUM}
+            onPress={() =>
+              navigation?.navigate(
+                'FontSize',
+              )
+            }
           />
+
+          {/* NOTIFICATION TIME */}
 
           <SettingRow
             icon="◷"
-            title="Notification Time"
-            subtitle="Daily quote notification time"
+            title={t.NOTIFICATION_TIME}
+            subtitle={
+              t.NOTIFICATION_TIME_SUBTITLE
+            }
             value="08:00 AM"
-            onPress={() => navigation?.navigate('NotificationTime')}
+            onPress={() =>
+              navigation?.navigate(
+                'NotificationTime',
+              )
+            }
           />
+
+          {/* NOTIFICATION SETTINGS */}
 
           <SettingRow
             icon="♧"
-            title="Notification Settings"
-            subtitle="Manage push notifications"
-            onPress={() => navigation?.navigate(Routes.NOTIFICATIONS_SETTINGS)}
+            title={
+              t.NOTIFICATION_SETTINGS
+            }
+            subtitle={
+              t.NOTIFICATION_SETTINGS_SUBTITLE
+            }
+            onPress={() =>
+              navigation?.navigate(
+                Routes.NOTIFICATIONS_SETTINGS,
+              )
+            }
           />
         </View>
 
-        {/* Account */}
-        <Text style={styles.sectionTitle}>ACCOUNT</Text>
+        {/* =========================
+            ACCOUNT
+        ========================= */}
+
+        <Text style={styles.sectionTitle}>
+          {t.ACCOUNT}
+        </Text>
 
         <View style={styles.card}>
           <SettingRow
             icon="♙"
-            title="Edit Profile"
-            subtitle="Update your profile information"
-            onPress={() => navigation?.navigate('EditProfile')}
+            title={t.EDIT_PROFILE}
+            subtitle={
+              t.EDIT_PROFILE_SUBTITLE
+            }
+            onPress={() =>
+              navigation?.navigate(
+                'EditProfile',
+              )
+            }
           />
 
           <SettingRow
             icon="▣"
-            title="Change Password"
-            subtitle="Update your account password"
-            onPress={() => navigation?.navigate('ChangePassword')}
+            title={t.CHANGE_PASSWORD}
+            subtitle={
+              t.CHANGE_PASSWORD_SUBTITLE
+            }
+            onPress={() =>
+              navigation?.navigate(
+                'ChangePassword',
+              )
+            }
           />
 
           <SettingRow
             icon="◇"
-            title="Privacy"
-            subtitle="Manage your privacy settings"
-            onPress={() => navigation?.navigate('Privacy')}
+            title={t.PRIVACY}
+            subtitle={
+              t.PRIVACY_SUBTITLE
+            }
+            onPress={() =>
+              navigation?.navigate(
+                'Privacy',
+              )
+            }
           />
 
           <SettingRow
             icon="⇩"
-            title="Data & Storage"
-            subtitle="Manage cache and downloads"
-            onPress={() => navigation?.navigate('DataStorage')}
+            title={t.DATA_STORAGE}
+            subtitle={
+              t.DATA_STORAGE_SUBTITLE
+            }
+            onPress={() =>
+              navigation?.navigate(
+                'DataStorage',
+              )
+            }
           />
         </View>
 
-        {/* Support */}
-        <Text style={styles.sectionTitle}>SUPPORT</Text>
+        {/* =========================
+            SUPPORT
+        ========================= */}
+
+        <Text style={styles.sectionTitle}>
+          {t.SUPPORT}
+        </Text>
 
         <View style={styles.card}>
           <SettingRow
             icon="?"
-            title="Help & Support"
-            subtitle="FAQs and contact support"
-            onPress={() => navigation?.navigate('HelpSupport')}
+            title={t.HELP_SUPPORT}
+            subtitle={
+              t.HELP_SUPPORT_SUBTITLE
+            }
+            onPress={() =>
+              navigation?.navigate(
+                'HelpSupport',
+              )
+            }
           />
 
           <SettingRow
             icon="☆"
-            title="Rate Us"
-            subtitle="Share your feedback"
+            title={t.RATE_US}
+            subtitle={
+              t.RATE_US_SUBTITLE
+            }
             onPress={() => {}}
           />
 
           <SettingRow
             icon="ⓘ"
-            title="About App"
-            subtitle="Version 1.0.0"
-            onPress={() => navigation?.navigate('About')}
+            title={t.ABOUT_APP}
+            subtitle={t.VERSION}
+            onPress={() =>
+              navigation?.navigate(
+                'About',
+              )
+            }
           />
         </View>
 
-        <Text style={styles.version}>QuoteCreator • Version 1.0.0</Text>
+        {/* VERSION */}
+
+        <Text style={styles.version}>
+          {t.APP_VERSION}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

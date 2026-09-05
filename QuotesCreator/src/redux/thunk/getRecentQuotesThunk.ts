@@ -1,12 +1,14 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { RootState } from '../store';
+
 import { ASYNC_ROUTES } from '../constants';
-import { getRecentQuotesService } from '../services/getRecentQuoteService';
+import { RootState } from '../store';
+import { getRecentQuotesService } from '../services/getRecentQuotesService';
+import { AppLanguage } from '@/language';
 
 export const getRecentQuotesThunk = createAsyncThunk(
   ASYNC_ROUTES.GET_RECENT_QUOTE,
 
-  async (_, { getState, rejectWithValue }) => {
+  async (language: 'English' | 'Hindi', { getState, rejectWithValue }) => {
     try {
       const state = getState() as RootState;
 
@@ -16,12 +18,10 @@ export const getRecentQuotesThunk = createAsyncThunk(
         return rejectWithValue('Authentication token not found');
       }
 
-      const response = await getRecentQuotesService(token);
+      const response = await getRecentQuotesService(token, language);
 
       return response;
     } catch (error: any) {
-      console.log('GET RECENT QUOTES ERROR:', error?.response?.data || error);
-
       return rejectWithValue(
         error?.response?.data?.message || 'Failed to fetch recent quotes',
       );

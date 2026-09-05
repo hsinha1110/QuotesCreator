@@ -30,13 +30,12 @@ import { AppDispatch, RootState } from '@/redux/store';
 
 import { subCategoriesThunk } from '@/redux/thunk/subCategoriesThunk';
 
-import { getQuotesAsyncThunk } from '@/redux/thunk/quotesThunk';
-
 import EmptyState from '@/components/EmptyState/EmptyState';
 
 import Quotes from '../Quotes/Quotes';
 
 import COLORS from '@/constants/Colors';
+import { getQuotesThunk } from '@/redux/thunk/getQuotesThunk';
 
 type TabKey = 'SubCategories' | 'Quotes';
 
@@ -325,7 +324,7 @@ const SubCategories = () => {
 
     try {
       const response = await dispatch(
-        getQuotesAsyncThunk({
+        getQuotesThunk({
           categoryId,
           page: 1,
           limit: 10,
@@ -363,7 +362,7 @@ const SubCategories = () => {
       setLoadingMoreQuotes(true);
 
       await dispatch(
-        getQuotesAsyncThunk({
+        getQuotesThunk({
           categoryId,
 
           ...(selectedSubcategoryId
@@ -426,26 +425,22 @@ const SubCategories = () => {
     setActiveTab('Quotes');
 
     dispatch(
-      getQuotesAsyncThunk({
+      getQuotesThunk({
         categoryId,
-
         subcategoryId: item._id,
-
         page: 1,
-
         limit: 10,
-
         language,
       }),
     )
       .unwrap()
-      .then(response => {
+      .then((response: any) => {
         console.log(
           '✅ SUBCATEGORY QUOTES RESPONSE:',
           JSON.stringify(response, null, 2),
         );
       })
-      .catch(error => {
+      .catch((error: any) => {
         console.log('❌ SUBCATEGORY QUOTES ERROR:', error);
       });
   };

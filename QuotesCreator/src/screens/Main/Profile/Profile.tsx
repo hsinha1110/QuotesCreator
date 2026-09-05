@@ -17,6 +17,8 @@ import { getProfileThunk } from '@/redux/thunk/getProfileThunk';
 
 import { logout } from '@/redux/slices/authSlice';
 
+import { translations } from '@/language';
+
 import styles from './styles';
 
 const Profile = () => {
@@ -24,6 +26,14 @@ const Profile = () => {
 
   const navigation = useNavigation<ProfileNavigationProp>();
   const dispatch = useDispatch<AppDispatch>();
+
+  // ==========================================
+  // LANGUAGE
+  // ==========================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const t = translations[language].PROFILE;
 
   // ==========================================
   // REDUX
@@ -39,7 +49,7 @@ const Profile = () => {
   // PROFILE DATA
   // ==========================================
 
-  const profileName = profileUser?.name || authUser?.name || 'User';
+  const profileName = profileUser?.name || authUser?.name || t.DEFAULT_USER;
 
   const profileEmail = profileUser?.email || authUser?.email || '';
 
@@ -136,7 +146,9 @@ const Profile = () => {
       <Pressable
         style={styles.profileRow}
         onPress={onPress}
-        android_ripple={{ color: '#EEEEEE' }}
+        android_ripple={{
+          color: '#EEEEEE',
+        }}
       >
         <View style={styles.rowLeft}>
           <View
@@ -172,7 +184,9 @@ const Profile = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* PROFILE HEADER */}
+        {/* ==========================================
+            PROFILE HEADER
+        ========================================== */}
 
         <View style={styles.profileHeader}>
           <View style={styles.profileImageWrapper}>
@@ -196,14 +210,16 @@ const Profile = () => {
           <Text style={styles.profileEmail}>{profileEmail}</Text>
         </View>
 
-        {/* ACCOUNT */}
+        {/* ==========================================
+            ACCOUNT
+        ========================================== */}
 
-        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={styles.sectionTitle}>{t.ACCOUNT}</Text>
 
         <View style={styles.card}>
           <ProfileRow
             icon="person-outline"
-            title="My Account"
+            title={t.MY_ACCOUNT}
             onPress={handleMyAccount}
           />
 
@@ -211,7 +227,7 @@ const Profile = () => {
 
           <ProfileRow
             icon="create-outline"
-            title="Edit Profile"
+            title={t.EDIT_PROFILE}
             onPress={handleEditProfile}
           />
 
@@ -219,19 +235,21 @@ const Profile = () => {
 
           <ProfileRow
             icon="lock-closed-outline"
-            title="Change Password"
+            title={t.CHANGE_PASSWORD}
             onPress={handleChangePassword}
           />
         </View>
 
-        {/* GENERAL */}
+        {/* ==========================================
+            GENERAL
+        ========================================== */}
 
-        <Text style={styles.sectionTitle}>General</Text>
+        <Text style={styles.sectionTitle}>{t.GENERAL}</Text>
 
         <View style={styles.card}>
           <ProfileRow
             icon="settings-outline"
-            title="Settings"
+            title={t.SETTINGS}
             onPress={handleSettings}
           />
 
@@ -239,7 +257,7 @@ const Profile = () => {
 
           <ProfileRow
             icon="star-outline"
-            title="Rate Us"
+            title={t.RATE_US}
             onPress={handleRateUs}
           />
 
@@ -247,21 +265,25 @@ const Profile = () => {
 
           <ProfileRow
             icon="share-social-outline"
-            title="Share App"
+            title={t.SHARE_APP}
             onPress={handleShareApp}
           />
         </View>
 
-        {/* LOGOUT */}
+        {/* ==========================================
+            LOGOUT
+        ========================================== */}
 
         <Pressable
           style={styles.logoutButton}
           onPress={handleLogout}
-          android_ripple={{ color: '#FDECEC' }}
+          android_ripple={{
+            color: '#FDECEC',
+          }}
         >
           <Ionicons name="log-out-outline" size={21} color="#E53935" />
 
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t.LOGOUT}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

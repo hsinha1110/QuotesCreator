@@ -1,31 +1,76 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NotificationsTabs } from '@/constants/Data';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
+
 import { notificationHistoryByIdThunk } from '@/redux/thunk/notificationHistoryByIdThunk';
 import { readNotificationsThunk } from '@/redux/thunk/readNotificationsThunk';
 import { deleteNotificationThunk } from '@/redux/thunk/deleteNotificationThunk';
+
 import { NotificationItem } from '@/types';
+
 import ItemNotifications from '@/components/ListItems/ItemNotifications/ItemNotifications';
+import EmptyState from '@/components/EmptyState/EmptyState';
+import Header from '@/components/Header/Header';
+import Tabs from '@/components/Tabs/Tabs';
+
 import Routes from '@/navigations/Routes';
 import { goBack, navigate } from '@/utils/NavigationUtils';
+
 import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from '@/redux/slices/notificationsSlice';
-import EmptyState from '@/components/EmptyState/EmptyState';
+
 import styles from './styles';
 import moment from 'moment';
-import Header from '@/components/Header/Header';
-import Tabs from '@/components/Tabs/Tabs';
+
+import { translations } from '@/language';
 
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState('All');
+
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
   const dispatch = useDispatch<AppDispatch>();
+
+  // =========================
+  // LANGUAGE
+  // =========================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const t = translations[language].NOTIFICATIONS;
+
+  // =========================
+  // USER
+  // =========================
+
   const userId = useSelector((state: RootState) => state.auth.user?.id);
+
+  // =========================
+  // NOTIFICATION TABS
+  // =========================
+
+  const notificationTabs = useMemo(
+    () => [
+      {
+        key: 'All',
+        title: t.ALL,
+      },
+      {
+        key: 'Unread',
+        title: t.UNREAD_TAB,
+      },
+    ],
+    [t],
+  );
+
+  // =========================
+  // FETCH NOTIFICATIONS
+  // =========================
 
   useEffect(() => {
     if (!userId) {
@@ -38,6 +83,7 @@ const Notifications = () => {
         const response = await dispatch(
           notificationHistoryByIdThunk(userId),
         ).unwrap();
+
         if (response?.success) {
           setNotifications(response.notifications || []);
         } else {
@@ -45,6 +91,7 @@ const Notifications = () => {
         }
       } catch (error: any) {
         console.log('NOTIFICATIONS HISTORY ERROR:', error);
+
         setNotifications([]);
       }
     };
@@ -52,9 +99,17 @@ const Notifications = () => {
     getNotifications();
   }, [userId, dispatch]);
 
+  // =========================
+  // TAB PRESS
+  // =========================
+
   const handleTabPress = (tabKey: string) => {
     setActiveTab(tabKey);
   };
+
+  // =========================
+  // NOTIFICATION PRESS
+  // =========================
 
   const handleNotificationPress = async (id: string) => {
     try {
@@ -73,6 +128,7 @@ const Notifications = () => {
               : item,
           ),
         );
+
         dispatch(markNotificationAsRead(id));
       }
 
@@ -83,9 +139,13 @@ const Notifications = () => {
       console.log('Notification press error:', error);
     }
   };
+
+  // =========================
+  // MARK ALL AS READ
+  // =========================
+
   const handleMarkAllAsRead = async () => {
     try {
-      // Sirf unread notifications nikalo
       const unreadNotifications = notifications.filter(
         notification => !notification.isRead,
       );
@@ -94,14 +154,12 @@ const Notifications = () => {
         return;
       }
 
-      // 🔥 Har unread notification ko read API call karo
       await Promise.all(
         unreadNotifications.map(notification =>
           dispatch(readNotificationsThunk(notification._id)).unwrap(),
         ),
       );
 
-      // Local Notifications screen update
       setNotifications(prev =>
         prev.map(notification => ({
           ...notification,
@@ -109,7 +167,6 @@ const Notifications = () => {
         })),
       );
 
-      // 🔥 Redux update → Home badge remove
       dispatch(markAllNotificationsAsRead());
 
       console.log('✅ ALL NOTIFICATIONS MARKED AS READ');
@@ -117,6 +174,11 @@ const Notifications = () => {
       console.log('❌ MARK ALL AS READ ERROR:', error);
     }
   };
+
+  // =========================
+  // DELETE NOTIFICATION
+  // =========================
+
   const handleDeleteNotification = async (id: string) => {
     try {
       setNotifications(prev =>
@@ -145,6 +207,10 @@ const Notifications = () => {
     }
   };
 
+  // =========================
+  // FILTER
+  // =========================
+
   const filteredNotifications = useMemo(() => {
     if (activeTab === 'Unread') {
       return notifications.filter(item => !item.isRead);
@@ -153,35 +219,51 @@ const Notifications = () => {
     return notifications;
   }, [activeTab, notifications]);
 
+  // =========================
+  // UNREAD COUNT
+  // =========================
+
   const unreadCount = notifications.filter(item => !item.isRead).length;
+
+  // =========================
+  // UI
+  // =========================
+
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
 
       <Header
-        title="Notifications"
+        title={t.TITLE}
         icon="chevron-back"
         onMenuPress={goBack}
         showNotification={false}
-        rightIcon="trash-outline"
         onRightPress={() => {}}
       />
 
+      {/* TABS */}
+
       <Tabs
-        tabs={NotificationsTabs}
+        tabs={notificationTabs}
         activeTab={activeTab}
         onTabPress={handleTabPress}
       />
 
+      {/* UNREAD */}
+
       {unreadCount > 0 && (
         <View style={styles.markAllContainer}>
-          <Text style={styles.unreadText}>{unreadCount} unread</Text>
+          <Text style={styles.unreadText}>
+            {unreadCount} {t.UNREAD}
+          </Text>
 
           <TouchableOpacity activeOpacity={0.7} onPress={handleMarkAllAsRead}>
-            <Text style={styles.markAllText}>Mark all as read</Text>
+            <Text style={styles.markAllText}>{t.MARK_ALL_READ}</Text>
           </TouchableOpacity>
         </View>
       )}
+
+      {/* NOTIFICATIONS LIST */}
 
       <FlatList
         data={filteredNotifications}
@@ -190,7 +272,9 @@ const Notifications = () => {
         contentContainerStyle={styles.listContainer}
         renderItem={({ item, index }) => {
           const currentDate = moment(item.createdAt).startOf('day');
+
           const previousItem = filteredNotifications[index - 1];
+
           const showDate =
             index === 0 ||
             !previousItem ||
@@ -200,15 +284,17 @@ const Notifications = () => {
             );
 
           const today = moment().startOf('day');
+
           const yesterday = moment().subtract(1, 'day').startOf('day');
+
           let dateLabel = '';
 
           if (currentDate.isSame(today, 'day')) {
-            dateLabel = `Today, ${currentDate.format('DD MMM YYYY')}`;
+            dateLabel = `${t.TODAY}, ${currentDate.format('DD MMM YYYY')}`;
           } else if (currentDate.isSame(yesterday, 'day')) {
-            dateLabel = `Yesterday, ${currentDate.format('DD MMM YYYY')}`;
+            dateLabel = `${t.YESTERDAY}, ${currentDate.format('DD MMM YYYY')}`;
           } else {
-            dateLabel = 'Earlier';
+            dateLabel = t.EARLIER;
           }
 
           return (
@@ -231,8 +317,8 @@ const Notifications = () => {
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="notifications-outline"
-              title="No Notifications"
-              description="You're all caught up!"
+              title={t.EMPTY_TITLE}
+              description={t.EMPTY_DESCRIPTION}
             />
           </View>
         }

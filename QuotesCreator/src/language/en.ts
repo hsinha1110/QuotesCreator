@@ -97,7 +97,6 @@ const en = {
   // ==========================================
   // CREATE QUOTE
   // ==========================================
-
   CREATE_QUOTE: {
     TITLE: 'Create Quote',
 
@@ -133,6 +132,8 @@ const en = {
     ERROR: 'Error',
 
     DELETE_FAILED: 'Failed to delete quote',
+
+    UNKNOWN: 'Unknown',
   },
   CREATE_OWN: {
     HEADER_TITLE: 'Create Quote',
@@ -167,6 +168,200 @@ const en = {
     SUCCESS: 'Quote created successfully',
 
     ERROR: 'Failed to create quote',
+  },
+  PROFILE_EDIT: {
+    HEADER_TITLE: 'Edit Profile',
+
+    PROFILE_PHOTO: 'Profile Photo',
+    CHANGE_PHOTO: 'Change Photo',
+    REMOVE_PHOTO: 'Remove Photo',
+
+    NAME: 'Name',
+    NAME_PLACEHOLDER: 'Enter your name',
+
+    EMAIL: 'Email',
+    EMAIL_PLACEHOLDER: 'Enter your email',
+
+    BIO: 'Bio',
+    BIO_PLACEHOLDER: 'Write something about yourself...',
+
+    SAVE: 'Save Changes',
+    SAVING: 'Saving...',
+
+    CANCEL: 'Cancel',
+
+    NAME_REQUIRED: 'Please enter your name',
+    INVALID_EMAIL: 'Please enter a valid email',
+
+    SUCCESS: 'Profile updated successfully',
+    ERROR: 'Failed to update profile',
+
+    SELECT_IMAGE: 'Select Profile Photo',
+    CAMERA: 'Camera',
+    GALLERY: 'Gallery',
+    PERMISSION_REQUIRED: 'Permission is required to select a photo.',
+  },
+  PROFILE: {
+    HEADER_TITLE: 'Profile',
+
+    DEFAULT_USER: 'User',
+
+    EDIT_PROFILE: 'Edit Profile',
+
+    NAME: 'Name',
+    EMAIL: 'Email',
+    BIO: 'Bio',
+
+    LANGUAGE: 'Language',
+    ENGLISH: 'English',
+    HINDI: 'Hindi',
+
+    ACCOUNT: 'Account',
+    MY_ACCOUNT: 'My Account',
+    CHANGE_PASSWORD: 'Change Password',
+
+    GENERAL: 'General',
+    SETTINGS: 'Settings',
+    NOTIFICATIONS: 'Notifications',
+    PRIVACY: 'Privacy',
+    RATE_US: 'Rate Us',
+    SHARE_APP: 'Share App',
+
+    LOGOUT: 'Logout',
+
+    CHANGE_PHOTO: 'Change Photo',
+    REMOVE_PHOTO: 'Remove Photo',
+
+    NO_BIO: 'No bio available',
+
+    LOADING: 'Loading...',
+    ERROR: 'Something went wrong. Please try again.',
+  },
+  EDIT_PROFILE: {
+    HEADER_TITLE: 'Edit Profile',
+
+    FULL_NAME: 'Full Name',
+    FULL_NAME_PLACEHOLDER: 'Enter your full name',
+
+    EMAIL: 'Email Address',
+    EMAIL_PLACEHOLDER: 'Enter your email',
+
+    SAVE_CHANGES: 'Save Changes',
+    SAVING: 'Saving...',
+
+    DELETE_ACCOUNT: 'Delete Account',
+    DELETE_ACCOUNT_TITLE: 'Delete Account',
+    DELETE_ACCOUNT_MESSAGE:
+      'Are you sure you want to permanently delete your account?',
+
+    CANCEL: 'Cancel',
+    DELETE: 'Delete',
+    OK: 'OK',
+
+    VALIDATION: 'Validation',
+    NAME_REQUIRED: 'Please enter your name.',
+    EMAIL_REQUIRED: 'Please enter your email.',
+
+    SUCCESS: 'Success',
+    PROFILE_UPDATED: 'Profile updated successfully.',
+
+    ERROR: 'Error',
+    USER_INFO_NOT_FOUND: 'User information or token not found.',
+    UPDATE_FAILED: 'Failed to update profile. Please try again.',
+    DELETE_FAILED: 'Failed to delete account.',
+
+    CAMERA: 'Camera',
+    GALLERY: 'Gallery',
+  },
+  IMAGE_PICKER: {
+    TITLE: 'Choose Profile Photo',
+    SUBTITLE: 'Select an option to upload your photo',
+
+    TAKE_PHOTO: 'Take Photo',
+    TAKE_PHOTO_DESCRIPTION: 'Capture a new photo with camera',
+
+    CHOOSE_FROM_GALLERY: 'Choose from Gallery',
+    CHOOSE_FROM_GALLERY_DESCRIPTION: 'Select a photo from your gallery',
+
+    CANCEL: 'Cancel',
+  },
+  FAVOURITES: {
+    TITLE: 'Favourites',
+    EMPTY_TITLE: 'No Favourites Yet!',
+    EMPTY_DESCRIPTION: `Tap the heart icon on any quote
+you like to save it here.`,
+  },
+  NOTIFICATIONS: {
+    TITLE: 'Notifications',
+    ALL: 'All',
+    UNREAD_TAB: 'Unread',
+    UNREAD: 'unread',
+    MARK_ALL_READ: 'Mark all as read',
+    TODAY: 'Today',
+    YESTERDAY: 'Yesterday',
+    EARLIER: 'Earlier',
+    EMPTY_TITLE: 'No Notifications',
+    EMPTY_DESCRIPTION: "You're all caught up!",
+  },
+  NOTIFICATION_SETTINGS: {
+    TITLE: 'Notifications',
+    SAVE: 'Save',
+    SELECT_TIME: 'Select the time you want to\nreceive daily notifications',
+    DAILY_QUOTE: 'Daily Quote',
+    CHANGE: 'Change',
+    INFO: 'You will receive your daily quote at this time every day.',
+    TIMEZONE: 'Time Zone',
+  },
+  SETTINGS: {
+    TITLE: 'Settings',
+
+    PREFERENCES: 'PREFERENCES',
+
+    LANGUAGE: 'Language',
+    LANGUAGE_SUBTITLE: 'Choose your preferred language',
+    ENGLISH: 'English',
+    HINDI: 'Hindi',
+
+    THEME: 'Theme',
+    THEME_SUBTITLE: 'Customize app appearance',
+    LIGHT: 'Light',
+
+    FONT_SIZE: 'Font Size',
+    FONT_SIZE_SUBTITLE: 'Adjust text size',
+    MEDIUM: 'Medium',
+
+    NOTIFICATION_TIME: 'Notification Time',
+    NOTIFICATION_TIME_SUBTITLE: 'Daily quote notification time',
+
+    NOTIFICATION_SETTINGS: 'Notification Settings',
+    NOTIFICATION_SETTINGS_SUBTITLE: 'Manage push notifications',
+
+    ACCOUNT: 'ACCOUNT',
+
+    EDIT_PROFILE: 'Edit Profile',
+    EDIT_PROFILE_SUBTITLE: 'Update your profile information',
+
+    CHANGE_PASSWORD: 'Change Password',
+    CHANGE_PASSWORD_SUBTITLE: 'Update your account password',
+
+    PRIVACY: 'Privacy',
+    PRIVACY_SUBTITLE: 'Manage your privacy settings',
+
+    DATA_STORAGE: 'Data & Storage',
+    DATA_STORAGE_SUBTITLE: 'Manage cache and downloads',
+
+    SUPPORT: 'SUPPORT',
+
+    HELP_SUPPORT: 'Help & Support',
+    HELP_SUPPORT_SUBTITLE: 'FAQs and contact support',
+
+    RATE_US: 'Rate Us',
+    RATE_US_SUBTITLE: 'Share your feedback',
+
+    ABOUT_APP: 'About App',
+    VERSION: 'Version 1.0.0',
+
+    APP_VERSION: 'QuoteCreator • Version 1.0.0',
   },
 };
 

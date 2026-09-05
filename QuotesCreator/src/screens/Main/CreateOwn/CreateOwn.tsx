@@ -29,17 +29,79 @@ const CreateOwn = () => {
 
   const token = useSelector((state: RootState) => state.auth.token);
 
+  // ==========================================
+  // LANGUAGE
+  // ==========================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const isHindi = String(language).toLowerCase() === 'hindi';
+
+  // ==========================================
+  // TRANSLATIONS
+  // ==========================================
+
+  const t = {
+    createQuote: isHindi ? 'कोट बनाएं' : 'Create Quote',
+
+    writeYourOwn: isHindi ? 'अपना कोट लिखें' : 'Write Your Own Quote',
+
+    subtitle: isHindi
+      ? 'कुछ प्रेरणादायक लिखें और अपने विचार दुनिया के साथ साझा करें'
+      : 'Create something inspiring and share your thoughts with the world',
+
+    yourQuote: isHindi ? 'आपका कोट' : 'Your Quote',
+
+    quotePlaceholder: isHindi
+      ? 'अपना कोट यहां लिखें...'
+      : 'Write your quote here...',
+
+    author: isHindi ? 'लेखक' : 'Author',
+
+    authorPlaceholder: isHindi
+      ? 'लेखक का नाम दर्ज करें (वैकल्पिक)'
+      : 'Enter author name (optional)',
+
+    optional: isHindi ? 'वैकल्पिक' : 'Optional',
+
+    preview: isHindi ? 'प्रीव्यू' : 'Preview',
+
+    previewQuote: isHindi
+      ? '"आपका प्रेरणादायक कोट यहां दिखाई देगा..."'
+      : '"Your inspiring quote will appear here..."',
+
+    saving: isHindi ? 'सेव हो रहा है...' : 'Saving...',
+
+    save: isHindi ? 'सेव करें' : 'Save',
+
+    quoteRequired: isHindi ? 'कोट आवश्यक है' : 'Quote is required',
+
+    tokenMissing: isHindi ? 'टोकन उपलब्ध नहीं है' : 'Token missing',
+
+    quoteIdMissing: isHindi
+      ? 'कोट ID नहीं मिली'
+      : 'Quote ID not found after creating quote',
+
+    createError: isHindi
+      ? 'कोट बनाने में समस्या हुई'
+      : 'Failed to create quote',
+  };
+
+  // ==========================================
+  // HANDLE SAVE
+  // ==========================================
+
   const handleContinue = async () => {
     const trimmedQuote = quote.trim();
     const trimmedAuthor = author.trim();
 
     if (!trimmedQuote) {
-      console.log('❌ Quote is required');
+      console.log(`❌ ${t.quoteRequired}`);
       return;
     }
 
     if (!token) {
-      console.log('❌ Token missing');
+      console.log(`❌ ${t.tokenMissing}`);
       return;
     }
 
@@ -56,11 +118,15 @@ const CreateOwn = () => {
         createQuoteThunk({
           text: trimmedQuote,
           author: trimmedAuthor || 'Unknown',
-          language: 'English',
+
+          // Selected language
+          language: isHindi ? 'Hindi' : 'English',
+
           source: 'user',
+
           translations: {
-            English: trimmedQuote,
-            Hindi: trimmedQuote,
+            English: isHindi ? '' : trimmedQuote,
+            Hindi: isHindi ? trimmedQuote : '',
           },
         }),
       ).unwrap();
@@ -83,7 +149,7 @@ const CreateOwn = () => {
       console.log('🔥 CREATED QUOTE ID:', quoteId);
 
       if (!quoteId) {
-        throw new Error('Quote ID not found after creating quote');
+        throw new Error(t.quoteIdMissing);
       }
 
       // ==========================================
@@ -93,7 +159,7 @@ const CreateOwn = () => {
       console.log('🕘 Calling saveRecentQuoteThunk...');
 
       const recentResponse = await dispatch(
-        saveRecentQuoteThunk(quoteId),
+        saveRecentQuoteThunk(String(quoteId)),
       ).unwrap();
 
       console.log(
@@ -118,10 +184,14 @@ const CreateOwn = () => {
     }
   };
 
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        title="Create Quote"
+        title={t.createQuote}
         icon="close"
         onMenuPress={goBack}
         showNotification={false}
@@ -138,22 +208,20 @@ const CreateOwn = () => {
           {/* TITLE */}
 
           <View style={styles.headingContainer}>
-            <Text style={styles.title}>Write Your Own Quote</Text>
+            <Text style={styles.title}>{t.writeYourOwn}</Text>
 
-            <Text style={styles.subtitle}>
-              Create something inspiring and share your thoughts with the world
-            </Text>
+            <Text style={styles.subtitle}>{t.subtitle}</Text>
           </View>
 
           {/* QUOTE */}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Your Quote</Text>
+            <Text style={styles.label}>{t.yourQuote}</Text>
 
             <TextInput
               value={quote}
               onChangeText={setQuote}
-              placeholder="Write your quote here..."
+              placeholder={t.quotePlaceholder}
               placeholderTextColor="#A6A6B0"
               multiline
               textAlignVertical="top"
@@ -167,29 +235,27 @@ const CreateOwn = () => {
           {/* AUTHOR */}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Author</Text>
+            <Text style={styles.label}>{t.author}</Text>
 
             <TextInput
               value={author}
               onChangeText={setAuthor}
-              placeholder="Enter author name (optional)"
+              placeholder={t.authorPlaceholder}
               placeholderTextColor="#A6A6B0"
               style={styles.authorInput}
             />
 
-            <Text style={styles.optional}>Optional</Text>
+            <Text style={styles.optional}>{t.optional}</Text>
           </View>
 
           {/* PREVIEW */}
 
           <View style={styles.previewContainer}>
-            <Text style={styles.previewLabel}>Preview</Text>
+            <Text style={styles.previewLabel}>{t.preview}</Text>
 
             <View style={styles.previewCard}>
               <Text style={styles.previewQuote}>
-                {quote.trim()
-                  ? `"${quote.trim()}"`
-                  : '"Your inspiring quote will appear here..."'}
+                {quote.trim() ? `"${quote.trim()}"` : t.previewQuote}
               </Text>
 
               {author.trim() ? (
@@ -210,7 +276,7 @@ const CreateOwn = () => {
             ]}
           >
             <Text style={styles.continueText}>
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? t.saving : t.save}
             </Text>
           </TouchableOpacity>
         </ScrollView>

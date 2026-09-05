@@ -102,17 +102,17 @@ const hi = {
   CREATE_QUOTE: {
     TITLE: 'कोट बनाएं',
 
-    SUBTITLE:
-      'अपना प्रेरणादायक कोट बनाएं\nऔर दुनिया के साथ सकारात्मकता साझा करें।',
+    SUBTITLE: 'अपना प्रेरणादायक कोट बनाएं\nऔर दुनिया में सकारात्मकता फैलाएं।',
 
-    WRITE_YOUR_OWN: 'अपना लिखें',
+    WRITE_YOUR_OWN: 'अपना कोट लिखें',
 
-    WRITE_YOUR_OWN_DESCRIPTION: 'अपना कोट शुरू से लिखें\nऔर इसे खूबसूरत बनाएं।',
+    WRITE_YOUR_OWN_DESCRIPTION:
+      'अपना कोट खुद लिखें\nशुरुआत से बनाएं और\nइसे खूबसूरत बनाएं।',
 
-    USE_A_QUOTE: 'कोट इस्तेमाल करें',
+    USE_A_QUOTE: 'कोट का उपयोग करें',
 
     USE_A_QUOTE_DESCRIPTION:
-      'हमारे कोट संग्रह में से चुनें\nऔर इसे कस्टमाइज़ करें।',
+      'हमारे कोट संग्रह में से\nएक कोट चुनें और\nउसे कस्टमाइज़ करें।',
 
     RECENT_QUOTES: 'हाल के कोट',
 
@@ -122,17 +122,19 @@ const hi = {
 
     LOADING: 'लोड हो रहा है...',
 
-    DELETE_QUOTE: 'कोट डिलीट करें',
+    DELETE_QUOTE: 'कोट हटाएं',
 
-    DELETE_CONFIRMATION: 'क्या आप वाकई इस कोट को डिलीट करना चाहते हैं?',
+    DELETE_CONFIRMATION: 'क्या आप वाकई इस कोट को हटाना चाहते हैं?',
 
     CANCEL: 'रद्द करें',
 
-    DELETE: 'डिलीट',
+    DELETE: 'हटाएं',
 
     ERROR: 'त्रुटि',
 
-    DELETE_FAILED: 'कोट डिलीट नहीं हो सका',
+    DELETE_FAILED: 'कोट हटाने में समस्या हुई',
+
+    UNKNOWN: 'अज्ञात',
   },
   CREATE_OWN: {
     HEADER_TITLE: 'कोट बनाएं',
@@ -166,6 +168,201 @@ const hi = {
     SUCCESS: 'कोट सफलतापूर्वक बनाया गया',
 
     ERROR: 'कोट बनाया नहीं जा सका',
+  },
+  PROFILE_EDIT: {
+    HEADER_TITLE: 'प्रोफ़ाइल संपादित करें',
+
+    PROFILE_PHOTO: 'प्रोफ़ाइल फोटो',
+    CHANGE_PHOTO: 'फोटो बदलें',
+    REMOVE_PHOTO: 'फोटो हटाएं',
+
+    NAME: 'नाम',
+    NAME_PLACEHOLDER: 'अपना नाम दर्ज करें',
+
+    EMAIL: 'ईमेल',
+    EMAIL_PLACEHOLDER: 'अपना ईमेल दर्ज करें',
+
+    BIO: 'बायो',
+    BIO_PLACEHOLDER: 'अपने बारे में कुछ लिखें...',
+
+    SAVE: 'परिवर्तन सहेजें',
+    SAVING: 'सहेजा जा रहा है...',
+
+    CANCEL: 'रद्द करें',
+
+    NAME_REQUIRED: 'कृपया अपना नाम दर्ज करें',
+    INVALID_EMAIL: 'कृपया मान्य ईमेल दर्ज करें',
+
+    SUCCESS: 'प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई',
+    ERROR: 'प्रोफ़ाइल अपडेट नहीं हो सकी',
+
+    SELECT_IMAGE: 'प्रोफ़ाइल फोटो चुनें',
+    CAMERA: 'कैमरा',
+    GALLERY: 'गैलरी',
+    PERMISSION_REQUIRED: 'फोटो चुनने के लिए अनुमति आवश्यक है।',
+  },
+  PROFILE: {
+    HEADER_TITLE: 'प्रोफ़ाइल',
+
+    DEFAULT_USER: 'उपयोगकर्ता',
+
+    EDIT_PROFILE: 'प्रोफ़ाइल संपादित करें',
+
+    NAME: 'नाम',
+    EMAIL: 'ईमेल',
+    BIO: 'बायो',
+
+    LANGUAGE: 'भाषा',
+    ENGLISH: 'अंग्रेज़ी',
+    HINDI: 'हिंदी',
+
+    ACCOUNT: 'अकाउंट',
+    MY_ACCOUNT: 'मेरा अकाउंट',
+    CHANGE_PASSWORD: 'पासवर्ड बदलें',
+
+    GENERAL: 'सामान्य',
+    SETTINGS: 'सेटिंग्स',
+    NOTIFICATIONS: 'सूचनाएं',
+    PRIVACY: 'प्राइवेसी',
+    RATE_US: 'रेट करें',
+    SHARE_APP: 'ऐप साझा करें',
+
+    LOGOUT: 'लॉगआउट',
+
+    CHANGE_PHOTO: 'फोटो बदलें',
+    REMOVE_PHOTO: 'फोटो हटाएं',
+
+    NO_BIO: 'कोई बायो उपलब्ध नहीं है',
+
+    LOADING: 'लोड हो रहा है...',
+    ERROR: 'कुछ गलत हो गया। कृपया दोबारा प्रयास करें।',
+  },
+  EDIT_PROFILE: {
+    HEADER_TITLE: 'प्रोफ़ाइल संपादित करें',
+
+    FULL_NAME: 'पूरा नाम',
+    FULL_NAME_PLACEHOLDER: 'अपना पूरा नाम दर्ज करें',
+
+    EMAIL: 'ईमेल पता',
+    EMAIL_PLACEHOLDER: 'अपना ईमेल दर्ज करें',
+
+    SAVE_CHANGES: 'परिवर्तन सहेजें',
+    SAVING: 'सहेजा जा रहा है...',
+
+    DELETE_ACCOUNT: 'अकाउंट हटाएं',
+    DELETE_ACCOUNT_TITLE: 'अकाउंट हटाएं',
+    DELETE_ACCOUNT_MESSAGE:
+      'क्या आप वाकई अपना अकाउंट स्थायी रूप से हटाना चाहते हैं?',
+
+    CANCEL: 'रद्द करें',
+    DELETE: 'हटाएं',
+    OK: 'ठीक है',
+
+    VALIDATION: 'मान्यकरण',
+    NAME_REQUIRED: 'कृपया अपना नाम दर्ज करें।',
+    EMAIL_REQUIRED: 'कृपया अपना ईमेल दर्ज करें।',
+
+    SUCCESS: 'सफलता',
+    PROFILE_UPDATED: 'प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई।',
+
+    ERROR: 'त्रुटि',
+    USER_INFO_NOT_FOUND: 'यूज़र की जानकारी या टोकन नहीं मिला।',
+    UPDATE_FAILED: 'प्रोफ़ाइल अपडेट नहीं हो सकी। कृपया दोबारा प्रयास करें।',
+    DELETE_FAILED: 'अकाउंट हटाया नहीं जा सका।',
+
+    CAMERA: 'कैमरा',
+    GALLERY: 'गैलरी',
+  },
+  IMAGE_PICKER: {
+    TITLE: 'प्रोफ़ाइल फोटो चुनें',
+    SUBTITLE: 'अपनी फोटो अपलोड करने के लिए एक विकल्प चुनें',
+
+    TAKE_PHOTO: 'फोटो लें',
+    TAKE_PHOTO_DESCRIPTION: 'कैमरे से नई फोटो लें',
+
+    CHOOSE_FROM_GALLERY: 'गैलरी से चुनें',
+    CHOOSE_FROM_GALLERY_DESCRIPTION: 'अपनी गैलरी से फोटो चुनें',
+
+    CANCEL: 'रद्द करें',
+  },
+
+  FAVOURITES: {
+    TITLE: 'पसंदीदा',
+    EMPTY_TITLE: 'अभी कोई पसंदीदा नहीं!',
+    EMPTY_DESCRIPTION: `जिस भी कोट को आप पसंद करें,
+उसे यहाँ सेव करने के लिए हार्ट आइकन दबाएँ।`,
+  },
+  NOTIFICATIONS: {
+    TITLE: 'सूचनाएं',
+    ALL: 'सभी',
+    UNREAD_TAB: 'अपठित',
+    UNREAD: 'अपठित',
+    MARK_ALL_READ: 'सभी को पढ़ा हुआ करें',
+    TODAY: 'आज',
+    YESTERDAY: 'कल',
+    EARLIER: 'पहले',
+    EMPTY_TITLE: 'कोई सूचना नहीं',
+    EMPTY_DESCRIPTION: 'आपने सभी सूचनाएं देख ली हैं!',
+  },
+  NOTIFICATION_SETTINGS: {
+    TITLE: 'सूचनाएं',
+    SAVE: 'सेव करें',
+    SELECT_TIME: 'वह समय चुनें जब आप\nदैनिक सूचनाएं प्राप्त करना चाहते हैं',
+    DAILY_QUOTE: 'दैनिक कोट',
+    CHANGE: 'बदलें',
+    INFO: 'आपको हर दिन इस समय अपना दैनिक कोट प्राप्त होगा।',
+    TIMEZONE: 'समय क्षेत्र',
+  },
+  SETTINGS: {
+    TITLE: 'सेटिंग्स',
+
+    PREFERENCES: 'प्राथमिकताएं',
+
+    LANGUAGE: 'भाषा',
+    LANGUAGE_SUBTITLE: 'अपनी पसंदीदा भाषा चुनें',
+    ENGLISH: 'अंग्रेज़ी',
+    HINDI: 'हिंदी',
+
+    THEME: 'थीम',
+    THEME_SUBTITLE: 'ऐप का स्वरूप अनुकूलित करें',
+    LIGHT: 'लाइट',
+
+    FONT_SIZE: 'फ़ॉन्ट आकार',
+    FONT_SIZE_SUBTITLE: 'टेक्स्ट का आकार समायोजित करें',
+    MEDIUM: 'मध्यम',
+
+    NOTIFICATION_TIME: 'सूचना का समय',
+    NOTIFICATION_TIME_SUBTITLE: 'दैनिक कोट सूचना का समय',
+
+    NOTIFICATION_SETTINGS: 'सूचना सेटिंग्स',
+    NOTIFICATION_SETTINGS_SUBTITLE: 'पुश सूचनाएं प्रबंधित करें',
+
+    ACCOUNT: 'अकाउंट',
+
+    EDIT_PROFILE: 'प्रोफ़ाइल संपादित करें',
+    EDIT_PROFILE_SUBTITLE: 'अपनी प्रोफ़ाइल जानकारी अपडेट करें',
+
+    CHANGE_PASSWORD: 'पासवर्ड बदलें',
+    CHANGE_PASSWORD_SUBTITLE: 'अपने अकाउंट का पासवर्ड अपडेट करें',
+
+    PRIVACY: 'गोपनीयता',
+    PRIVACY_SUBTITLE: 'अपनी गोपनीयता सेटिंग्स प्रबंधित करें',
+
+    DATA_STORAGE: 'डेटा और स्टोरेज',
+    DATA_STORAGE_SUBTITLE: 'कैश और डाउनलोड प्रबंधित करें',
+
+    SUPPORT: 'सहायता',
+
+    HELP_SUPPORT: 'मदद और सहायता',
+    HELP_SUPPORT_SUBTITLE: 'अक्सर पूछे जाने वाले प्रश्न और सहायता',
+
+    RATE_US: 'हमें रेट करें',
+    RATE_US_SUBTITLE: 'अपना फीडबैक साझा करें',
+
+    ABOUT_APP: 'ऐप के बारे में',
+    VERSION: 'संस्करण 1.0.0',
+
+    APP_VERSION: 'QuoteCreator • संस्करण 1.0.0',
   },
 };
 

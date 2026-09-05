@@ -26,6 +26,7 @@ import { useAuth } from '@/context/AuthContext';
 
 import { CustomDrawerProps, MenuItemProps } from '@/types';
 import COLORS from '@/constants/Colors';
+import { translations } from '@/language';
 
 const { width, height } = Dimensions.get('window');
 
@@ -73,6 +74,14 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   const favourites = useSelector(
     (state: RootState) => state.favourites.favourites || [],
   );
+
+  // =====================================================
+  // LANGUAGE
+  // =====================================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const t = translations[language].DRAWER;
 
   // =====================================================
   // NOTIFICATIONS
@@ -252,7 +261,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           <View style={styles.headerContent}>
             <Text style={styles.appName}>QuoteCreator</Text>
 
-            <Text style={styles.appSubtitle}>Create. Inspire. Share.</Text>
+            <Text style={styles.appSubtitle}>{t.APP_SUBTITLE}</Text>
           </View>
 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -301,13 +310,13 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
         {/* MAIN MENU */}
         {/* ================================================= */}
 
-        <Text style={styles.sectionTitle}>MAIN MENU</Text>
+        <Text style={styles.sectionTitle}>{t.MAIN_MENU}</Text>
 
         {/* HOME */}
 
         <MenuItem
           icon={currentRoute === Routes.HOME ? 'home' : 'home-outline'}
-          title="Home"
+          title={t.HOME}
           route={Routes.HOME}
         />
 
@@ -315,7 +324,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
 
         <MenuItem
           icon={currentRoute === Routes.CATEGORIES ? 'grid' : 'grid-outline'}
-          title="Categories"
+          title={t.CATEGORIES}
           route={Routes.CATEGORIES}
         />
 
@@ -327,7 +336,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
               ? 'add-circle'
               : 'add-circle-outline'
           }
-          title="Create Quote"
+          title={t.CREATE_QUOTE}
           route={Routes.CREATE_QUOTES}
         />
 
@@ -337,7 +346,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
 
         <MenuItem
           icon={currentRoute === Routes.FAVORITES ? 'heart' : 'heart-outline'}
-          title="Favourites"
+          title={t.FAVOURITES}
           route={Routes.FAVORITES}
           badge={favouriteCount}
         />
@@ -346,7 +355,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
 
         <MenuItem
           icon={currentRoute === Routes.TEMPLATES ? 'copy' : 'copy-outline'}
-          title="Templates"
+          title={t.TEMPLATES}
           route={Routes.TEMPLATES}
         />
 
@@ -356,7 +365,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           icon={
             currentRoute === Routes.DOWNLOADS ? 'download' : 'download-outline'
           }
-          title="Downloads"
+          title={t.DOWNLOADS}
           route={Routes.DOWNLOADS}
         />
 
@@ -376,7 +385,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
               ? 'notifications'
               : 'notifications-outline'
           }
-          title="Notifications"
+          title={t.NOTIFICATIONS}
           route={Routes.NOTIFICATIONS}
           badge={unreadCount}
         />
@@ -385,20 +394,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
         {/* PREFERENCES */}
         {/* ================================================= */}
 
-        <Text style={styles.sectionTitle}>PREFERENCES</Text>
-
-        {/* LANGUAGE */}
-
-        <MenuItem
-          icon="language-outline"
-          title="Language"
-          route=""
-          activeRoute=""
-        />
-
-        {/* THEME */}
-
-        <MenuItem icon="moon-outline" title="Theme" route="" activeRoute="" />
+        <Text style={styles.sectionTitle}>{t.PREFERENCES}</Text>
 
         {/* SETTINGS */}
 
@@ -406,7 +402,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           icon={
             currentRoute === Routes.SETTINGS ? 'settings' : 'settings-outline'
           }
-          title="Settings"
+          title={t.SETTINGS}
           route={Routes.SETTINGS}
         />
 
@@ -429,12 +425,12 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
             <Ionicons name="log-out-outline" size={20} color="#E53935" />
           </View>
 
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t.LOGOUT}</Text>
         </TouchableOpacity>
 
         {/* VERSION */}
 
-        <Text style={styles.version}>QuoteCreator • v1.0.0</Text>
+        <Text style={styles.version}>{t.VERSION}</Text>
       </Animated.View>
     </View>
   );

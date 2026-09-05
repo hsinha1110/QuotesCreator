@@ -1,8 +1,14 @@
 import React from 'react';
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
- import { ImagePickerModalProps } from '@/types';
+import { useSelector } from 'react-redux';
+
+import { ImagePickerModalProps } from '@/types';
+import { RootState } from '@/redux/store';
+import { translations } from '@/language';
+
 import styles from './styles';
 
 const ImagePickerModal = ({
@@ -11,6 +17,18 @@ const ImagePickerModal = ({
   onCamera,
   onGallery,
 }: ImagePickerModalProps) => {
+  // ==========================================
+  // LANGUAGE
+  // ==========================================
+
+  const language = useSelector((state: RootState) => state.language.language);
+
+  const t = translations[language].IMAGE_PICKER;
+
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
     <Modal
       visible={visible}
@@ -19,6 +37,8 @@ const ImagePickerModal = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        {/* BACKDROP */}
+
         <TouchableOpacity
           style={styles.backdrop}
           activeOpacity={1}
@@ -26,15 +46,22 @@ const ImagePickerModal = ({
         />
 
         <View style={styles.modalContainer}>
+          {/* HANDLE */}
+
           <View style={styles.handle} />
 
-          <Text style={styles.title}>Choose Profile Photo</Text>
+          {/* TITLE */}
 
-          <Text style={styles.subtitle}>
-            Select an option to upload your photo
-          </Text>
+          <Text style={styles.title}>{t.TITLE}</Text>
 
-          {/* Camera */}
+          {/* SUBTITLE */}
+
+          <Text style={styles.subtitle}>{t.SUBTITLE}</Text>
+
+          {/* ======================================
+              CAMERA
+          ====================================== */}
+
           <TouchableOpacity
             style={styles.option}
             activeOpacity={0.8}
@@ -49,10 +76,10 @@ const ImagePickerModal = ({
             </View>
 
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>Take Photo</Text>
+              <Text style={styles.optionTitle}>{t.TAKE_PHOTO}</Text>
 
               <Text style={styles.optionSubtitle}>
-                Capture a new photo with camera
+                {t.TAKE_PHOTO_DESCRIPTION}
               </Text>
             </View>
 
@@ -63,7 +90,10 @@ const ImagePickerModal = ({
             />
           </TouchableOpacity>
 
-          {/* Gallery */}
+          {/* ======================================
+              GALLERY
+          ====================================== */}
+
           <TouchableOpacity
             style={styles.option}
             activeOpacity={0.8}
@@ -78,10 +108,10 @@ const ImagePickerModal = ({
             </View>
 
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>Choose from Gallery</Text>
+              <Text style={styles.optionTitle}>{t.CHOOSE_FROM_GALLERY}</Text>
 
               <Text style={styles.optionSubtitle}>
-                Select a photo from your gallery
+                {t.CHOOSE_FROM_GALLERY_DESCRIPTION}
               </Text>
             </View>
 
@@ -92,13 +122,16 @@ const ImagePickerModal = ({
             />
           </TouchableOpacity>
 
-          {/* Cancel */}
+          {/* ======================================
+              CANCEL
+          ====================================== */}
+
           <TouchableOpacity
             style={styles.cancelButton}
             activeOpacity={0.8}
             onPress={onClose}
           >
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>{t.CANCEL}</Text>
           </TouchableOpacity>
         </View>
       </View>
