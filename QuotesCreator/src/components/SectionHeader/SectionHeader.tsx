@@ -1,13 +1,33 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { useSelector } from 'react-redux';
+import {View, Text, TouchableOpacity} from 'react-native';
+import {useSelector} from 'react-redux';
 
-import styles from './styles';
-import { SectionHeaderProps } from '@/types';
-import { RootState } from '@/redux/store';
+import {THEME_COLORS} from '@/constants/Colors';
+import {RootState} from '@/redux/store';
+import {SectionHeaderProps} from '@/types';
 
-const SectionHeader = ({ title, onViewAllPress }: SectionHeaderProps) => {
+import createStyles from './styles';
+
+const SectionHeader = ({title, onViewAllPress}: SectionHeaderProps) => {
+  // ==========================================
+  // LANGUAGE
+  // ==========================================
+
   const language = useSelector((state: RootState) => state.language.language);
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
+  // ==========================================
+  // TITLE
+  // ==========================================
 
   const getTitle = () => {
     if (language === 'Hindi') {
@@ -28,6 +48,10 @@ const SectionHeader = ({ title, onViewAllPress }: SectionHeaderProps) => {
 
     return title;
   };
+
+  // ==========================================
+  // UI
+  // ==========================================
 
   return (
     <View style={styles.container}>

@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,12 +20,15 @@ import { logout } from '@/redux/slices/authSlice';
 
 import { translations } from '@/language';
 
+import COLORS from '@/constants/Colors';
+
 import styles from './styles';
 
 const Profile = () => {
   type ProfileNavigationProp = DrawerNavigationProp<DrawerParamList>;
 
   const navigation = useNavigation<ProfileNavigationProp>();
+
   const dispatch = useDispatch<AppDispatch>();
 
   // ==========================================
@@ -34,6 +38,50 @@ const Profile = () => {
   const language = useSelector((state: RootState) => state.language.language);
 
   const t = translations[language].PROFILE;
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const isDark = themeMode === 'dark';
+
+  // ==========================================
+  // THEME COLORS
+  // ==========================================
+
+  const themeColors = {
+    background: isDark ? '#121212' : COLORS.white,
+
+    card: isDark ? '#1E1E1E' : COLORS.white,
+
+    textPrimary: isDark ? '#FFFFFF' : '#171717',
+
+    textSecondary: isDark ? '#BDBDBD' : '#777777',
+
+    border: isDark ? '#303030' : '#EEEEEE',
+
+    iconBackground: isDark ? '#2A2038' : '#F5F2FF',
+
+    icon: isDark ? '#FFFFFF' : '#171717',
+
+    profileBorder: isDark ? '#4A3A65' : '#E7DEFF',
+
+    profileEmail: isDark ? '#E0D8F5' : '#EDE8FF',
+
+    dangerBackground: isDark ? '#351F1F' : '#FFF1F1',
+
+    danger: COLORS.red,
+
+    ripple: isDark ? '#333333' : '#EEEEEE',
+
+    logoutBackground: isDark ? '#241818' : '#FFFFFF',
+
+    logoutBorder: isDark ? '#4A2828' : '#FFE0E0',
+
+    logoutRipple: isDark ? '#402020' : '#FDECEC',
+  };
 
   // ==========================================
   // REDUX
@@ -147,29 +195,44 @@ const Profile = () => {
         style={styles.profileRow}
         onPress={onPress}
         android_ripple={{
-          color: '#EEEEEE',
+          color: danger ? themeColors.logoutRipple : themeColors.ripple,
         }}
       >
         <View style={styles.rowLeft}>
           <View
             style={[
               styles.rowIconContainer,
-              danger && styles.dangerIconContainer,
+              {
+                backgroundColor: danger
+                  ? themeColors.dangerBackground
+                  : themeColors.iconBackground,
+              },
             ]}
           >
             <Ionicons
               name={icon}
               size={20}
-              color={danger ? '#E53935' : '#171717'}
+              color={danger ? themeColors.danger : themeColors.icon}
             />
           </View>
 
-          <Text style={[styles.rowTitle, danger && styles.dangerText]}>
+          <Text
+            style={[
+              styles.rowTitle,
+              {
+                color: danger ? themeColors.danger : themeColors.textPrimary,
+              },
+            ]}
+          >
             {title}
           </Text>
         </View>
 
-        <Ionicons name="chevron-forward" size={19} color="#777777" />
+        <Ionicons
+          name="chevron-forward"
+          size={19}
+          color={themeColors.textSecondary}
+        />
       </Pressable>
     );
   };
@@ -179,7 +242,14 @@ const Profile = () => {
   // ==========================================
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+        },
+      ]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -188,8 +258,23 @@ const Profile = () => {
             PROFILE HEADER
         ========================================== */}
 
-        <View style={styles.profileHeader}>
-          <View style={styles.profileImageWrapper}>
+        <View
+          style={[
+            styles.profileHeader,
+            {
+              backgroundColor: COLORS.accent,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.profileImageWrapper,
+              {
+                borderColor: themeColors.profileBorder,
+                backgroundColor: themeColors.iconBackground,
+              },
+            ]}
+          >
             {profileImage ? (
               <Image
                 source={{
@@ -199,31 +284,84 @@ const Profile = () => {
                 resizeMode="cover"
               />
             ) : (
-              <View style={styles.defaultProfile}>
-                <Ionicons name="person" size={48} color="#999999" />
+              <View
+                style={[
+                  styles.defaultProfile,
+                  {
+                    backgroundColor: themeColors.iconBackground,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="person"
+                  size={48}
+                  color={themeColors.textSecondary}
+                />
               </View>
             )}
           </View>
 
-          <Text style={styles.profileName}>{profileName}</Text>
+          <Text
+            style={[
+              styles.profileName,
+              {
+                color: COLORS.white,
+              },
+            ]}
+          >
+            {profileName}
+          </Text>
 
-          <Text style={styles.profileEmail}>{profileEmail}</Text>
+          <Text
+            style={[
+              styles.profileEmail,
+              {
+                color: themeColors.profileEmail,
+              },
+            ]}
+          >
+            {profileEmail}
+          </Text>
         </View>
 
         {/* ==========================================
             ACCOUNT
         ========================================== */}
 
-        <Text style={styles.sectionTitle}>{t.ACCOUNT}</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: isDark ? '#BFA7FF' : COLORS.accent,
+            },
+          ]}
+        >
+          {t.ACCOUNT}
+        </Text>
 
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: themeColors.card,
+              borderColor: themeColors.border,
+            },
+          ]}
+        >
           <ProfileRow
             icon="person-outline"
             title={t.MY_ACCOUNT}
             onPress={handleMyAccount}
           />
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: themeColors.border,
+              },
+            ]}
+          />
 
           <ProfileRow
             icon="create-outline"
@@ -231,7 +369,14 @@ const Profile = () => {
             onPress={handleEditProfile}
           />
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: themeColors.border,
+              },
+            ]}
+          />
 
           <ProfileRow
             icon="lock-closed-outline"
@@ -244,16 +389,40 @@ const Profile = () => {
             GENERAL
         ========================================== */}
 
-        <Text style={styles.sectionTitle}>{t.GENERAL}</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: isDark ? '#BFA7FF' : COLORS.accent,
+            },
+          ]}
+        >
+          {t.GENERAL}
+        </Text>
 
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: themeColors.card,
+              borderColor: themeColors.border,
+            },
+          ]}
+        >
           <ProfileRow
             icon="settings-outline"
             title={t.SETTINGS}
             onPress={handleSettings}
           />
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: themeColors.border,
+              },
+            ]}
+          />
 
           <ProfileRow
             icon="star-outline"
@@ -261,7 +430,14 @@ const Profile = () => {
             onPress={handleRateUs}
           />
 
-          <View style={styles.divider} />
+          <View
+            style={[
+              styles.divider,
+              {
+                backgroundColor: themeColors.border,
+              },
+            ]}
+          />
 
           <ProfileRow
             icon="share-social-outline"
@@ -275,15 +451,34 @@ const Profile = () => {
         ========================================== */}
 
         <Pressable
-          style={styles.logoutButton}
+          style={[
+            styles.logoutButton,
+            {
+              backgroundColor: themeColors.logoutBackground,
+              borderColor: themeColors.logoutBorder,
+            },
+          ]}
           onPress={handleLogout}
           android_ripple={{
-            color: '#FDECEC',
+            color: themeColors.logoutRipple,
           }}
         >
-          <Ionicons name="log-out-outline" size={21} color="#E53935" />
+          <Ionicons
+            name="log-out-outline"
+            size={21}
+            color={themeColors.danger}
+          />
 
-          <Text style={styles.logoutText}>{t.LOGOUT}</Text>
+          <Text
+            style={[
+              styles.logoutText,
+              {
+                color: themeColors.danger,
+              },
+            ]}
+          >
+            {t.LOGOUT}
+          </Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

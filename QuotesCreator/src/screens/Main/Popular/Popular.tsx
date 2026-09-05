@@ -1,26 +1,41 @@
-import React, { useEffect, useMemo } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import React, {useEffect, useMemo} from 'react';
 
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
+import {
+  ActivityIndicator,
+  FlatList,
+  View,
+} from 'react-native';
+
+import {SafeAreaView} from 'react-native-safe-area-context';
+
+import {useDispatch, useSelector} from 'react-redux';
+
+import {useNavigation} from '@react-navigation/native';
+
+import {DrawerNavigationProp} from '@react-navigation/drawer';
 
 import Header from '@/components/Header/Header';
 
-import { AppDispatch, RootState } from '@/redux/store';
-import { popularQuotesThunk } from '@/redux/thunk/popularThunk';
+import {AppDispatch, RootState} from '@/redux/store';
 
-import { DrawerParamList } from '@/navigations/types';
+import {popularQuotesThunk} from '@/redux/thunk/popularThunk';
+
+import {DrawerParamList} from '@/navigations/types';
+
 import Routes from '@/navigations/Routes';
-import { Quote } from '@/types';
 
-import COLORS from '@/constants/Colors';
-import styles from './styles';
+import {Quote} from '@/types';
+
+import {
+  THEME_COLORS,
+} from '@/constants/Colors';
+
+import createStyles from './styles';
 
 import ItemPopular from '@/components/ListItems/ItemPopular/ItemPopular';
 
-type PopularNavigationProp = DrawerNavigationProp<DrawerParamList>;
+type PopularNavigationProp =
+  DrawerNavigationProp<DrawerParamList>;
 
 type LocalizedQuote = Quote & {
   displayLanguage?: string;
@@ -30,29 +45,56 @@ type LocalizedQuote = Quote & {
 const Popular = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const navigation = useNavigation<PopularNavigationProp>();
+  const navigation =
+    useNavigation<PopularNavigationProp>();
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors =
+    THEME_COLORS[themeMode];
+
+  const styles =
+    createStyles(colors);
 
   // ==========================================
   // LANGUAGE
   // ==========================================
 
-  const language = useSelector((state: RootState) => state.language.language);
+  const language = useSelector(
+    (state: RootState) =>
+      state.language.language,
+  );
 
-  const isHindi = language === 'Hindi';
+  const isHindi =
+    language === 'Hindi';
 
   // ==========================================
   // POPULAR STATE
   // ==========================================
 
-  const { quotes, isLoading, page, totalPages } = useSelector(
-    (state: RootState) => state.popularQuotes,
+  const {
+    quotes,
+    isLoading,
+    page,
+    totalPages,
+  } = useSelector(
+    (state: RootState) =>
+      state.popularQuotes,
   );
 
   // ==========================================
   // LOCALIZED TEXT
   // ==========================================
 
-  const screenTitle = isHindi ? 'लोकप्रिय विचार' : 'Popular Quotes';
+  const screenTitle = isHindi
+    ? 'लोकप्रिय विचार'
+    : 'Popular Quotes';
 
   // ==========================================
   // REMOVE DUPLICATE QUOTES
@@ -81,19 +123,31 @@ const Popular = () => {
   // ==========================================
 
   const displayQuotes = useMemo(() => {
-    const localizedQuotes = (uniqueQuotes as LocalizedQuote[]).filter(
-      item => !item.displayLanguage || item.displayLanguage === language,
-    );
+    const localizedQuotes =
+      (
+        uniqueQuotes as LocalizedQuote[]
+      ).filter(
+        item =>
+          !item.displayLanguage ||
+          item.displayLanguage ===
+            language,
+      );
 
     return localizedQuotes;
-  }, [uniqueQuotes, language]);
+  }, [
+    uniqueQuotes,
+    language,
+  ]);
 
   // ==========================================
   // FETCH PAGE 1
   // ==========================================
 
   useEffect(() => {
-    console.log('🌐 POPULAR SCREEN LANGUAGE:', language);
+    console.log(
+      '🌐 POPULAR SCREEN LANGUAGE:',
+      language,
+    );
 
     dispatch(
       popularQuotesThunk({
@@ -102,7 +156,10 @@ const Popular = () => {
         limit: 10,
       }),
     );
-  }, [dispatch, language]);
+  }, [
+    dispatch,
+    language,
+  ]);
 
   // ==========================================
   // BACK
@@ -117,19 +174,28 @@ const Popular = () => {
   // ==========================================
 
   const handleSearch = () => {
-    console.log('🔍 POPULAR SEARCH:', language);
+    console.log(
+      '🔍 POPULAR SEARCH:',
+      language,
+    );
   };
 
   // ==========================================
   // QUOTE PRESS
   // ==========================================
 
-  const handleQuotePress = (item: Quote, index: number) => {
-    navigation.navigate(Routes.QUOTES_DETAILS, {
-      item,
-      quotes: displayQuotes,
-      index,
-    });
+  const handleQuotePress = (
+    item: Quote,
+    index: number,
+  ) => {
+    navigation.navigate(
+      Routes.QUOTES_DETAILS,
+      {
+        item,
+        quotes: displayQuotes,
+        index,
+      },
+    );
   };
 
   // ==========================================
@@ -145,11 +211,18 @@ const Popular = () => {
       return;
     }
 
-    const nextPage = page + 1;
+    const nextPage =
+      page + 1;
 
-    console.log('📄 POPULAR NEXT PAGE:', nextPage);
+    console.log(
+      '📄 POPULAR NEXT PAGE:',
+      nextPage,
+    );
 
-    console.log('🌐 POPULAR LANGUAGE:', language);
+    console.log(
+      '🌐 POPULAR LANGUAGE:',
+      language,
+    );
 
     dispatch(
       popularQuotesThunk({
@@ -165,13 +238,22 @@ const Popular = () => {
   // ==========================================
 
   const renderFooter = () => {
-    if (!isLoading || displayQuotes.length === 0) {
+    if (
+      !isLoading ||
+      displayQuotes.length === 0
+    ) {
       return null;
     }
 
     return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={COLORS.accent} />
+      <View
+        style={
+          styles.footerLoader
+        }>
+        <ActivityIndicator
+          size="small"
+          color={colors.accent}
+        />
       </View>
     );
   };
@@ -180,20 +262,36 @@ const Popular = () => {
   // INITIAL LOADING
   // ==========================================
 
-  if (isLoading && displayQuotes.length === 0) {
+  if (
+    isLoading &&
+    displayQuotes.length === 0
+  ) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}>
         <Header
           title={screenTitle}
           icon="chevron-back"
-          onMenuPress={handleGoBack}
-          showNotification={false}
+          onMenuPress={
+            handleGoBack
+          }
+          showNotification={
+            false
+          }
           rightIcon="search"
-          onRightPress={handleSearch}
+          onRightPress={
+            handleSearch
+          }
         />
 
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
+        <View
+          style={
+            styles.loadingContainer
+          }>
+          <ActivityIndicator
+            size="large"
+            color={colors.accent}
+          />
         </View>
       </SafeAreaView>
     );
@@ -204,33 +302,66 @@ const Popular = () => {
   // ==========================================
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}>
       <Header
         title={screenTitle}
         icon="chevron-back"
-        onMenuPress={handleGoBack}
-        showNotification={false}
+        onMenuPress={
+          handleGoBack
+        }
+        showNotification={
+          false
+        }
         rightIcon="search"
-        onRightPress={handleSearch}
+        onRightPress={
+          handleSearch
+        }
       />
 
       <FlatList<LocalizedQuote>
         data={displayQuotes}
         key={language}
-        keyExtractor={item => item._id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-        renderItem={({ item, index }) => (
+        keyExtractor={item =>
+          item._id
+        }
+        showsVerticalScrollIndicator={
+          false
+        }
+        contentContainerStyle={
+          styles.listContainer
+        }
+        renderItem={({
+          item,
+          index,
+        }) => (
           <ItemPopular
             item={item}
             fullWidth
-            onPress={() => handleQuotePress(item, index)}
+            onPress={() =>
+              handleQuotePress(
+                item,
+                index,
+              )
+            }
           />
         )}
-        ItemSeparatorComponent={() => <View style={styles.listSeparator} />}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
+        ItemSeparatorComponent={() => (
+          <View
+            style={
+              styles.listSeparator
+            }
+          />
+        )}
+        onEndReached={
+          handleLoadMore
+        }
+        onEndReachedThreshold={
+          0.5
+        }
+        ListFooterComponent={
+          renderFooter
+        }
       />
     </SafeAreaView>
   );

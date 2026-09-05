@@ -1,40 +1,71 @@
-import React, { useEffect } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import React, {useEffect} from 'react';
 
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  View,
+} from 'react-native';
 
-import type { AppDispatch, RootState } from '@/redux/store';
+import {useDispatch, useSelector} from 'react-redux';
 
-import { Quote } from '@/types';
-import { latestQuotesThunk } from '@/redux/thunk/latestThunk';
+import {useNavigation} from '@react-navigation/native';
 
-import { DrawerParamList } from '@/navigations/types';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
+import type {AppDispatch, RootState} from '@/redux/store';
+
+import {Quote} from '@/types';
+
+import {latestQuotesThunk} from '@/redux/thunk/latestThunk';
+
+import {DrawerParamList} from '@/navigations/types';
+
+import {DrawerNavigationProp} from '@react-navigation/drawer';
 
 import Routes from '@/navigations/Routes';
-import styles from './styles';
-import COLORS from '@/constants/Colors';
+
+import createStyles from './styles';
+
+import {THEME_COLORS} from '@/constants/Colors';
 
 import Header from '@/components/Header/Header';
-import { navigate } from '@/utils/NavigationUtils';
 
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {navigate} from '@/utils/NavigationUtils';
+
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 import ItemLatestQuotes from '@/components/ListItems/ItemLatestQuotes/ItemLatestQuotes';
 
-type LatestNavigationProp = DrawerNavigationProp<DrawerParamList>;
+type LatestNavigationProp =
+  DrawerNavigationProp<DrawerParamList>;
 
 const Latest = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const navigation = useNavigation<LatestNavigationProp>();
+  const navigation =
+    useNavigation<LatestNavigationProp>();
+
+  // =========================
+  // THEME
+  // =========================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // =========================
   // LATEST STATE
   // =========================
 
-  const { quotes, isLoading, page, totalPages } = useSelector(
+  const {
+    quotes,
+    isLoading,
+    page,
+    totalPages,
+  } = useSelector(
     (state: RootState) => state.latestQuotes,
   );
 
@@ -42,17 +73,28 @@ const Latest = () => {
   // SELECTED LANGUAGE
   // =========================
 
-  const language = useSelector((state: RootState) => state.language.language);
+  const language = useSelector(
+    (state: RootState) => state.language.language,
+  );
 
-  console.log('🌐 LATEST LANGUAGE:', language);
+  console.log(
+    '🌐 LATEST LANGUAGE:',
+    language,
+  );
 
   // =========================
   // FETCH LATEST QUOTES
   // =========================
 
   useEffect(() => {
-    console.log('🔥 FETCH LATEST QUOTES');
-    console.log('🌐 LANGUAGE:', language);
+    console.log(
+      '🔥 FETCH LATEST QUOTES',
+    );
+
+    console.log(
+      '🌐 LANGUAGE:',
+      language,
+    );
 
     dispatch(
       latestQuotesThunk({
@@ -76,19 +118,27 @@ const Latest = () => {
   // =========================
 
   const handleSearch = () => {
-    console.log('🔍 SEARCH LATEST');
+    console.log(
+      '🔍 SEARCH LATEST',
+    );
   };
 
   // =========================
   // QUOTE DETAILS
   // =========================
 
-  const handleQuotePress = (item: Quote, index: number) => {
-    navigation.navigate(Routes.QUOTES_DETAILS, {
-      item,
-      quotes,
-      index,
-    });
+  const handleQuotePress = (
+    item: Quote,
+    index: number,
+  ) => {
+    navigation.navigate(
+      Routes.QUOTES_DETAILS,
+      {
+        item,
+        quotes,
+        index,
+      },
+    );
   };
 
   // =========================
@@ -110,9 +160,19 @@ const Latest = () => {
 
     const nextPage = page + 1;
 
-    console.log('📄 LOAD MORE LATEST');
-    console.log('🌐 LANGUAGE:', language);
-    console.log('📄 PAGE:', nextPage);
+    console.log(
+      '📄 LOAD MORE LATEST',
+    );
+
+    console.log(
+      '🌐 LANGUAGE:',
+      language,
+    );
+
+    console.log(
+      '📄 PAGE:',
+      nextPage,
+    );
 
     dispatch(
       latestQuotesThunk({
@@ -128,26 +188,46 @@ const Latest = () => {
   // =========================
 
   const renderFooter = () => {
-    if (!isLoading || quotes.length === 0) {
+    if (
+      !isLoading ||
+      quotes.length === 0
+    ) {
       return null;
     }
 
     return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
+      <View
+        style={styles.footerLoader}>
+        <ActivityIndicator
+          size="large"
+          color={colors.accent}
+        />
       </View>
     );
   };
 
   // =========================
+  // HEADER
+  // =========================
+
+  const headerTitle =
+    language === 'Hindi'
+      ? 'नवीनतम'
+      : 'Latest';
+
+  // =========================
   // FIRST LOADING
   // =========================
 
-  if (isLoading && quotes.length === 0) {
+  if (
+    isLoading &&
+    quotes.length === 0
+  ) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}>
         <Header
-          title={language === 'Hindi' ? 'नवीनतम' : 'Latest'}
+          title={headerTitle}
           icon="chevron-back"
           onMenuPress={handleGoBack}
           showNotification={false}
@@ -155,8 +235,14 @@ const Latest = () => {
           onRightPress={handleSearch}
         />
 
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
+        <View
+          style={
+            styles.loadingContainer
+          }>
+          <ActivityIndicator
+            size="large"
+            color={colors.accent}
+          />
         </View>
       </SafeAreaView>
     );
@@ -166,11 +252,15 @@ const Latest = () => {
   // EMPTY
   // =========================
 
-  if (!isLoading && quotes.length === 0) {
+  if (
+    !isLoading &&
+    quotes.length === 0
+  ) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}>
         <Header
-          title={language === 'Hindi' ? 'नवीनतम' : 'Latest'}
+          title={headerTitle}
           icon="chevron-back"
           onMenuPress={handleGoBack}
           showNotification={false}
@@ -179,20 +269,11 @@ const Latest = () => {
         />
 
         <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-          }}
-        >
+          style={
+            styles.emptyContainer
+          }>
           <Text
-            style={{
-              fontSize: 16,
-              color: '#666',
-              textAlign: 'center',
-            }}
-          >
+            style={styles.emptyText}>
             {language === 'Hindi'
               ? 'कोई नवीनतम कोट्स नहीं मिले'
               : 'No latest quotes found'}
@@ -207,11 +288,13 @@ const Latest = () => {
   // =========================
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}>
+      
       {/* HEADER */}
 
       <Header
-        title={language === 'Hindi' ? 'नवीनतम' : 'Latest'}
+        title={headerTitle}
         icon="chevron-back"
         onMenuPress={handleGoBack}
         showNotification={false}
@@ -224,19 +307,37 @@ const Latest = () => {
       <FlatList
         key={language}
         data={quotes}
-        keyExtractor={item => item._id}
-        renderItem={({ item, index }) => (
+        keyExtractor={item =>
+          item._id
+        }
+        renderItem={({
+          item,
+          index,
+        }) => (
           <ItemLatestQuotes
             item={item}
             fullWidth
-            onPress={() => handleQuotePress(item, index)}
+            onPress={() =>
+              handleQuotePress(
+                item,
+                index,
+              )
+            }
           />
         )}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.latestList}
-        onEndReached={handleLoadMore}
+        showsVerticalScrollIndicator={
+          false
+        }
+        contentContainerStyle={
+          styles.latestList
+        }
+        onEndReached={
+          handleLoadMore
+        }
         onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
+        ListFooterComponent={
+          renderFooter
+        }
       />
     </SafeAreaView>
   );

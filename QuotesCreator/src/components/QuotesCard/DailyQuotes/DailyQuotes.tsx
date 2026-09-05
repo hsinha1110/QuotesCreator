@@ -4,19 +4,35 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import moment from 'moment';
 import { moderateScale } from 'react-native-size-matters';
+import { useSelector } from 'react-redux';
 
 import IMAGES from '@/assets/images';
-import COLORS from '@/constants/Colors';
+import { THEME_COLORS } from '@/constants/Colors';
+import { RootState } from '@/redux/store';
 
 import { DailyQuoteCardProps } from '@/types';
 
-import styles from './styles';
+import createStyles from './styles';
 
 const DailyQuote = ({
   quote,
   onFavoritePress,
   onSharePress,
 }: DailyQuoteCardProps) => {
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
     <View style={styles.card}>
       {/* QUOTE ICON */}
@@ -61,7 +77,7 @@ const DailyQuote = ({
             <Ionicons
               name="heart-outline"
               size={moderateScale(22)}
-              color={COLORS.black}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
 
@@ -81,7 +97,7 @@ const DailyQuote = ({
             <Ionicons
               name="share-social-outline"
               size={moderateScale(22)}
-              color={COLORS.black}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
         </View>

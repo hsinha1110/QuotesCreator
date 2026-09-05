@@ -1,137 +1,207 @@
 import { StyleSheet } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+import { ThemeColors } from '@/constants/Colors';
 
-  content: {
-    paddingHorizontal: moderateScale(20),
-    paddingBottom: moderateScale(30),
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // ==========================================
+    // CONTAINER
+    // ==========================================
 
-  headingContainer: {
-    marginTop: moderateScale(20),
-    marginBottom: moderateScale(25),
-  },
+    container: {
+      flex: 1,
 
-  title: {
-    fontSize: moderateScale(24),
-    fontWeight: '700',
-    color: '#202020',
-    marginBottom: moderateScale(8),
-  },
+      backgroundColor: colors.background,
+    },
 
-  subtitle: {
-    fontSize: moderateScale(14),
-    lineHeight: moderateScale(21),
-    color: '#777780',
-  },
+    // ==========================================
+    // KEYBOARD
+    // ==========================================
 
-  inputContainer: {
-    marginBottom: moderateScale(20),
-  },
+    keyboardContainer: {
+      flex: 1,
+    },
 
-  label: {
-    fontSize: moderateScale(15),
-    fontWeight: '600',
-    color: '#24242A',
-    marginBottom: moderateScale(9),
-  },
+    // ==========================================
+    // CONTENT
+    // ==========================================
 
-  quoteInput: {
-    minHeight: moderateScale(150),
-    borderWidth: 1,
-    borderColor: '#E3E0EA',
-    borderRadius: moderateScale(14),
-    paddingHorizontal: moderateScale(15),
-    paddingTop: moderateScale(15),
-    paddingBottom: moderateScale(30),
-    fontSize: moderateScale(15),
-    color: '#202020',
-    backgroundColor: '#FAF9FC',
-  },
+    content: {
+      paddingHorizontal: moderateScale(20),
 
-  characterCount: {
-    position: 'absolute',
-    right: moderateScale(12),
-    bottom: moderateScale(10),
-    fontSize: moderateScale(11),
-    color: '#9999A3',
-  },
+      paddingBottom: moderateScale(30),
+    },
 
-  authorInput: {
-    height: moderateScale(52),
-    borderWidth: 1,
-    borderColor: '#E3E0EA',
-    borderRadius: moderateScale(14),
-    paddingHorizontal: moderateScale(15),
-    fontSize: moderateScale(15),
-    color: '#202020',
-    backgroundColor: '#FAF9FC',
-  },
+    // ==========================================
+    // HEADING
+    // ==========================================
 
-  optional: {
-    fontSize: moderateScale(11),
-    color: '#9999A3',
-    marginTop: moderateScale(5),
-  },
+    headingContainer: {
+      marginTop: moderateScale(20),
 
-  previewContainer: {
-    marginTop: moderateScale(2),
-    marginBottom: moderateScale(25),
-  },
+      marginBottom: moderateScale(25),
+    },
 
-  previewLabel: {
-    fontSize: moderateScale(15),
-    fontWeight: '600',
-    color: '#24242A',
-    marginBottom: moderateScale(10),
-  },
+    title: {
+      fontSize: moderateScale(24),
 
-  previewCard: {
-    minHeight: moderateScale(150),
-    borderRadius: moderateScale(18),
-    backgroundColor: '#6C4AB6',
-    padding: moderateScale(22),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+      fontWeight: '700',
 
-  previewQuote: {
-    fontSize: moderateScale(18),
-    lineHeight: moderateScale(27),
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
+      color: colors.textPrimary,
 
-  previewAuthor: {
-    marginTop: moderateScale(15),
-    fontSize: moderateScale(13),
-    color: '#FFFFFF',
-    opacity: 0.9,
-  },
+      marginBottom: moderateScale(8),
+    },
 
-  continueButton: {
-    height: moderateScale(54),
-    borderRadius: moderateScale(14),
-    backgroundColor: '#6C4AB6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    subtitle: {
+      fontSize: moderateScale(14),
 
-  disabledButton: {
-    opacity: 0.45,
-  },
+      lineHeight: moderateScale(21),
 
-  continueText: {
-    color: '#FFFFFF',
-    fontSize: moderateScale(15),
-    fontWeight: '700',
-  },
-});
+      color: colors.textSecondary,
+    },
 
-export default styles;
+    // ==========================================
+    // INPUT CONTAINER
+    // ==========================================
+
+    inputContainer: {
+      marginBottom: moderateScale(20),
+    },
+
+    label: {
+      fontSize: moderateScale(15),
+
+      fontWeight: '600',
+
+      color: colors.textPrimary,
+
+      marginBottom: moderateScale(9),
+    },
+
+    // ==========================================
+    // QUOTE INPUT
+    // ==========================================
+
+    quoteInput: {
+      minHeight: moderateScale(150),
+
+      borderWidth: 1,
+
+      borderColor: colors.inputBorder,
+
+      borderRadius: moderateScale(14),
+
+      paddingHorizontal: moderateScale(15),
+
+      paddingTop: moderateScale(15),
+
+      paddingBottom: moderateScale(30),
+
+      fontSize: moderateScale(15),
+
+      color: colors.textPrimary,
+
+      backgroundColor: colors.inputBackground,
+    },
+
+    characterCount: {
+      position: 'absolute',
+
+      right: moderateScale(12),
+
+      bottom: moderateScale(10),
+
+      fontSize: moderateScale(11),
+
+      color: colors.textSecondary,
+    },
+
+    // ==========================================
+    // AUTHOR INPUT
+    // ==========================================
+
+    authorInput: {
+      height: moderateScale(52),
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      borderRadius: moderateScale(14),
+      paddingHorizontal: moderateScale(15),
+      fontSize: moderateScale(15),
+      color: colors.textPrimary,
+      backgroundColor: colors.inputBackground,
+    },
+
+    optional: {
+      fontSize: moderateScale(11),
+      color: colors.textSecondary,
+      marginTop: moderateScale(5),
+    },
+
+    // ==========================================
+    // PREVIEW
+    // ==========================================
+
+    previewContainer: {
+      marginTop: moderateScale(2),
+      marginBottom: moderateScale(25),
+    },
+
+    previewLabel: {
+      fontSize: moderateScale(15),
+
+      fontWeight: '600',
+
+      color: colors.textPrimary,
+
+      marginBottom: moderateScale(10),
+    },
+
+    previewCard: {
+      minHeight: moderateScale(150),
+      borderRadius: moderateScale(18),
+      backgroundColor: colors.primary,
+      padding: moderateScale(22),
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    previewQuote: {
+      fontSize: moderateScale(18),
+      lineHeight: moderateScale(27),
+      fontWeight: '600',
+      color: colors.white,
+      textAlign: 'center',
+    },
+
+    previewAuthor: {
+      marginTop: moderateScale(15),
+      fontSize: moderateScale(13),
+      color: colors.white,
+      opacity: 0.9,
+    },
+
+    // ==========================================
+    // SAVE BUTTON
+    // ==========================================
+
+    continueButton: {
+      height: moderateScale(54),
+      borderRadius: moderateScale(14),
+      backgroundColor: colors.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    disabledButton: {
+      opacity: 0.45,
+    },
+
+    continueText: {
+      color: colors.white,
+      fontSize: moderateScale(15),
+      fontWeight: '700',
+    },
+  });
+
+export default createStyles;

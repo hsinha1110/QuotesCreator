@@ -1,107 +1,208 @@
-import {StyleSheet} from 'react-native';
-import {moderateScale} from 'react-native-size-matters';
+import { StyleSheet } from 'react-native';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+import { moderateScale } from 'react-native-size-matters';
 
-  timeContainer: {
-    flex: 1,
-    paddingHorizontal: moderateScale(20),
-    paddingTop: moderateScale(30),
-  },
+import { ThemeColors } from '@/constants/Colors';
 
-  timeTitle: {
-    fontSize: moderateScale(18),
-    fontWeight: '600',
-    color: '#181818',
-    lineHeight: moderateScale(26),
-    marginBottom: moderateScale(25),
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // ==========================================
+    // CONTAINER
+    // ==========================================
 
-  timeCard: {
-    minHeight: moderateScale(100),
-    borderRadius: moderateScale(18),
-    backgroundColor: '#F7F2FF',
-    borderWidth: 1,
-    borderColor: '#E8DFFF',
-    paddingHorizontal: moderateScale(20),
-    paddingVertical: moderateScale(18),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+    container: {
+      flex: 1,
 
-  timeLabel: {
-    fontSize: moderateScale(13),
-    color: '#77727F',
-    marginBottom: moderateScale(5),
-  },
+      backgroundColor: colors.background,
+    },
 
-  timeValue: {
-    fontSize: moderateScale(32),
-    fontWeight: '700',
-    color: '#7437E8',
-  },
+    // ==========================================
+    // TIME CONTAINER
+    // ==========================================
 
-  editText: {
-    fontSize: moderateScale(13),
-    fontWeight: '600',
-    color: '#7437E8',
-  },
+    timeContainer: {
+      flex: 1,
 
-  pickerContainer: {
-    marginTop: moderateScale(20),
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F9F9FB',
-    borderRadius: moderateScale(18),
-    paddingVertical: moderateScale(15),
-  },
+      paddingHorizontal: moderateScale(20),
 
-  infoContainer: {
-    marginTop: moderateScale(25),
-    padding: moderateScale(15),
-    borderRadius: moderateScale(14),
-    backgroundColor: '#F8F8FA',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
+      paddingTop: moderateScale(30),
 
-  infoIcon: {
-    fontSize: moderateScale(17),
-    color: '#7437E8',
-    marginRight: moderateScale(10),
-  },
+      backgroundColor: colors.background,
+    },
 
-  infoText: {
-    flex: 1,
-    fontSize: moderateScale(13),
-    lineHeight: moderateScale(19),
-    color: '#77777F',
-  },
+    // ==========================================
+    // TITLE
+    // ==========================================
 
-  timezoneContainer: {
-    marginTop: moderateScale(18),
-    paddingVertical: moderateScale(18),
-    paddingHorizontal: moderateScale(16),
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEF2',
-  },
+    timeTitle: {
+      fontSize: moderateScale(18),
 
-  timezoneTitle: {
-    fontSize: moderateScale(14),
-    fontWeight: '600',
-    color: '#181818',
-    marginBottom: moderateScale(5),
-  },
+      fontWeight: '600',
 
-  timezoneValue: {
-    fontSize: moderateScale(13),
-    color: '#888891',
-  },
-});
+      color: colors.textPrimary,
 
-export default styles;
+      lineHeight: moderateScale(26),
+
+      marginBottom: moderateScale(25),
+    },
+
+    // ==========================================
+    // TIME CARD
+    // ==========================================
+
+    timeCard: {
+      minHeight: moderateScale(100),
+
+      borderRadius: moderateScale(18),
+
+      backgroundColor: colors.light_grey,
+
+      borderWidth: 1,
+
+      borderColor: colors.border,
+
+      paddingHorizontal: moderateScale(20),
+
+      paddingVertical: moderateScale(18),
+
+      flexDirection: 'row',
+
+      alignItems: 'center',
+
+      justifyContent: 'space-between',
+    },
+
+    // ==========================================
+    // TIME LABEL
+    // ==========================================
+
+    timeLabel: {
+      fontSize: moderateScale(13),
+
+      color: colors.textSecondary,
+
+      marginBottom: moderateScale(5),
+    },
+
+    // ==========================================
+    // TIME VALUE
+    // ==========================================
+
+    timeValue: {
+      fontSize: moderateScale(32),
+
+      fontWeight: '700',
+
+      color: colors.accent,
+    },
+
+    // ==========================================
+    // CHANGE
+    // ==========================================
+
+    editText: {
+      fontSize: moderateScale(13),
+
+      fontWeight: '600',
+
+      color: colors.accent,
+    },
+
+    // ==========================================
+    // PICKER
+    // ==========================================
+
+    pickerContainer: {
+      marginTop: moderateScale(20),
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      backgroundColor: colors.card,
+
+      borderRadius: moderateScale(18),
+
+      paddingVertical: moderateScale(15),
+
+      borderWidth: 1,
+
+      borderColor: colors.border,
+    },
+
+    // ==========================================
+    // INFO
+    // ==========================================
+
+    infoContainer: {
+      marginTop: moderateScale(25),
+
+      padding: moderateScale(15),
+
+      borderRadius: moderateScale(14),
+
+      backgroundColor: colors.card,
+
+      borderWidth: 1,
+
+      borderColor: colors.border,
+
+      flexDirection: 'row',
+
+      alignItems: 'flex-start',
+    },
+
+    infoIcon: {
+      fontSize: moderateScale(17),
+
+      color: colors.accent,
+
+      marginRight: moderateScale(10),
+    },
+
+    infoText: {
+      flex: 1,
+
+      fontSize: moderateScale(13),
+
+      lineHeight: moderateScale(19),
+
+      color: colors.textSecondary,
+    },
+
+    // ==========================================
+    // TIMEZONE
+    // ==========================================
+
+    timezoneContainer: {
+      marginTop: moderateScale(18),
+
+      paddingVertical: moderateScale(18),
+
+      paddingHorizontal: moderateScale(16),
+
+      borderBottomWidth: 1,
+
+      borderBottomColor: colors.border,
+
+      backgroundColor: colors.background,
+    },
+
+    timezoneTitle: {
+      fontSize: moderateScale(14),
+
+      fontWeight: '600',
+
+      color: colors.textPrimary,
+
+      marginBottom: moderateScale(5),
+    },
+
+    timezoneValue: {
+      fontSize: moderateScale(13),
+
+      color: colors.textSecondary,
+    },
+  });
+
+export default createStyles;

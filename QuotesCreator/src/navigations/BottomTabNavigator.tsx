@@ -21,7 +21,9 @@ import {RootState} from '@/redux/store';
 
 import {translations} from '@/language';
 
-import styles from './styles';
+import {THEME_COLORS} from '@/constants/Colors';
+
+import createStyles from './styles';
 
 const Tab = createBottomTabNavigator();
 
@@ -29,7 +31,6 @@ const CustomTabBar = ({
   state,
   navigation,
 }: BottomTabBarProps) => {
-
   // =====================================================
   // LANGUAGE
   // =====================================================
@@ -39,6 +40,18 @@ const CustomTabBar = ({
   );
 
   const t = translations[language].BOTTOM_TAB;
+
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // =====================================================
   // GET TAB LABEL
@@ -70,7 +83,6 @@ const CustomTabBar = ({
   return (
     <View style={styles.wrapper}>
       <View style={styles.tabBar}>
-
         {state.routes.map(route => {
           const isFocused =
             state.index ===
@@ -84,21 +96,17 @@ const CustomTabBar = ({
             return (
               <View
                 style={styles.centerButtonContainer}
-                key={route.key}
-              >
+                key={route.key}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   style={styles.addButton}
                   onPress={() => {
-                    navigation.navigate(
-                      'CreateQuote',
-                    );
-                  }}
-                >
+                    navigation.navigate('CreateQuote');
+                  }}>
                   <Ionicons
                     name="add"
                     size={32}
-                    color="#FFFFFF"
+                    color={colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -169,15 +177,14 @@ const CustomTabBar = ({
               key={route.key}
               activeOpacity={0.7}
               onPress={onPress}
-              style={styles.tabItem}
-            >
+              style={styles.tabItem}>
               <Ionicons
                 name={iconName}
                 size={23}
                 color={
                   isFocused
-                    ? '#6C2BD9'
-                    : '#8A8A8A'
+                    ? colors.accent
+                    : colors.iconSecondary
                 }
               />
 
@@ -186,11 +193,10 @@ const CustomTabBar = ({
                   styles.tabLabel,
                   {
                     color: isFocused
-                      ? '#6C2BD9'
-                      : '#8A8A8A',
+                      ? colors.accent
+                      : colors.iconSecondary,
                   },
-                ]}
-              >
+                ]}>
                 {label}
               </Text>
             </TouchableOpacity>
@@ -213,8 +219,7 @@ const BottomTabNavigator = () => {
       )}
       screenOptions={{
         headerShown: false,
-      }}
-    >
+      }}>
       <Tab.Screen
         name="Home"
         component={Screens.Home}

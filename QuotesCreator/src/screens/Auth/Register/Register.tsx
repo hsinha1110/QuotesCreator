@@ -22,19 +22,19 @@ import ImagePickerModal from '@/components/Modal/ImagePicker';
 import GoogleIcon from '@/assets/icons/GoogleIcon';
 import FacebookIcon from '@/assets/icons/FacebookIcon';
 
-import COLORS from '@/constants/Colors';
+import { THEME_COLORS } from '@/constants/Colors';
+
 import { moderateScale } from '@/styles/scaling';
 
 import { navigate } from '@/utils/NavigationUtils';
 import Routes from '@/navigations/Routes';
 
 import { AppDispatch, RootState } from '@/redux/store';
-
 import { registerAsyncThunk } from '@/redux/thunk/registerThunk';
 
 import { translations } from '@/language';
 
-import styles from './styles';
+import createStyles from './styles';
 
 const Register = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -52,6 +52,16 @@ const Register = () => {
   const language = useSelector((state: RootState) => state.language.language);
 
   const t = translations[language].SIGNUP;
+
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // =====================================================
   // FORM STATES
@@ -81,7 +91,7 @@ const Register = () => {
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [confirmPasswordError] = useState('');
 
   // =====================================================
   // CAMERA
@@ -152,7 +162,6 @@ const Register = () => {
     setNameError('');
     setEmailError('');
     setPasswordError('');
-    setConfirmPasswordError('');
 
     // ===================================================
     // NAME VALIDATION
@@ -192,10 +201,8 @@ const Register = () => {
     // ===================================================
 
     if (!confirmPassword.trim()) {
-      setConfirmPasswordError(t.CONFIRM_PASSWORD_REQUIRED);
       isValid = false;
     } else if (confirmPassword !== password) {
-      setConfirmPasswordError(t.PASSWORD_NOT_MATCH);
       isValid = false;
     }
 
@@ -209,7 +216,7 @@ const Register = () => {
 
     // ===================================================
     // REGISTER API
-    // ===================================================
+    // =====================================================
 
     try {
       const result = await dispatch(
@@ -286,7 +293,7 @@ const Register = () => {
                 <Ionicons
                   name="person"
                   size={moderateScale(48)}
-                  color={COLORS.accent}
+                  color={colors.accent}
                 />
               </View>
             )}
@@ -297,7 +304,7 @@ const Register = () => {
               <Ionicons
                 name="camera"
                 size={moderateScale(17)}
-                color={COLORS.white}
+                color={colors.white}
               />
             </View>
           </TouchableOpacity>
@@ -393,13 +400,8 @@ const Register = () => {
             value={confirmPassword}
             onChangeText={text => {
               setConfirmPassword(text);
-
-              if (confirmPasswordError) {
-                setConfirmPasswordError('');
-              }
             }}
             isPassword
-            error={confirmPasswordError}
           />
 
           {/* =====================================

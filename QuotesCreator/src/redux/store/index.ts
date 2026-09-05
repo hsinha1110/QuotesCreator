@@ -25,7 +25,7 @@ import favouritesReducer from '@/redux/slices/favouriteSlice';
 import profileReducer from '@/redux/slices/profileSlice';
 import recentReducer from '@/redux/slices/recentQuotesSlice';
 import languageReducer from '@/redux/slices/languageSlice';
-
+import themeReducer from '@/redux/slices/themeSlice';
 // =====================================================
 // AUTH PERSIST
 // =====================================================
@@ -60,29 +60,18 @@ const persistedLanguageReducer = persistReducer(
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
-
     notifications: notificationReducer,
-
     categories: categoriesReducer,
-
     latestQuotes: latestQuotesReducer,
-
     popularQuotes: popularReducer,
-
     deleteAccount: deleteAccountReducer,
-
     quotes: quotesReducer,
-
     subCategories: subCategoriesReducer,
-
     favourites: favouritesReducer,
-
     profile: profileReducer,
-
     recentQuotes: recentReducer,
-
-    // IMPORTANT
-    language: persistedLanguageReducer,
+    language: languageReducer,
+    theme:themeReducer
   },
 
   middleware: getDefaultMiddleware =>

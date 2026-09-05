@@ -1,12 +1,16 @@
 import { StyleSheet } from 'react-native';
 
 import { moderateScale } from '@/styles/scaling';
+
 import COLORS from '@/constants/Colors';
 
 const styles = StyleSheet.create({
+  // ==========================================
+  // CONTAINER
+  // ==========================================
+
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
 
   // ==========================================
@@ -15,13 +19,14 @@ const styles = StyleSheet.create({
 
   quoteCard: {
     width: '100%',
+
     padding: moderateScale(18),
+
     minHeight: moderateScale(60),
+
     marginBottom: moderateScale(12),
 
     borderRadius: moderateScale(18),
-
-    backgroundColor: COLORS.white,
 
     elevation: moderateScale(3),
 
@@ -33,6 +38,7 @@ const styles = StyleSheet.create({
     },
 
     shadowOpacity: 0.08,
+
     shadowRadius: moderateScale(5),
   },
 
@@ -42,8 +48,11 @@ const styles = StyleSheet.create({
 
   quoteIcon: {
     position: 'absolute',
+
     left: -10,
+
     width: moderateScale(28),
+
     height: moderateScale(28),
   },
 
@@ -53,22 +62,24 @@ const styles = StyleSheet.create({
 
   quoteText: {
     fontSize: moderateScale(16),
+
     lineHeight: moderateScale(20),
 
     fontWeight: '600',
 
-    color: COLORS.black,
-
     marginTop: moderateScale(40),
   },
 
+  // ==========================================
+  // DISPLAY TEXT
+  // ==========================================
+
   displayText: {
     fontSize: moderateScale(18),
+
     lineHeight: moderateScale(24),
 
     fontWeight: '700',
-
-    color: COLORS.black,
   },
 
   // ==========================================
@@ -79,8 +90,6 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(13),
 
     marginTop: moderateScale(12),
-
-    color: COLORS.black,
   },
 
   // ==========================================
@@ -91,16 +100,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
 
     justifyContent: 'flex-end',
+
     alignItems: 'center',
 
     marginTop: moderateScale(14),
   },
 
+  // ==========================================
+  // QUOTE LANGUAGE
+  // ==========================================
+
   quoteLanguage: {
     fontSize: moderateScale(11),
-
-    color: '#777',
   },
+
+  // ==========================================
+  // QUOTE STATS
+  // ==========================================
 
   quoteStats: {
     flexDirection: 'row',
@@ -108,10 +124,12 @@ const styles = StyleSheet.create({
     gap: moderateScale(12),
   },
 
+  // ==========================================
+  // STAT TEXT
+  // ==========================================
+
   statText: {
     fontSize: moderateScale(12),
-
-    color: COLORS.black,
   },
 
   // ==========================================
@@ -122,11 +140,12 @@ const styles = StyleSheet.create({
     flex: 1,
 
     alignItems: 'center',
+
     justifyContent: 'center',
   },
 
   // ==========================================
-  // BOTTOM PAGINATION LOADER
+  // FOOTER LOADER
   // ==========================================
 
   footerLoader: {
@@ -135,22 +154,29 @@ const styles = StyleSheet.create({
     minHeight: moderateScale(60),
 
     alignItems: 'center',
+
     justifyContent: 'center',
 
     paddingVertical: moderateScale(12),
   },
 
   // ==========================================
-  // EMPTY
+  // EMPTY LIST
   // ==========================================
+
   emptyListContainer: {
     flexGrow: 1,
   },
+
+  // ==========================================
+  // EMPTY
+  // ==========================================
 
   emptyContainer: {
     flexGrow: 1,
 
     alignItems: 'center',
+
     justifyContent: 'center',
 
     paddingTop: moderateScale(100),
@@ -158,24 +184,39 @@ const styles = StyleSheet.create({
 
   emptyText: {
     fontSize: moderateScale(15),
-
-    color: '#777',
   },
+
+  // ==========================================
+  // LIST
+  // ==========================================
+
   listContainer: {
     paddingHorizontal: moderateScale(16),
+
     paddingTop: moderateScale(16),
+
     paddingBottom: moderateScale(30),
   },
 
   quoteList: {
     paddingHorizontal: moderateScale(16),
+
     paddingTop: moderateScale(16),
+
     paddingBottom: moderateScale(50),
   },
+
+  // ==========================================
+  // SEPARATOR
+  // ==========================================
 
   quoteSeparator: {
     height: moderateScale(12),
   },
+
+  // ==========================================
+  // PRESSABLE
+  // ==========================================
 
   quotePressable: {
     width: '100%',

@@ -1,37 +1,79 @@
 import { StyleSheet } from 'react-native';
+
 import { moderateScale } from '@/styles/scaling';
-import COLORS from '@/constants/Colors';
+import { ThemeColors } from '@/constants/Colors';
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
-  categoryList: {
-    paddingHorizontal: moderateScale(16),
-    paddingTop: moderateScale(12),
-    paddingBottom: moderateScale(30),
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // =====================================================
+    // CONTAINER
+    // =====================================================
 
-  categoryItem: {
-    width: '100%',
-  },
+    container: {
+      flex: 1,
 
-  categorySeparator: {
-    height: moderateScale(12),
-  },
+      backgroundColor: colors.background,
+    },
 
-  footerLoader: {
-    height: moderateScale(70),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    // =====================================================
+    // CATEGORY LIST
+    // =====================================================
 
-  footerSpace: {
-    height: moderateScale(30),
-  },
+    categoryList: {
+      paddingHorizontal: moderateScale(16),
 
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-export default styles;
+      paddingTop: moderateScale(12),
+
+      paddingBottom: moderateScale(30),
+    },
+
+    // =====================================================
+    // CATEGORY ITEM
+    // =====================================================
+
+    categoryItem: {
+      width: '100%',
+    },
+
+    // =====================================================
+    // SEPARATOR
+    // =====================================================
+
+    categorySeparator: {
+      height: moderateScale(12),
+    },
+
+    // =====================================================
+    // FOOTER LOADER
+    // =====================================================
+
+    footerLoader: {
+      height: moderateScale(70),
+
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    // =====================================================
+    // FOOTER SPACE
+    // =====================================================
+
+    footerSpace: {
+      height: moderateScale(30),
+    },
+
+    // =====================================================
+    // LOADING
+    // =====================================================
+
+    loadingContainer: {
+      flex: 1,
+
+      alignItems: 'center',
+      justifyContent: 'center',
+
+      backgroundColor: colors.background,
+    },
+  });
+
+export default createStyles;

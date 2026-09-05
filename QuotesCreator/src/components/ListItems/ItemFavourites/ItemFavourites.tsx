@@ -1,29 +1,70 @@
 import React from 'react';
-import { View, Text, Image } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { ItemFavouritesProps } from '@/types';
-import { AppDispatch } from '@/redux/store';
-import { toggleFavourite } from '@/redux/slices/favouriteSlice';
-import IMAGES from '@/assets/images';
-import QuoteActions from '@/components/QuotesActions/QuotesActions';
-import styles from './styles';
+import {View, Text, Image} from 'react-native';
+import {useDispatch, useSelector} from 'react-redux';
 
-const ItemFavourites = ({ item, onShare }: ItemFavouritesProps) => {
+import {ItemFavouritesProps} from '@/types';
+import {AppDispatch, RootState} from '@/redux/store';
+
+import {toggleFavourite} from '@/redux/slices/favouriteSlice';
+
+import IMAGES from '@/assets/images';
+
+import QuoteActions from '@/components/QuotesActions/QuotesActions';
+
+import {THEME_COLORS} from '@/constants/Colors';
+
+import createStyles from './styles';
+
+const ItemFavourites = ({
+  item,
+  onShare,
+}: ItemFavouritesProps) => {
   const dispatch = useDispatch<AppDispatch>();
+
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
+  // =====================================================
+  // REMOVE FAVOURITE
+  // =====================================================
 
   const handleRemoveFavourite = () => {
     dispatch(toggleFavourite(item));
   };
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <View style={styles.card}>
+      {/* QUOTE ICON */}
+
       <View style={styles.quoteIconContainer}>
-        <Image source={IMAGES.QUOTES} style={styles.quoteIcon} />
+        <Image
+          source={IMAGES.QUOTES}
+          style={styles.quoteIcon}
+        />
       </View>
 
-      <Text style={styles.quoteText} numberOfLines={4}>
+      {/* QUOTE */}
+
+      <Text
+        style={styles.quoteText}
+        numberOfLines={4}>
         {item.text}
       </Text>
+
+      {/* ACTIONS */}
 
       <View style={styles.actions}>
         <QuoteActions

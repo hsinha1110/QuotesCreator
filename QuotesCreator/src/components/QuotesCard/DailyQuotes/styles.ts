@@ -1,95 +1,96 @@
 import { StyleSheet } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 
-import COLORS from '@/constants/Colors';
+import { ThemeColors } from '@/constants/Colors';
 
-const styles = StyleSheet.create({
-  card: {
-    width: '100%',
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      width: '100%',
 
-    paddingHorizontal: moderateScale(18),
-    paddingTop: moderateScale(14),
-    paddingBottom: moderateScale(14),
+      paddingHorizontal: moderateScale(18),
+      paddingTop: moderateScale(14),
+      paddingBottom: moderateScale(14),
 
-    borderRadius: moderateScale(20),
+      borderRadius: moderateScale(20),
 
-    backgroundColor: COLORS.light_grey,
+      backgroundColor: colors.card,
 
-    elevation: moderateScale(3),
+      elevation: moderateScale(3),
 
-    shadowOffset: {
-      width: 0,
-      height: moderateScale(2),
+      shadowOffset: {
+        width: 0,
+        height: moderateScale(2),
+      },
+
+      shadowOpacity: 0.1,
+      shadowRadius: moderateScale(4),
     },
 
-    shadowOpacity: 0.1,
-    shadowRadius: moderateScale(4),
-  },
+    quoteIcon: {
+      width: moderateScale(42),
+      height: moderateScale(42),
 
-  quoteIcon: {
-    width: moderateScale(42),
-    height: moderateScale(42),
+      resizeMode: 'contain',
 
-    resizeMode: 'contain',
+      marginBottom: moderateScale(6),
+    },
 
-    marginBottom: moderateScale(6),
-  },
+    content: {
+      paddingHorizontal: moderateScale(2),
+    },
 
-  content: {
-    paddingHorizontal: moderateScale(2),
-  },
+    title: {
+      fontSize: moderateScale(17),
+      lineHeight: moderateScale(23),
 
-  title: {
-    fontSize: moderateScale(17),
-    lineHeight: moderateScale(23),
+      fontWeight: '700',
 
-    fontWeight: '700',
+      color: colors.textPrimary,
+    },
 
-    color: COLORS.black,
-  },
+    body: {
+      marginTop: moderateScale(5),
 
-  body: {
-    marginTop: moderateScale(5),
+      fontSize: moderateScale(14),
+      lineHeight: moderateScale(21),
 
-    fontSize: moderateScale(14),
-    lineHeight: moderateScale(21),
+      color: colors.textPrimary,
+    },
 
-    color: COLORS.black,
-  },
+    bottomRow: {
+      flexDirection: 'row',
 
-  bottomRow: {
-    flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
 
-    alignItems: 'center',
-    justifyContent: 'space-between',
+      marginTop: moderateScale(12),
+    },
 
-    marginTop: moderateScale(12),
-  },
+    date: {
+      flex: 1,
 
-  date: {
-    flex: 1,
+      fontSize: moderateScale(10),
+      lineHeight: moderateScale(14),
 
-    fontSize: moderateScale(10),
-    lineHeight: moderateScale(14),
+      color: colors.textSecondary,
+    },
 
-    color: COLORS.grey,
-  },
+    actions: {
+      flexDirection: 'row',
 
-  actions: {
-    flexDirection: 'row',
+      alignItems: 'center',
 
-    alignItems: 'center',
+      gap: moderateScale(8),
+    },
 
-    gap: moderateScale(8),
-  },
+    actionButton: {
+      width: moderateScale(32),
+      height: moderateScale(32),
 
-  actionButton: {
-    width: moderateScale(32),
-    height: moderateScale(32),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
-export default styles;
+export default createStyles;

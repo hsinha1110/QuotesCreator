@@ -1,12 +1,22 @@
-import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, Pressable } from 'react-native';
+import React, {useRef} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+} from 'react-native';
+
+import {useSelector} from 'react-redux';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { moderateScale } from 'react-native-size-matters';
+import {moderateScale} from 'react-native-size-matters';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import moment from 'moment';
 
-import COLORS from '@/constants/Colors';
-import styles from './styles';
+import {RootState} from '@/redux/store';
+import {THEME_COLORS} from '@/constants/Colors';
+
+import createStyles from './styles';
 
 export interface NotificationItem {
   _id: string;
@@ -29,6 +39,22 @@ const ItemNotifications = ({
 }: ItemNotificationsProps) => {
   const swipeableRef = useRef<any>(null);
 
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
+  // =====================================================
+  // CARD PRESS
+  // =====================================================
+
   const handleCardPress = () => {
     // Close swipe action before navigation
     swipeableRef.current?.close();
@@ -36,6 +62,10 @@ const ItemNotifications = ({
     // Send notification ID to parent
     onPress(item._id);
   };
+
+  // =====================================================
+  // DELETE
+  // =====================================================
 
   const handleDelete = () => {
     // Close swipe action
@@ -45,23 +75,32 @@ const ItemNotifications = ({
     onDelete(item._id);
   };
 
+  // =====================================================
+  // RIGHT ACTION
+  // =====================================================
+
   const renderRightActions = () => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
         style={styles.deleteAction}
-        onPress={handleDelete}
-      >
+        onPress={handleDelete}>
         <Ionicons
           name="trash-outline"
           size={moderateScale(22)}
-          color={COLORS.white}
+          color={colors.white}
         />
 
-        <Text style={styles.deleteActionText}>Delete</Text>
+        <Text style={styles.deleteActionText}>
+          Delete
+        </Text>
       </TouchableOpacity>
     );
   };
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
     <Swipeable
@@ -69,60 +108,83 @@ const ItemNotifications = ({
       friction={2}
       overshootRight={false}
       rightThreshold={40}
-      renderRightActions={renderRightActions}
-    >
+      renderRightActions={renderRightActions}>
       <Pressable
         style={[
           styles.notificationCard,
-          !item.isRead && styles.unreadNotificationCard,
+          !item.isRead &&
+            styles.unreadNotificationCard,
         ]}
-        onPress={handleCardPress}
-      >
-        {/* UNREAD DOT */}
+        onPress={handleCardPress}>
+        
+        {/* ==========================================
+            UNREAD DOT
+        ========================================== */}
+
         <View style={styles.dotContainer}>
-          {!item.isRead && <View style={styles.unreadDot} />}
+          {!item.isRead && (
+            <View style={styles.unreadDot} />
+          )}
         </View>
 
-        {/* BELL ICON */}
+        {/* ==========================================
+            BELL ICON
+        ========================================== */}
+
         <View style={styles.iconContainer}>
           <Ionicons
             name="notifications"
             size={moderateScale(18)}
-            color={COLORS.accent}
+            color={colors.accent}
           />
         </View>
 
-        {/* CONTENT */}
+        {/* ==========================================
+            CONTENT
+        ========================================== */}
+
         <View style={styles.contentContainer}>
+          {/* TITLE ROW */}
+
           <View style={styles.titleRow}>
             <Text
               style={[
                 styles.notificationTitle,
-                !item.isRead && styles.unreadTitle,
+                !item.isRead &&
+                  styles.unreadTitle,
               ]}
-              numberOfLines={1}
-            >
+              numberOfLines={1}>
               {item.title}
             </Text>
 
             <Text style={styles.timeText}>
-              {moment(item.createdAt).format('h:mm A')}
+              {moment(item.createdAt).format(
+                'h:mm A',
+              )}
             </Text>
           </View>
 
+          {/* MESSAGE */}
+
           <Text
-            style={[styles.messageText, !item.isRead && styles.unreadMessage]}
-            numberOfLines={2}
-          >
+            style={[
+              styles.messageText,
+              !item.isRead &&
+                styles.unreadMessage,
+            ]}
+            numberOfLines={2}>
             {item.body}
           </Text>
         </View>
 
-        {/* ARROW */}
+        {/* ==========================================
+            ARROW
+        ========================================== */}
+
         <Ionicons
           name="chevron-forward"
           size={moderateScale(18)}
-          color={COLORS.black}
+          color={colors.iconSecondary}
         />
       </Pressable>
     </Swipeable>

@@ -42,6 +42,8 @@ import { BottomTabParamList, DrawerParamList } from '@/navigations/types';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import ItemPopular from '@/components/ListItems/ItemPopular/ItemPopular';
+import { THEME_COLORS } from '@/constants/Colors';
+import createStyles from './styles';
 
 const Home = () => {
   const dispatch = useAppDispatch<AppDispatch>();
@@ -60,7 +62,11 @@ const Home = () => {
   // =====================================================
 
   const language = useSelector((state: RootState) => state.language.language);
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
 
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
   const isHindi = language === 'Hindi';
 
   // =====================================================

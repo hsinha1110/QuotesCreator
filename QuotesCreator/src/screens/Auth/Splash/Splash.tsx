@@ -1,12 +1,22 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, StyleSheet, Text, View } from 'react-native';
+import { Animated, Image, Text, View } from 'react-native';
 
 import IMAGES from '@/assets/images';
 import Routes from '@/navigations/Routes';
 import { en } from '@/language';
-import styles from './styles';
+
+import createStyles from './styles';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
+import { COLORS, THEME_COLORS } from '@/constants/Colors';
+
 const Splash = ({ navigation }: any) => {
   const activeDot = useRef(new Animated.Value(0)).current;
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+  const styles = createStyles(colors);
+
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
@@ -15,13 +25,11 @@ const Splash = ({ navigation }: any) => {
           duration: 500,
           useNativeDriver: true,
         }),
-
         Animated.timing(activeDot, {
           toValue: 2,
           duration: 500,
           useNativeDriver: true,
         }),
-
         Animated.timing(activeDot, {
           toValue: 0,
           duration: 500,
@@ -37,7 +45,6 @@ const Splash = ({ navigation }: any) => {
     };
   }, [activeDot]);
 
-  // Splash ke baad onboarding
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace(Routes.LOGIN);
@@ -48,10 +55,8 @@ const Splash = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
       <Image source={IMAGES.LOGO} style={styles.logo} resizeMode="contain" />
 
-      {/* App Name */}
       <Text style={styles.title}>
         Quote<Text style={styles.highlight}>Creator</Text>
       </Text>

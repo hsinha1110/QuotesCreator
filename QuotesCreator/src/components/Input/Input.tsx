@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useSelector } from 'react-redux';
 
 import { InputComponentProps } from '@/types';
-import styles from './styles';
+import { RootState } from '@/redux/store';
+import { THEME_COLORS } from '@/constants/Colors';
+
+import createStyles from './styles';
 
 const Input = ({
   leftIcon,
@@ -13,6 +17,13 @@ const Input = ({
   ...props
 }: InputComponentProps) => {
   const [showPassword, setShowPassword] = useState(false);
+
+  // Theme
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.wrapper}>
@@ -23,7 +34,7 @@ const Input = ({
           <Ionicons
             name={leftIcon}
             size={21}
-            color={error ? '#E53935' : '#777777'}
+            color={error ? colors.red : colors.iconSecondary}
             style={styles.leftIcon}
           />
         ) : null}
@@ -32,7 +43,7 @@ const Input = ({
         <TextInput
           {...props}
           style={styles.input}
-          placeholderTextColor="#999999"
+          placeholderTextColor={colors.placeholder}
           secureTextEntry={isPassword && !showPassword}
         />
 
@@ -46,7 +57,7 @@ const Input = ({
             <Ionicons
               name={showPassword ? 'eye-outline' : 'eye-off-outline'}
               size={22}
-              color={error ? '#E53935' : '#777777'}
+              color={error ? colors.red : colors.iconSecondary}
             />
           </TouchableOpacity>
         ) : null}
@@ -55,7 +66,7 @@ const Input = ({
       {/* Error */}
       {error ? (
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={15} color="#E53935" />
+          <Ionicons name="alert-circle-outline" size={15} color={colors.red} />
 
           <Text style={styles.errorText}>{error}</Text>
         </View>

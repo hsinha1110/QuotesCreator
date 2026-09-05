@@ -1,15 +1,16 @@
 import React from 'react';
-import { Modal, Text, TouchableOpacity, View } from 'react-native';
+import {Modal, Text, TouchableOpacity, View} from 'react-native';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 
-import { ImagePickerModalProps } from '@/types';
-import { RootState } from '@/redux/store';
-import { translations } from '@/language';
+import {ImagePickerModalProps} from '@/types';
+import {RootState} from '@/redux/store';
+import {translations} from '@/language';
+import {THEME_COLORS} from '@/constants/Colors';
 
-import styles from './styles';
+import createStyles from './styles';
 
 const ImagePickerModal = ({
   visible,
@@ -24,6 +25,16 @@ const ImagePickerModal = ({
   const language = useSelector((state: RootState) => state.language.language);
 
   const t = translations[language].IMAGE_PICKER;
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // ==========================================
   // UI
@@ -71,7 +82,7 @@ const ImagePickerModal = ({
               <Ionicons
                 name="camera-outline"
                 size={24}
-                color={styles.icon.color}
+                color={colors.accent}
               />
             </View>
 
@@ -86,7 +97,7 @@ const ImagePickerModal = ({
             <Ionicons
               name="chevron-forward"
               size={20}
-              color={styles.arrow.color}
+              color={colors.textSecondary}
             />
           </TouchableOpacity>
 
@@ -103,12 +114,14 @@ const ImagePickerModal = ({
               <Ionicons
                 name="images-outline"
                 size={24}
-                color={styles.icon.color}
+                color={colors.accent}
               />
             </View>
 
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>{t.CHOOSE_FROM_GALLERY}</Text>
+              <Text style={styles.optionTitle}>
+                {t.CHOOSE_FROM_GALLERY}
+              </Text>
 
               <Text style={styles.optionSubtitle}>
                 {t.CHOOSE_FROM_GALLERY_DESCRIPTION}
@@ -118,7 +131,7 @@ const ImagePickerModal = ({
             <Ionicons
               name="chevron-forward"
               size={20}
-              color={styles.arrow.color}
+              color={colors.textSecondary}
             />
           </TouchableOpacity>
 

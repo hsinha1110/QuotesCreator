@@ -315,7 +315,6 @@ const hi = {
   },
   SETTINGS: {
     TITLE: 'सेटिंग्स',
-
     PREFERENCES: 'प्राथमिकताएं',
 
     LANGUAGE: 'भाषा',
@@ -326,6 +325,7 @@ const hi = {
     THEME: 'थीम',
     THEME_SUBTITLE: 'ऐप का स्वरूप अनुकूलित करें',
     LIGHT: 'लाइट',
+    DARK: 'डार्क',
 
     FONT_SIZE: 'फ़ॉन्ट आकार',
     FONT_SIZE_SUBTITLE: 'टेक्स्ट का आकार समायोजित करें',
@@ -338,27 +338,20 @@ const hi = {
     NOTIFICATION_SETTINGS_SUBTITLE: 'पुश सूचनाएं प्रबंधित करें',
 
     ACCOUNT: 'अकाउंट',
-
     EDIT_PROFILE: 'प्रोफ़ाइल संपादित करें',
     EDIT_PROFILE_SUBTITLE: 'अपनी प्रोफ़ाइल जानकारी अपडेट करें',
-
     CHANGE_PASSWORD: 'पासवर्ड बदलें',
     CHANGE_PASSWORD_SUBTITLE: 'अपने अकाउंट का पासवर्ड अपडेट करें',
-
     PRIVACY: 'गोपनीयता',
     PRIVACY_SUBTITLE: 'अपनी गोपनीयता सेटिंग्स प्रबंधित करें',
-
     DATA_STORAGE: 'डेटा और स्टोरेज',
     DATA_STORAGE_SUBTITLE: 'कैश और डाउनलोड प्रबंधित करें',
 
     SUPPORT: 'सहायता',
-
     HELP_SUPPORT: 'मदद और सहायता',
     HELP_SUPPORT_SUBTITLE: 'अक्सर पूछे जाने वाले प्रश्न और सहायता',
-
     RATE_US: 'हमें रेट करें',
     RATE_US_SUBTITLE: 'अपना फीडबैक साझा करें',
-
     ABOUT_APP: 'ऐप के बारे में',
     VERSION: 'संस्करण 1.0.0',
 

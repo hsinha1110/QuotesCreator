@@ -16,7 +16,7 @@ import {
   NavigationState,
   PartialState,
 } from '@react-navigation/native';
-
+import { moderateScale } from '@/styles/scaling';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 
@@ -27,7 +27,7 @@ import { useAuth } from '@/context/AuthContext';
 
 import { CustomDrawerProps, MenuItemProps } from '@/types';
 
-import COLORS from '@/constants/Colors';
+import { THEME_COLORS, ThemeColors } from '@/constants/Colors';
 import { translations } from '@/language';
 
 const { width, height } = Dimensions.get('window');
@@ -100,6 +100,16 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   const language = useSelector((state: RootState) => state.language.language);
 
   const t = translations[language].DRAWER;
+
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // =====================================================
   // NOTIFICATIONS
@@ -256,7 +266,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           <Ionicons
             name={icon}
             size={20}
-            color={isActive ? COLORS.accent : COLORS.black}
+            color={isActive ? colors.accent : colors.textPrimary}
           />
         </View>
 
@@ -273,7 +283,11 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
             <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
           </View>
         ) : (
-          <Ionicons name="chevron-forward" size={16} color={COLORS.white} />
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color={colors.iconSecondary}
+          />
         )}
       </TouchableOpacity>
     );
@@ -317,7 +331,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
 
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Ionicons name="sparkles" size={22} color={COLORS.white} />
+            <Ionicons name="sparkles" size={22} color={colors.white} />
           </View>
 
           <View style={styles.headerContent}>
@@ -327,7 +341,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           </View>
 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={21} color={COLORS.black} />
+            <Ionicons name="close" size={21} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
@@ -382,7 +396,11 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
             </Text>
           </View>
 
-          <Ionicons name="chevron-forward" size={17} color="#9D98A6" />
+          <Ionicons
+            name="chevron-forward"
+            size={17}
+            color={colors.iconSecondary}
+          />
         </TouchableOpacity>
 
         {/* ================================================= */}
@@ -489,7 +507,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           onPress={handleLogout}
         >
           <View style={styles.logoutIconBox}>
-            <Ionicons name="log-out-outline" size={20} color="#E53935" />
+            <Ionicons name="log-out-outline" size={20} color={colors.red} />
           </View>
 
           <Text style={styles.logoutText}>{t.LOGOUT}</Text>
@@ -507,288 +525,355 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
 // STYLES
 // =====================================================
 
-const styles = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 9999,
-    elevation: 9999,
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // ==========================================
+    // OVERLAY
+    // ==========================================
 
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: 'rgba(0,0,0,0.42)',
-  },
+    overlay: {
+      position: 'absolute',
 
-  drawer: {
-    width: DRAWER_WIDTH,
-    height,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
 
-    backgroundColor: '#FFFFFF',
-
-    paddingTop: 48,
-    paddingHorizontal: 18,
-
-    shadowColor: '#000',
-
-    shadowOffset: {
-      width: 5,
-      height: 0,
+      zIndex: 9999,
+      elevation: 9999,
     },
 
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
+    backdrop: {
+      position: 'absolute',
 
-    elevation: 20,
-  },
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 22,
-  },
+      backgroundColor: 'rgba(0,0,0,0.42)',
+    },
 
-  logoBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
+    // ==========================================
+    // DRAWER
+    // ==========================================
 
-    backgroundColor: '#6C2BD9',
+    drawer: {
+      width: DRAWER_WIDTH,
+      height,
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      backgroundColor: colors.background,
 
-  headerContent: {
-    flex: 1,
-    marginLeft: 11,
-  },
+      paddingTop: moderateScale(48),
+      paddingHorizontal: moderateScale(18),
 
-  appName: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#17141D',
-  },
+      shadowColor: '#000',
 
-  appSubtitle: {
-    marginTop: 2,
-    fontSize: 10,
-    color: '#8D8796',
-  },
+      shadowOffset: {
+        width: moderateScale(5),
+        height: 0,
+      },
 
-  closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+      shadowOpacity: 0.2,
+      shadowRadius: moderateScale(12),
 
-    backgroundColor: '#F5F2FA',
+      elevation: 20,
+    },
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    // ==========================================
+    // HEADER
+    // ==========================================
 
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    padding: 11,
+      marginBottom: moderateScale(22),
+    },
 
-    borderRadius: 16,
+    logoBox: {
+      width: moderateScale(42),
+      height: moderateScale(42),
 
-    backgroundColor: '#F7F3FC',
+      borderRadius: moderateScale(13),
 
-    marginBottom: 20,
-  },
+      backgroundColor: colors.accent,
 
-  profileImage: {
-    width: 46,
-    height: 46,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-    borderRadius: 23,
+    headerContent: {
+      flex: 1,
 
-    backgroundColor: '#E7D8FA',
-  },
+      marginLeft: moderateScale(11),
+    },
 
-  profilePlaceholder: {
-    width: 46,
-    height: 46,
+    appName: {
+      fontSize: moderateScale(17),
+      fontWeight: '800',
 
-    borderRadius: 23,
+      color: colors.textPrimary,
+    },
 
-    backgroundColor: '#E7D8FA',
+    appSubtitle: {
+      marginTop: moderateScale(2),
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      fontSize: moderateScale(10),
 
-  profileLetter: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: '#6C2BD9',
-  },
+      color: colors.textSecondary,
+    },
 
-  profileContent: {
-    flex: 1,
+    closeButton: {
+      width: moderateScale(34),
+      height: moderateScale(34),
 
-    marginLeft: 11,
-    marginRight: 8,
-  },
+      borderRadius: moderateScale(17),
 
-  profileName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1C1922',
-  },
+      backgroundColor: colors.light_grey,
 
-  profileEmail: {
-    fontSize: 10,
-    color: '#898391',
-    marginTop: 3,
-  },
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  sectionTitle: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#A19BAA',
+    // ==========================================
+    // PROFILE
+    // ==========================================
 
-    letterSpacing: 1,
+    profileCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    marginLeft: 5,
-    marginBottom: 7,
-    marginTop: 2,
-  },
+      padding: moderateScale(11),
 
-  menuItem: {
-    height: 46,
+      borderRadius: moderateScale(16),
 
-    flexDirection: 'row',
-    alignItems: 'center',
+      backgroundColor: colors.light_grey,
 
-    paddingHorizontal: 6,
+      marginBottom: moderateScale(20),
+    },
 
-    borderRadius: 12,
+    profileImage: {
+      width: moderateScale(46),
+      height: moderateScale(46),
 
-    marginBottom: 3,
-  },
+      borderRadius: moderateScale(23),
 
-  activeMenuItem: {
-    backgroundColor: '#F1E9FC',
-  },
+      backgroundColor: colors.light_grey,
+    },
 
-  iconBox: {
-    width: 36,
-    height: 36,
+    profilePlaceholder: {
+      width: moderateScale(46),
+      height: moderateScale(46),
 
-    borderRadius: 10,
+      borderRadius: moderateScale(23),
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      backgroundColor: colors.light_grey,
 
-  activeIconBox: {
-    backgroundColor: '#E9D9FA',
-  },
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  menuText: {
-    flex: 1,
+    profileLetter: {
+      fontSize: moderateScale(19),
+      fontWeight: '800',
 
-    marginLeft: 10,
+      color: colors.accent,
+    },
 
-    fontSize: 13,
-    fontWeight: '600',
+    profileContent: {
+      flex: 1,
 
-    color: '#302C37',
-  },
+      marginLeft: moderateScale(11),
+      marginRight: moderateScale(8),
+    },
 
-  activeMenuText: {
-    color: '#6C2BD9',
-    fontWeight: '700',
-  },
+    profileName: {
+      fontSize: moderateScale(14),
+      fontWeight: '700',
 
-  badge: {
-    minWidth: 22,
-    height: 22,
+      color: colors.textPrimary,
+    },
 
-    paddingHorizontal: 6,
+    profileEmail: {
+      fontSize: moderateScale(10),
 
-    borderRadius: 11,
+      color: colors.textSecondary,
 
-    backgroundColor: COLORS.red,
+      marginTop: moderateScale(3),
+    },
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    // ==========================================
+    // SECTION TITLE
+    // ==========================================
 
-  badgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
+    sectionTitle: {
+      fontSize: moderateScale(9),
 
-  divider: {
-    height: 1,
+      fontWeight: '800',
 
-    backgroundColor: '#ECE9F0',
+      color: colors.textSecondary,
 
-    marginVertical: 10,
-  },
+      letterSpacing: 1,
 
-  spacer: {
-    flex: 1,
-  },
+      marginLeft: moderateScale(5),
+      marginBottom: moderateScale(7),
+      marginTop: moderateScale(2),
 
-  logoutButton: {
-    height: 48,
+      textTransform: 'uppercase',
+    },
 
-    borderRadius: 13,
+    // ==========================================
+    // MENU ITEM
+    // ==========================================
 
-    backgroundColor: '#FFF1F1',
+    menuItem: {
+      height: moderateScale(46),
 
-    flexDirection: 'row',
-    alignItems: 'center',
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    paddingHorizontal: 9,
+      paddingHorizontal: moderateScale(6),
 
-    marginBottom: 10,
-  },
+      borderRadius: moderateScale(12),
 
-  logoutIconBox: {
-    width: 36,
-    height: 36,
+      marginBottom: moderateScale(3),
+    },
 
-    borderRadius: 10,
+    activeMenuItem: {
+      backgroundColor: colors.light_grey,
+    },
 
-    backgroundColor: '#FFE1E1',
+    iconBox: {
+      width: moderateScale(36),
+      height: moderateScale(36),
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      borderRadius: moderateScale(10),
 
-  logoutText: {
-    marginLeft: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-    fontSize: 14,
-    fontWeight: '700',
+    activeIconBox: {
+      backgroundColor: colors.light_grey,
+    },
 
-    color: '#E53935',
-  },
+    menuText: {
+      flex: 1,
 
-  version: {
-    textAlign: 'center',
+      marginLeft: moderateScale(10),
 
-    fontSize: 9,
+      fontSize: moderateScale(13),
+      fontWeight: '600',
 
-    color: '#AAA5B0',
+      color: colors.textPrimary,
+    },
 
-    marginBottom: 12,
-  },
-});
+    activeMenuText: {
+      color: colors.accent,
+
+      fontWeight: '700',
+    },
+
+    // ==========================================
+    // BADGE
+    // ==========================================
+
+    badge: {
+      minWidth: moderateScale(22),
+      height: moderateScale(22),
+
+      paddingHorizontal: moderateScale(6),
+
+      borderRadius: moderateScale(11),
+
+      backgroundColor: colors.red,
+
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    badgeText: {
+      fontSize: moderateScale(9),
+
+      fontWeight: '800',
+
+      color: colors.white,
+    },
+
+    // ==========================================
+    // DIVIDER
+    // ==========================================
+
+    divider: {
+      height: 1,
+
+      backgroundColor: colors.border,
+
+      marginVertical: moderateScale(10),
+    },
+
+    // ==========================================
+    // SPACER
+    // ==========================================
+
+    spacer: {
+      flex: 1,
+    },
+
+    // ==========================================
+    // LOGOUT
+    // ==========================================
+
+    logoutButton: {
+      height: moderateScale(48),
+
+      borderRadius: moderateScale(13),
+
+      backgroundColor: colors.light_grey,
+
+      flexDirection: 'row',
+      alignItems: 'center',
+
+      paddingHorizontal: moderateScale(9),
+
+      marginBottom: moderateScale(10),
+    },
+
+    logoutIconBox: {
+      width: moderateScale(36),
+      height: moderateScale(36),
+
+      borderRadius: moderateScale(10),
+
+      backgroundColor: colors.light_grey,
+
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    logoutText: {
+      marginLeft: moderateScale(11),
+
+      fontSize: moderateScale(14),
+      fontWeight: '700',
+
+      color: colors.red,
+    },
+
+    // ==========================================
+    // VERSION
+    // ==========================================
+
+    version: {
+      textAlign: 'center',
+
+      fontSize: moderateScale(9),
+
+      color: colors.textSecondary,
+
+      marginBottom: moderateScale(12),
+    },
+  });
 
 export default CustomDrawer;

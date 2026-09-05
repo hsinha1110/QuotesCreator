@@ -1,73 +1,74 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import {moderateScale} from '@/styles/scaling';
-import COLORS from '@/constants/Colors';
+import { moderateScale } from '@/styles/scaling';
+import { ThemeColors } from '@/constants/Colors';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: moderateScale(24),
-  },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: moderateScale(24),
+    },
 
-  header: {
-    alignItems: 'center',
-    marginBottom: moderateScale(26),
-  },
+    header: {
+      alignItems: 'center',
+      marginBottom: moderateScale(26),
+    },
 
-  title: {
-    fontSize: moderateScale(25),
-    fontWeight: '800',
-    color: COLORS.black,
-    marginBottom: moderateScale(6),
-    textAlign: 'center',
-  },
+    title: {
+      fontSize: moderateScale(25),
+      fontWeight: '800',
+      color: colors.textPrimary,
+      marginBottom: moderateScale(6),
+      textAlign: 'center',
+    },
 
-  subtitle: {
-    fontSize: moderateScale(13),
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-  },
+    subtitle: {
+      fontSize: moderateScale(13),
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
 
-  forgotButton: {
-    alignSelf: 'flex-end',
-    marginTop: moderateScale(-4),
-    marginBottom: moderateScale(24),
-  },
+    forgotButton: {
+      alignSelf: 'flex-end',
+      marginTop: moderateScale(-4),
+      marginBottom: moderateScale(24),
+    },
 
-  forgotText: {
-    fontSize: moderateScale(13),
-    fontWeight: '700',
-    color: COLORS.accent,
-  },
+    forgotText: {
+      fontSize: moderateScale(13),
+      fontWeight: '700',
+      color: colors.accent,
+    },
 
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: moderateScale(20),
-  },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: moderateScale(20),
+    },
 
-  divider: {
-    flex: 1,
-    height: moderateScale(1),
-    backgroundColor: '#E8E2F5',
-  },
+    divider: {
+      flex: 1,
+      height: moderateScale(1),
+      backgroundColor: colors.border,
+    },
 
-  dividerText: {
-    marginHorizontal: moderateScale(12),
-    fontSize: moderateScale(12),
-    color: COLORS.black,
-  },
+    dividerText: {
+      marginHorizontal: moderateScale(12),
+      fontSize: moderateScale(12),
+      color: colors.textSecondary,
+    },
 
-  socialContainer: {
-    flexDirection: 'row',
-    gap: moderateScale(12),
-  },
-});
+    socialContainer: {
+      flexDirection: 'row',
+      gap: moderateScale(12),
+    },
+  });
 
-export default styles;
+export default createStyles;

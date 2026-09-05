@@ -28,6 +28,8 @@ import { RegisterDeviceData } from '@/types';
 import { request, RESULTS } from 'react-native-permissions';
 
 import { getMessaging, getToken } from '@react-native-firebase/messaging';
+import { THEME_COLORS } from '@/constants/Colors';
+import createStyles from './styles';
 
 const Login = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -45,7 +47,11 @@ const Login = () => {
   // =====================================================
   // LOCALIZED TEXT
   // =====================================================
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
 
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
   const loginText = {
     title: isHindi ? 'वापसी पर स्वागत है! 👋' : 'Welcome Back! 👋',
 

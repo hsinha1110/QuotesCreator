@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,17 +8,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useDispatch, useSelector} from 'react-redux';
 
 import Header from '@/components/Header/Header';
-import { goBack } from '@/utils/NavigationUtils';
-import { AppDispatch, RootState } from '@/redux/store';
+import {goBack} from '@/utils/NavigationUtils';
+import {AppDispatch, RootState} from '@/redux/store';
 
-import { createQuoteThunk } from '@/redux/thunk/createQuoteThunk';
-import { saveRecentQuoteThunk } from '@/redux/thunk/saveRecentThunk';
+import {createQuoteThunk} from '@/redux/thunk/createQuoteThunk';
+import {saveRecentQuoteThunk} from '@/redux/thunk/saveRecentThunk';
 
-import styles from './styles';
+import {THEME_COLORS} from '@/constants/Colors';
+
+import createStyles from './styles';
 
 const CreateOwn = () => {
   const [quote, setQuote] = useState('');
@@ -33,9 +35,24 @@ const CreateOwn = () => {
   // LANGUAGE
   // ==========================================
 
-  const language = useSelector((state: RootState) => state.language.language);
+  const language = useSelector(
+    (state: RootState) => state.language.language,
+  );
 
-  const isHindi = String(language).toLowerCase() === 'hindi';
+  const isHindi =
+    String(language).toLowerCase() === 'hindi';
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // ==========================================
   // TRANSLATIONS
@@ -44,7 +61,9 @@ const CreateOwn = () => {
   const t = {
     createQuote: isHindi ? 'कोट बनाएं' : 'Create Quote',
 
-    writeYourOwn: isHindi ? 'अपना कोट लिखें' : 'Write Your Own Quote',
+    writeYourOwn: isHindi
+      ? 'अपना कोट लिखें'
+      : 'Write Your Own Quote',
 
     subtitle: isHindi
       ? 'कुछ प्रेरणादायक लिखें और अपने विचार दुनिया के साथ साझा करें'
@@ -74,9 +93,13 @@ const CreateOwn = () => {
 
     save: isHindi ? 'सेव करें' : 'Save',
 
-    quoteRequired: isHindi ? 'कोट आवश्यक है' : 'Quote is required',
+    quoteRequired: isHindi
+      ? 'कोट आवश्यक है'
+      : 'Quote is required',
 
-    tokenMissing: isHindi ? 'टोकन उपलब्ध नहीं है' : 'Token missing',
+    tokenMissing: isHindi
+      ? 'टोकन उपलब्ध नहीं है'
+      : 'Token missing',
 
     quoteIdMissing: isHindi
       ? 'कोट ID नहीं मिली'
@@ -119,7 +142,6 @@ const CreateOwn = () => {
           text: trimmedQuote,
           author: trimmedAuthor || 'Unknown',
 
-          // Selected language
           language: isHindi ? 'Hindi' : 'English',
 
           source: 'user',
@@ -171,13 +193,17 @@ const CreateOwn = () => {
       // 4️⃣ SUCCESS
       // ==========================================
 
-      console.log('✅ Quote created and saved in recent quotes');
+      console.log(
+        '✅ Quote created and saved in recent quotes',
+      );
 
       goBack();
     } catch (error: any) {
       console.log(
         '❌ CREATE OWN ERROR:',
-        error?.response?.data || error?.message || error,
+        error?.response?.data ||
+          error?.message ||
+          error,
       );
     } finally {
       setLoading(false);
@@ -198,68 +224,91 @@ const CreateOwn = () => {
       />
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardContainer}
+        behavior={
+          Platform.OS === 'ios'
+            ? 'padding'
+            : undefined
+        }
       >
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {/* TITLE */}
 
           <View style={styles.headingContainer}>
-            <Text style={styles.title}>{t.writeYourOwn}</Text>
+            <Text style={styles.title}>
+              {t.writeYourOwn}
+            </Text>
 
-            <Text style={styles.subtitle}>{t.subtitle}</Text>
+            <Text style={styles.subtitle}>
+              {t.subtitle}
+            </Text>
           </View>
 
           {/* QUOTE */}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>{t.yourQuote}</Text>
+            <Text style={styles.label}>
+              {t.yourQuote}
+            </Text>
 
             <TextInput
               value={quote}
               onChangeText={setQuote}
               placeholder={t.quotePlaceholder}
-              placeholderTextColor="#A6A6B0"
+              placeholderTextColor={colors.placeholder}
               multiline
               textAlignVertical="top"
               maxLength={300}
               style={styles.quoteInput}
             />
 
-            <Text style={styles.characterCount}>{quote.length}/300</Text>
+            <Text style={styles.characterCount}>
+              {quote.length}/300
+            </Text>
           </View>
 
           {/* AUTHOR */}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>{t.author}</Text>
+            <Text style={styles.label}>
+              {t.author}
+            </Text>
 
             <TextInput
               value={author}
               onChangeText={setAuthor}
               placeholder={t.authorPlaceholder}
-              placeholderTextColor="#A6A6B0"
+              placeholderTextColor={colors.placeholder}
               style={styles.authorInput}
             />
 
-            <Text style={styles.optional}>{t.optional}</Text>
+            <Text style={styles.optional}>
+              {t.optional}
+            </Text>
           </View>
 
           {/* PREVIEW */}
 
           <View style={styles.previewContainer}>
-            <Text style={styles.previewLabel}>{t.preview}</Text>
+            <Text style={styles.previewLabel}>
+              {t.preview}
+            </Text>
 
             <View style={styles.previewCard}>
               <Text style={styles.previewQuote}>
-                {quote.trim() ? `"${quote.trim()}"` : t.previewQuote}
+                {quote.trim()
+                  ? `"${quote.trim()}"`
+                  : t.previewQuote}
               </Text>
 
               {author.trim() ? (
-                <Text style={styles.previewAuthor}>— {author.trim()}</Text>
+                <Text style={styles.previewAuthor}>
+                  — {author.trim()}
+                </Text>
               ) : null}
             </View>
           </View>
@@ -272,7 +321,8 @@ const CreateOwn = () => {
             onPress={handleContinue}
             style={[
               styles.continueButton,
-              (!quote.trim() || loading) && styles.disabledButton,
+              (!quote.trim() || loading) &&
+                styles.disabledButton,
             ]}
           >
             <Text style={styles.continueText}>

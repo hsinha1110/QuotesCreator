@@ -1,177 +1,188 @@
 import { StyleSheet } from 'react-native';
+
 import { moderateScale } from 'react-native-size-matters';
 
-import COLORS from '@/constants/Colors';
+import { ThemeColors } from '@/constants/Colors';
 
-const styles = StyleSheet.create({
-  // =====================================================
-  // NOTIFICATION CARD
-  // =====================================================
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // =====================================================
+    // NOTIFICATION CARD
+    // =====================================================
 
-  notificationCard: {
-    minHeight: moderateScale(78),
+    notificationCard: {
+      minHeight: moderateScale(78),
 
-    flexDirection: 'row',
-    alignItems: 'center',
+      flexDirection: 'row',
 
-    backgroundColor: '#F9F7FF',
+      alignItems: 'center',
 
-    borderWidth: moderateScale(1),
-    borderColor: '#D8D8D8',
+      backgroundColor: colors.card,
 
-    borderRadius: moderateScale(18),
+      borderWidth: moderateScale(1),
 
-    paddingHorizontal: moderateScale(10),
-    paddingVertical: moderateScale(12),
+      borderColor: colors.border,
 
-    marginBottom: moderateScale(12),
-  },
+      borderRadius: moderateScale(18),
 
-  unreadNotificationCard: {
-    backgroundColor: '#F9F7FF',
-    borderColor: '#D8D8D8',
-  },
+      paddingHorizontal: moderateScale(10),
 
-  // =====================================================
-  // DOT
-  // =====================================================
+      paddingVertical: moderateScale(12),
 
-  dotContainer: {
-    width: moderateScale(16),
+      marginBottom: moderateScale(12),
+    },
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    unreadNotificationCard: {
+      backgroundColor: colors.card,
 
-  unreadDot: {
-    width: moderateScale(9),
-    height: moderateScale(9),
+      borderColor: colors.accent,
+    },
 
-    borderRadius: moderateScale(5),
+    // =====================================================
+    // DOT
+    // =====================================================
 
-    backgroundColor: COLORS.accent,
-  },
+    dotContainer: {
+      width: moderateScale(16),
 
-  // =====================================================
-  // ICON
-  // =====================================================
+      alignItems: 'center',
 
-  iconContainer: {
-    width: moderateScale(58),
-    height: moderateScale(58),
+      justifyContent: 'center',
+    },
 
-    borderRadius: moderateScale(30),
+    unreadDot: {
+      width: moderateScale(9),
 
-    backgroundColor: '#F0EAFF',
+      height: moderateScale(9),
 
-    alignItems: 'center',
-    justifyContent: 'center',
+      borderRadius: moderateScale(5),
 
-    marginRight: moderateScale(12),
-  },
+      backgroundColor: colors.accent,
+    },
 
-  // =====================================================
-  // CONTENT
-  // =====================================================
+    // =====================================================
+    // ICON
+    // =====================================================
 
-  contentContainer: {
-    flex: 1,
+    iconContainer: {
+      width: moderateScale(58),
 
-    justifyContent: 'center',
+      height: moderateScale(58),
 
-    marginRight: moderateScale(8),
-  },
+      borderRadius: moderateScale(30),
 
-  // =====================================================
-  // TITLE ROW
-  // =====================================================
+      backgroundColor: colors.light_grey,
 
-  titleRow: {
-    flexDirection: 'row',
+      alignItems: 'center',
 
-    alignItems: 'center',
+      justifyContent: 'center',
 
-    justifyContent: 'space-between',
+      marginRight: moderateScale(12),
+    },
 
-    marginBottom: moderateScale(5),
-  },
+    // =====================================================
+    // CONTENT
+    // =====================================================
 
-  notificationTitle: {
-    flex: 1,
+    contentContainer: {
+      flex: 1,
 
-    fontSize: moderateScale(16),
+      justifyContent: 'center',
 
-    fontWeight: '600',
+      marginRight: moderateScale(8),
+    },
 
-    color: COLORS.black,
+    // =====================================================
+    // TITLE ROW
+    // =====================================================
 
-    marginRight: moderateScale(8),
-  },
+    titleRow: {
+      flexDirection: 'row',
 
-  unreadTitle: {
-    fontWeight: '700',
-  },
+      alignItems: 'center',
 
-  // =====================================================
-  // TIME
-  // =====================================================
+      justifyContent: 'space-between',
 
-  timeText: {
-    fontSize: moderateScale(12),
+      marginBottom: moderateScale(5),
+    },
 
-    color: '#333333',
+    notificationTitle: {
+      flex: 1,
 
-    fontWeight: '400',
-  },
+      fontSize: moderateScale(16),
 
-  // =====================================================
-  // MESSAGE
-  // =====================================================
+      fontWeight: '600',
 
-  messageText: {
-    fontSize: moderateScale(14),
+      color: colors.textPrimary,
 
-    lineHeight: moderateScale(21),
+      marginRight: moderateScale(8),
+    },
 
-    color: '#333333',
+    unreadTitle: {
+      fontWeight: '700',
+    },
 
-    fontWeight: '400',
-  },
+    // =====================================================
+    // TIME
+    // =====================================================
 
-  unreadMessage: {
-    color: COLORS.black,
-  },
+    timeText: {
+      fontSize: moderateScale(12),
 
-  // =====================================================
-  // DELETE ACTION
-  // =====================================================
+      color: colors.textSecondary,
 
-  deleteAction: {
-    width: moderateScale(85),
+      fontWeight: '400',
+    },
 
-    minHeight: moderateScale(78),
+    // =====================================================
+    // MESSAGE
+    // =====================================================
 
-    backgroundColor: '#E53935',
+    messageText: {
+      fontSize: moderateScale(14),
 
-    justifyContent: 'center',
-    alignItems: 'center',
+      lineHeight: moderateScale(21),
 
-    borderRadius: moderateScale(18),
+      color: colors.textSecondary,
 
-    marginBottom: moderateScale(12),
+      fontWeight: '400',
+    },
 
-    marginLeft: moderateScale(6),
-  },
+    unreadMessage: {
+      color: colors.textPrimary,
+    },
 
-  deleteActionText: {
-    color: COLORS.white,
+    // =====================================================
+    // DELETE ACTION
+    // =====================================================
 
-    fontSize: moderateScale(12),
+    deleteAction: {
+      width: moderateScale(85),
 
-    fontWeight: '600',
+      minHeight: moderateScale(78),
 
-    marginTop: moderateScale(4),
-  },
-});
+      backgroundColor: colors.red,
 
-export default styles;
+      justifyContent: 'center',
+
+      alignItems: 'center',
+
+      borderRadius: moderateScale(18),
+
+      marginBottom: moderateScale(12),
+
+      marginLeft: moderateScale(6),
+    },
+
+    deleteActionText: {
+      color: colors.white,
+
+      fontSize: moderateScale(12),
+
+      fontWeight: '600',
+
+      marginTop: moderateScale(4),
+    },
+  });
+
+export default createStyles;

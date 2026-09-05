@@ -1,477 +1,359 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 
-const { width, height } = Dimensions.get('window');
+import { ThemeColors } from '@/constants/Colors';
 
-const DRAWER_WIDTH = width * 0.78;
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // ==========================================
+    // OVERLAY
+    // ==========================================
 
-const styles = StyleSheet.create({
-  // ==========================================
-  // OVERLAY
-  // ==========================================
+    overlay: {
+      position: 'absolute',
 
-  overlay: {
-    position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
 
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-
-    zIndex: 9999,
-    elevation: 9999,
-  },
-
-  backdrop: {
-    position: 'absolute',
-
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-
-    backgroundColor: 'rgba(0,0,0,0.42)',
-  },
-
-  // ==========================================
-  // DRAWER
-  // ==========================================
-
-  drawer: {
-    width: DRAWER_WIDTH,
-    height,
-
-    backgroundColor: '#FFFFFF',
-
-    paddingTop: moderateScale(48),
-    paddingHorizontal: moderateScale(18),
-
-    shadowColor: '#000',
-
-    shadowOffset: {
-      width: moderateScale(5),
-      height: 0,
+      zIndex: 9999,
+      elevation: 9999,
     },
 
-    shadowOpacity: 0.2,
-    shadowRadius: moderateScale(12),
+    backdrop: {
+      position: 'absolute',
 
-    elevation: 20,
-  },
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
 
-  // ==========================================
-  // MAIN CONTAINER
-  // ==========================================
+      backgroundColor: 'rgba(0,0,0,0.42)',
+    },
 
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: moderateScale(18),
-    paddingTop: moderateScale(45),
-    paddingBottom: moderateScale(15),
-  },
+    // ==========================================
+    // DRAWER
+    // ==========================================
 
-  // ==========================================
-  // HEADER
-  // ==========================================
+    drawer: {
+      width: '78%',
+      height: '100%',
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+      backgroundColor: colors.background,
 
-    marginBottom: moderateScale(22),
-  },
+      paddingTop: moderateScale(48),
+      paddingHorizontal: moderateScale(18),
 
-  // Old naming
-  logoBox: {
-    width: moderateScale(42),
-    height: moderateScale(42),
+      shadowColor: '#000',
 
-    borderRadius: moderateScale(13),
+      shadowOffset: {
+        width: moderateScale(5),
+        height: 0,
+      },
 
-    backgroundColor: '#6C2BD9',
+      shadowOpacity: 0.2,
+      shadowRadius: moderateScale(12),
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      elevation: 20,
+    },
 
-  headerContent: {
-    flex: 1,
+    // ==========================================
+    // HEADER
+    // ==========================================
 
-    marginLeft: moderateScale(11),
-  },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
 
-  appName: {
-    fontSize: moderateScale(17),
-    fontWeight: '800',
+      marginBottom: moderateScale(22),
+    },
 
-    color: '#17141D',
-  },
+    logoBox: {
+      width: moderateScale(42),
+      height: moderateScale(42),
 
-  appSubtitle: {
-    marginTop: moderateScale(2),
+      borderRadius: moderateScale(13),
 
-    fontSize: moderateScale(10),
+      backgroundColor: colors.accent,
 
-    color: '#8D8796',
-  },
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  // New naming also kept
-  logoContainer: {
-    width: moderateScale(48),
-    height: moderateScale(48),
+    headerContent: {
+      flex: 1,
 
-    borderRadius: moderateScale(14),
+      marginLeft: moderateScale(11),
+    },
 
-    backgroundColor: '#6C2BD9',
+    appName: {
+      fontSize: moderateScale(17),
+      fontWeight: '800',
 
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+      color: colors.textPrimary,
+    },
 
-  logoTextContainer: {
-    flex: 1,
+    appSubtitle: {
+      marginTop: moderateScale(2),
 
-    marginLeft: moderateScale(12),
-  },
+      fontSize: moderateScale(10),
 
-  logoTitle: {
-    fontSize: moderateScale(18),
-    fontWeight: '800',
+      color: colors.textSecondary,
+    },
 
-    color: '#222222',
-  },
+    closeButton: {
+      width: moderateScale(34),
+      height: moderateScale(34),
 
-  logoSubtitle: {
-    marginTop: moderateScale(2),
+      borderRadius: moderateScale(17),
 
-    fontSize: moderateScale(11),
+      backgroundColor: colors.light_grey,
 
-    color: '#8A8A8A',
-  },
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  closeButton: {
-    width: moderateScale(38),
-    height: moderateScale(38),
+    // ==========================================
+    // PROFILE CARD
+    // ==========================================
 
-    borderRadius: moderateScale(19),
+    profileCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    justifyContent: 'center',
-    alignItems: 'center',
+      padding: moderateScale(11),
 
-    backgroundColor: '#F5F5F5',
-  },
+      borderRadius: moderateScale(16),
 
-  // ==========================================
-  // USER / PROFILE CARD
-  // ==========================================
+      backgroundColor: colors.light_grey,
 
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+      marginBottom: moderateScale(20),
+    },
 
-    padding: moderateScale(11),
+    profileImage: {
+      width: moderateScale(46),
+      height: moderateScale(46),
 
-    borderRadius: moderateScale(16),
+      borderRadius: moderateScale(23),
 
-    backgroundColor: '#F7F3FC',
+      backgroundColor: colors.light_grey,
+    },
 
-    marginBottom: moderateScale(20),
-  },
+    profilePlaceholder: {
+      width: moderateScale(46),
+      height: moderateScale(46),
 
-  profileImage: {
-    width: moderateScale(46),
-    height: moderateScale(46),
+      borderRadius: moderateScale(23),
 
-    borderRadius: moderateScale(23),
-  },
+      backgroundColor: colors.light_grey,
 
-  profilePlaceholder: {
-    width: moderateScale(46),
-    height: moderateScale(46),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-    borderRadius: moderateScale(23),
+    profileLetter: {
+      fontSize: moderateScale(19),
+      fontWeight: '800',
 
-    backgroundColor: '#E7D8FA',
+      color: colors.accent,
+    },
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    profileContent: {
+      flex: 1,
 
-  profileLetter: {
-    fontSize: moderateScale(19),
-    fontWeight: '800',
+      marginLeft: moderateScale(11),
+      marginRight: moderateScale(8),
+    },
 
-    color: '#6C2BD9',
-  },
+    profileName: {
+      fontSize: moderateScale(14),
+      fontWeight: '700',
 
-  profileContent: {
-    flex: 1,
+      color: colors.textPrimary,
+    },
 
-    marginLeft: moderateScale(11),
-    marginRight: moderateScale(8),
-  },
+    profileEmail: {
+      fontSize: moderateScale(10),
 
-  profileName: {
-    fontSize: moderateScale(14),
-    fontWeight: '700',
+      color: colors.textSecondary,
 
-    color: '#1C1922',
-  },
+      marginTop: moderateScale(3),
+    },
 
-  profileEmail: {
-    fontSize: moderateScale(10),
+    // ==========================================
+    // SECTION TITLE
+    // ==========================================
 
-    color: '#898391',
+    sectionTitle: {
+      fontSize: moderateScale(9),
 
-    marginTop: moderateScale(3),
-  },
+      fontWeight: '800',
 
-  // New naming
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+      color: colors.textSecondary,
 
-    paddingHorizontal: moderateScale(12),
-    paddingVertical: moderateScale(12),
+      letterSpacing: 1,
 
-    borderRadius: moderateScale(16),
+      marginLeft: moderateScale(5),
+      marginBottom: moderateScale(7),
+      marginTop: moderateScale(2),
 
-    backgroundColor: '#F8F6FC',
+      textTransform: 'uppercase',
+    },
 
-    marginBottom: moderateScale(20),
-  },
+    // ==========================================
+    // MENU ITEM
+    // ==========================================
 
-  avatar: {
-    width: moderateScale(46),
-    height: moderateScale(46),
+    menuItem: {
+      height: moderateScale(46),
 
-    borderRadius: moderateScale(23),
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    justifyContent: 'center',
-    alignItems: 'center',
+      paddingHorizontal: moderateScale(6),
 
-    backgroundColor: '#E9DDFB',
-  },
+      borderRadius: moderateScale(12),
 
-  avatarText: {
-    fontSize: moderateScale(18),
-    fontWeight: '800',
+      marginBottom: moderateScale(3),
+    },
 
-    color: '#6C2BD9',
-  },
+    activeMenuItem: {
+      backgroundColor: colors.light_grey,
+    },
 
-  userInfo: {
-    flex: 1,
+    iconBox: {
+      width: moderateScale(36),
+      height: moderateScale(36),
 
-    marginLeft: moderateScale(12),
-  },
+      borderRadius: moderateScale(10),
 
-  userName: {
-    fontSize: moderateScale(15),
-    fontWeight: '700',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-    color: '#222222',
-  },
+    activeIconBox: {
+      backgroundColor: colors.light_grey,
+    },
 
-  userEmail: {
-    marginTop: moderateScale(3),
+    menuText: {
+      flex: 1,
 
-    fontSize: moderateScale(11),
+      marginLeft: moderateScale(10),
 
-    color: '#8A8A8A',
-  },
+      fontSize: moderateScale(13),
 
-  // ==========================================
-  // SECTION TITLE
-  // ==========================================
+      fontWeight: '600',
 
-  sectionTitle: {
-    fontSize: moderateScale(11),
+      color: colors.textPrimary,
+    },
 
-    fontWeight: '800',
+    activeMenuText: {
+      color: colors.accent,
 
-    letterSpacing: moderateScale(0.8),
+      fontWeight: '700',
+    },
 
-    color: '#A0A0A0',
+    // ==========================================
+    // BADGE
+    // ==========================================
 
-    marginTop: moderateScale(4),
-    marginBottom: moderateScale(8),
+    badge: {
+      minWidth: moderateScale(22),
+      height: moderateScale(22),
 
-    textTransform: 'uppercase',
-  },
+      paddingHorizontal: moderateScale(6),
 
-  // ==========================================
-  // MENU ITEM
-  // ==========================================
+      borderRadius: moderateScale(11),
 
-  menuItem: {
-    minHeight: moderateScale(30),
+      backgroundColor: colors.red,
 
-    flexDirection: 'row',
-    alignItems: 'center',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-    paddingHorizontal: moderateScale(10),
-    paddingVertical: moderateScale(8),
+    badgeText: {
+      fontSize: moderateScale(9),
 
-    borderRadius: moderateScale(12),
+      fontWeight: '800',
 
-    marginBottom: moderateScale(3),
-  },
+      color: colors.white,
+    },
 
-  activeMenuItem: {
-    backgroundColor: '#F1E9FC',
-  },
+    // ==========================================
+    // DIVIDER
+    // ==========================================
 
-  iconBox: {
-    width: moderateScale(36),
-    height: moderateScale(36),
+    divider: {
+      height: 1,
 
-    borderRadius: moderateScale(10),
+      backgroundColor: colors.border,
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+      marginVertical: moderateScale(10),
+    },
 
-  activeIconBox: {
-    backgroundColor: '#E9D9FA',
-  },
+    // ==========================================
+    // SPACER
+    // ==========================================
 
-  menuText: {
-    flex: 1,
+    spacer: {
+      flex: 1,
+    },
 
-    marginLeft: moderateScale(14),
+    // ==========================================
+    // LOGOUT
+    // ==========================================
 
-    fontSize: moderateScale(14),
+    logoutButton: {
+      height: moderateScale(48),
 
-    fontWeight: '600',
+      borderRadius: moderateScale(13),
 
-    color: '#30303A',
-  },
+      backgroundColor: colors.light_grey,
 
-  activeMenuText: {
-    color: '#6C2BD9',
+      flexDirection: 'row',
+      alignItems: 'center',
 
-    fontWeight: '700',
-  },
+      paddingHorizontal: moderateScale(9),
 
-  // ==========================================
-  // BADGE
-  // ==========================================
+      marginBottom: moderateScale(10),
+    },
 
-  badge: {
-    minWidth: moderateScale(24),
-    height: moderateScale(24),
+    logoutIconBox: {
+      width: moderateScale(36),
+      height: moderateScale(36),
 
-    paddingHorizontal: moderateScale(6),
+      borderRadius: moderateScale(10),
 
-    borderRadius: moderateScale(12),
+      backgroundColor: colors.light_grey,
 
-    justifyContent: 'center',
-    alignItems: 'center',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-    backgroundColor: '#6C2BD9',
-  },
+    logoutText: {
+      marginLeft: moderateScale(11),
 
-  badgeText: {
-    fontSize: moderateScale(10),
+      fontSize: moderateScale(14),
 
-    fontWeight: '800',
+      fontWeight: '700',
 
-    color: '#FFFFFF',
-  },
+      color: colors.red,
+    },
 
-  // ==========================================
-  // DIVIDER
-  // ==========================================
+    // ==========================================
+    // VERSION
+    // ==========================================
 
-  divider: {
-    height: 1,
+    version: {
+      textAlign: 'center',
 
-    backgroundColor: '#EEEEEE',
+      fontSize: moderateScale(9),
 
-    marginVertical: moderateScale(12),
-  },
+      color: colors.textSecondary,
 
-  // ==========================================
-  // SPACER
-  // ==========================================
+      marginBottom: moderateScale(12),
+    },
+  });
 
-  spacer: {
-    flex: 1,
-  },
-
-  // ==========================================
-  // LOGOUT
-  // ==========================================
-
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-
-    minHeight: moderateScale(50),
-
-    paddingHorizontal: moderateScale(10),
-
-    borderRadius: moderateScale(14),
-
-    backgroundColor: '#FFF5F5',
-  },
-
-  logoutIconBox: {
-    width: moderateScale(38),
-    height: moderateScale(38),
-
-    borderRadius: moderateScale(12),
-
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    backgroundColor: '#FFE7E7',
-  },
-
-  logoutText: {
-    marginLeft: moderateScale(12),
-
-    fontSize: moderateScale(14),
-
-    fontWeight: '700',
-
-    color: '#EF4444',
-  },
-
-  // New naming
-  logoutContainer: {
-    marginTop: 'auto',
-  },
-
-  logoutIconContainer: {
-    width: moderateScale(38),
-    height: moderateScale(38),
-
-    borderRadius: moderateScale(12),
-
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    backgroundColor: '#FFE7E7',
-  },
-
-  // ==========================================
-  // VERSION
-  // ==========================================
-
-  version: {
-    textAlign: 'center',
-
-    marginTop: moderateScale(12),
-
-    marginBottom: moderateScale(12),
-
-    fontSize: moderateScale(10),
-
-    color: '#AAAAAA',
-  },
-});
-
-export default styles;
+export default createStyles;

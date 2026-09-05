@@ -1,35 +1,65 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import React, {useEffect, useRef, useState} from 'react';
+import {ActivityIndicator, FlatList, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useSelector} from 'react-redux';
 
-import { goBack, navigate } from '@/utils/NavigationUtils';
-import { RootState } from '@/redux/store';
-import { useAppDispatch } from '@/redux/hooks';
-import { categoriesThunk } from '@/redux/thunk/categoriesThunk';
+import {goBack, navigate} from '@/utils/NavigationUtils';
+import {RootState} from '@/redux/store';
+import {useAppDispatch} from '@/redux/hooks';
+import {categoriesThunk} from '@/redux/thunk/categoriesThunk';
 
-import { Category } from '@/types';
+import {Category} from '@/types';
+
 import ItemCategories from '@/components/ListItems/ItemCategories/ItemCategories';
-import styles from './styles';
-import COLORS from '@/constants/Colors';
 import Header from '@/components/Header/Header';
 import CustomDrawer from '@/components/CustomDrawer/CustomDrawer';
 
 import Routes from '@/navigations/Routes';
 
+import {THEME_COLORS} from '@/constants/Colors';
+
+import createStyles from './styles';
+
 const Categories = () => {
   const dispatch = useAppDispatch();
+
+  // =====================================================
+  // STATE
+  // =====================================================
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   const loadingRef = useRef(false);
 
-  const { categories, page, hasNextPage, isLoading } = useSelector(
+  // =====================================================
+  // CATEGORIES
+  // =====================================================
+
+  const {categories, page, hasNextPage, isLoading} = useSelector(
     (state: RootState) => state.categories,
   );
 
-  const language = useSelector((state: RootState) => state.language.language);
+  // =====================================================
+  // LANGUAGE
+  // =====================================================
+
+  const language = useSelector(
+    (state: RootState) => state.language.language,
+  );
+
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
   // =====================================================
   // LOAD CATEGORIES BASED ON LANGUAGE
   // =====================================================
@@ -53,7 +83,12 @@ const Categories = () => {
   // =====================================================
 
   const handleLoadMore = async () => {
-    if (loadingRef.current || isLoading || isLoadingMore || !hasNextPage) {
+    if (
+      loadingRef.current ||
+      isLoading ||
+      isLoadingMore ||
+      !hasNextPage
+    ) {
       return;
     }
 
@@ -135,7 +170,7 @@ const Categories = () => {
         data={categories}
         showsVerticalScrollIndicator={false}
         keyExtractor={item => item._id}
-        renderItem={({ item }) => (
+        renderItem={({item}) => (
           <View style={styles.categoryItem}>
             <ItemCategories
               item={item}
@@ -145,21 +180,29 @@ const Categories = () => {
           </View>
         )}
         contentContainerStyle={styles.categoryList}
-        ItemSeparatorComponent={() => <View style={styles.categorySeparator} />}
+        ItemSeparatorComponent={() => (
+          <View style={styles.categorySeparator} />
+        )}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.2}
         ListFooterComponent={
           isLoadingMore ? (
             <View style={styles.footerLoader}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
+              <ActivityIndicator
+                size="large"
+                color={colors.accent}
+              />
             </View>
           ) : (
-            <View style={{ height: 30 }} />
+            <View style={styles.footerSpace} />
           )
         }
       />
 
-      <CustomDrawer visible={drawerVisible} onClose={closeDrawer} />
+      <CustomDrawer
+        visible={drawerVisible}
+        onClose={closeDrawer}
+      />
     </SafeAreaView>
   );
 };

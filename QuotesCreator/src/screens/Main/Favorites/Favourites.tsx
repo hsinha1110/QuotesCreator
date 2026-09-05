@@ -10,6 +10,7 @@ import ItemFavourites from '@/components/ListItems/ItemFavourites/ItemFavourites
 import { clearFavourites } from '@/redux/slices/favouriteSlice';
 import EmptyState from '@/components/EmptyState/EmptyState';
 import { translations } from '@/language';
+import COLORS from '@/constants/Colors';
 
 const Favourites = () => {
   const navigation = useNavigation();
@@ -20,14 +21,33 @@ const Favourites = () => {
     (state: RootState) => state.language.language,
   );
 
+  // Theme
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const isDark = themeMode === 'dark';
+
   const t = translations[language].FAVOURITES;
 
   const favourites = useSelector(
     (state: RootState) => state.favourites.favourites || [],
   );
 
+  const themeColors = {
+    background: isDark ? '#121212' : COLORS.white,
+    emptyIconBackground: isDark ? '#2A2038' : '#F1EDFF',
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+        },
+      ]}
+    >
       <Header
         title={t.TITLE}
         onMenuPress={() => {
@@ -50,11 +70,11 @@ const Favourites = () => {
           />
         )}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={
+        contentContainerStyle={[
           favourites.length === 0
             ? styles.emptyListContainer
-            : styles.listContainer
-        }
+            : styles.listContainer,
+        ]}
         ListEmptyComponent={
           <EmptyState
             icon="heart-outline"

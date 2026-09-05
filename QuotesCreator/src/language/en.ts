@@ -312,9 +312,15 @@ you like to save it here.`,
     INFO: 'You will receive your daily quote at this time every day.',
     TIMEZONE: 'Time Zone',
   },
+
+  BOTTOM_TAB: {
+    HOME: 'Home',
+    EXPLORE: 'Explore',
+    FAVORITES: 'Favorites',
+    PROFILE: 'Profile',
+  },
   SETTINGS: {
     TITLE: 'Settings',
-
     PREFERENCES: 'PREFERENCES',
 
     LANGUAGE: 'Language',
@@ -325,6 +331,7 @@ you like to save it here.`,
     THEME: 'Theme',
     THEME_SUBTITLE: 'Customize app appearance',
     LIGHT: 'Light',
+    DARK: 'Dark',
 
     FONT_SIZE: 'Font Size',
     FONT_SIZE_SUBTITLE: 'Adjust text size',
@@ -337,37 +344,24 @@ you like to save it here.`,
     NOTIFICATION_SETTINGS_SUBTITLE: 'Manage push notifications',
 
     ACCOUNT: 'ACCOUNT',
-
     EDIT_PROFILE: 'Edit Profile',
     EDIT_PROFILE_SUBTITLE: 'Update your profile information',
-
     CHANGE_PASSWORD: 'Change Password',
     CHANGE_PASSWORD_SUBTITLE: 'Update your account password',
-
     PRIVACY: 'Privacy',
     PRIVACY_SUBTITLE: 'Manage your privacy settings',
-
     DATA_STORAGE: 'Data & Storage',
     DATA_STORAGE_SUBTITLE: 'Manage cache and downloads',
 
     SUPPORT: 'SUPPORT',
-
     HELP_SUPPORT: 'Help & Support',
     HELP_SUPPORT_SUBTITLE: 'FAQs and contact support',
-
     RATE_US: 'Rate Us',
     RATE_US_SUBTITLE: 'Share your feedback',
-
     ABOUT_APP: 'About App',
     VERSION: 'Version 1.0.0',
 
     APP_VERSION: 'QuoteCreator • Version 1.0.0',
-  },
-  BOTTOM_TAB: {
-    HOME: 'Home',
-    EXPLORE: 'Explore',
-    FAVORITES: 'Favorites',
-    PROFILE: 'Profile',
   },
 };
 

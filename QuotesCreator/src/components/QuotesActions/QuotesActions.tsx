@@ -2,10 +2,13 @@ import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { moderateScale } from 'react-native-size-matters';
+import { useSelector } from 'react-redux';
 
-import COLORS from '@/constants/Colors';
-import styles from './styles';
+import { THEME_COLORS } from '@/constants/Colors';
+import { RootState } from '@/redux/store';
 import { QuoteActionsProps } from '@/types';
+
+import createStyles from './styles';
 
 const QuoteActions = ({
   onFavoritePress,
@@ -17,6 +20,20 @@ const QuoteActions = ({
   showLikes = false,
   showDelete = false,
 }: QuoteActionsProps) => {
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
     <View style={styles.actions}>
       {/* FAVORITE */}
@@ -29,7 +46,7 @@ const QuoteActions = ({
           <Ionicons
             name={isFavorite ? 'heart' : 'heart-outline'}
             size={favoriteSize}
-            color={isFavorite ? COLORS.red : COLORS.black}
+            color={isFavorite ? colors.red : colors.textPrimary}
           />
 
           {showLikes && <Text style={styles.likesText}>{likes}</Text>}
@@ -45,7 +62,7 @@ const QuoteActions = ({
         <Ionicons
           name="share-social-outline"
           size={favoriteSize}
-          color={COLORS.black}
+          color={colors.textPrimary}
         />
       </TouchableOpacity>
 
@@ -59,7 +76,7 @@ const QuoteActions = ({
           <Ionicons
             name="trash-outline"
             size={favoriteSize}
-            color={COLORS.red}
+            color={colors.red}
           />
         </TouchableOpacity>
       )}

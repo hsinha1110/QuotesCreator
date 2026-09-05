@@ -1,30 +1,29 @@
 import { StyleSheet } from 'react-native';
 import { moderateScale } from 'react-native-size-matters';
 
-import COLORS from '@/constants/Colors';
+import { ThemeColors } from '@/constants/Colors';
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: moderateScale(22),
-    marginBottom: moderateScale(12),
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: moderateScale(22),
+      marginBottom: moderateScale(12),
+    },
 
-  title: {
-    fontSize: moderateScale(12),
-    fontWeight: '700',
-    color: COLORS.accent,
-  },
+    title: {
+      fontSize: moderateScale(12),
+      fontWeight: '700',
+      color: colors.accent,
+    },
 
-  viewAll: {
-    fontSize: moderateScale(12),
+    viewAll: {
+      fontSize: moderateScale(12),
+      fontWeight: '600',
+      color: colors.accent,
+    },
+  });
 
-    fontWeight: '600',
-
-    color: COLORS.accent,
-  },
-});
-
-export default styles;
+export default createStyles;

@@ -1,142 +1,218 @@
-import COLORS from '@/constants/Colors';
 import { StyleSheet } from 'react-native';
+
 import { moderateScale } from '@/styles/scaling';
+
 const styles = StyleSheet.create({
+  // =====================================================
+  // CONTAINER
+  // =====================================================
+
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
+
+  // =====================================================
+  // CONTENT
+  // =====================================================
+
+  content: {
+    paddingHorizontal: moderateScale(18),
+
+    paddingBottom: moderateScale(30),
+  },
+
+  // =====================================================
+  // SWITCH
+  // =====================================================
+
   switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: moderateScale(6),
   },
 
   languageValue: {
-    fontSize: 12,
-    color: '#77777F',
+    fontSize: moderateScale(12),
   },
+
+  // =====================================================
+  // SECTION TITLE
+  // =====================================================
 
   sectionTitle: {
-    fontSize: 12,
+    fontSize: moderateScale(12),
+
     fontWeight: '700',
-    color: '#7437E8',
+
     letterSpacing: 0.5,
-    marginTop: 8,
-    marginBottom: 10,
-    marginLeft: 4,
+
+    marginTop: moderateScale(8),
+
+    marginBottom: moderateScale(10),
+
+    marginLeft: moderateScale(4),
   },
 
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#EEEEF2',
-    overflow: 'hidden',
-    marginBottom: 22,
+  // =====================================================
+  // CARD
+  // =====================================================
 
-    shadowColor: '#000',
+  card: {
+    borderRadius: moderateScale(16),
+
+    borderWidth: 1,
+
+    overflow: 'hidden',
+
+    marginBottom: moderateScale(22),
+
     shadowOffset: {
       width: 0,
       height: 2,
     },
+
     shadowOpacity: 0.04,
+
     shadowRadius: 8,
+
     elevation: 2,
   },
 
+  // =====================================================
+  // ROW
+  // =====================================================
+
   row: {
-    minHeight: 76,
+    minHeight: moderateScale(76),
+
     flexDirection: 'row',
+
     alignItems: 'center',
-    paddingHorizontal: 14,
+
+    paddingHorizontal: moderateScale(14),
+
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F1F4',
   },
 
+  // =====================================================
+  // ICON
+  // =====================================================
+
   iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#F4EEFF',
+    width: moderateScale(42),
+
+    height: moderateScale(42),
+
+    borderRadius: moderateScale(12),
+
     alignItems: 'center',
+
     justifyContent: 'center',
-    marginRight: 12,
+
+    marginRight: moderateScale(12),
   },
 
   icon: {
-    color: '#7437E8',
-    fontSize: 21,
+    fontSize: moderateScale(21),
+
     fontWeight: '600',
   },
+
+  // =====================================================
+  // CONTENT
+  // =====================================================
 
   rowContent: {
     flex: 1,
-    paddingVertical: 10,
+
+    paddingVertical: moderateScale(10),
   },
 
   rowTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(15),
+
     fontWeight: '600',
-    color: '#191919',
-    marginBottom: 4,
+
+    marginBottom: moderateScale(4),
   },
 
   rowSubtitle: {
-    fontSize: 12,
-    color: '#8A8A91',
-    lineHeight: 17,
+    fontSize: moderateScale(12),
+
+    lineHeight: moderateScale(17),
   },
+
+  // =====================================================
+  // RIGHT
+  // =====================================================
 
   rightContainer: {
     flexDirection: 'row',
+
     alignItems: 'center',
-    marginLeft: 8,
+
+    marginLeft: moderateScale(8),
   },
 
   value: {
-    fontSize: 12,
-    color: '#77777F',
-    marginRight: 7,
+    fontSize: moderateScale(12),
+
+    marginRight: moderateScale(7),
   },
 
   arrow: {
-    fontSize: 25,
-    color: '#8C8C93',
+    fontSize: moderateScale(25),
+
     fontWeight: '300',
   },
 
+  // =====================================================
+  // LOGOUT
+  // =====================================================
+
   logoutButton: {
-    height: 58,
-    borderRadius: 15,
+    height: moderateScale(58),
+
+    borderRadius: moderateScale(15),
+
     borderWidth: 1,
-    borderColor: '#EEEEF2',
+
     alignItems: 'center',
+
     justifyContent: 'center',
+
     flexDirection: 'row',
-    marginTop: 2,
+
+    marginTop: moderateScale(2),
   },
 
   logoutIcon: {
-    fontSize: 23,
+    fontSize: moderateScale(23),
+
     color: '#EF3340',
-    marginRight: 9,
+
+    marginRight: moderateScale(9),
   },
 
   logoutText: {
-    fontSize: 15,
+    fontSize: moderateScale(15),
+
     fontWeight: '600',
+
     color: '#EF3340',
   },
 
+  // =====================================================
+  // VERSION
+  // =====================================================
+
   version: {
     textAlign: 'center',
-    fontSize: 11,
-    color: '#A0A0A6',
-    marginTop: 18,
-  },
-  content: {
-    paddingHorizontal: moderateScale(18),
+
+    fontSize: moderateScale(11),
+
+    marginTop: moderateScale(18),
   },
 });
+
 export default styles;

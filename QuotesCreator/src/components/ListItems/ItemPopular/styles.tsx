@@ -1,134 +1,149 @@
 import { StyleSheet } from 'react-native';
 
 import { moderateScale } from '@/styles/scaling';
-import COLORS from '@/constants/Colors';
 
-const styles = StyleSheet.create({
-  // ==========================================
-  // LIST
-  // ==========================================
+import { ThemeColors } from '@/constants/Colors';
 
-  popularList: {
-    paddingHorizontal: moderateScale(8),
-    paddingTop: moderateScale(8),
-    paddingBottom: moderateScale(30),
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // =====================================================
+    // LIST
+    // =====================================================
 
-  popularSeparator: {
-    height: moderateScale(12),
-  },
+    popularList: {
+      paddingHorizontal: moderateScale(8),
 
-  // ==========================================
-  // POPULAR CARD
-  // ==========================================
+      paddingTop: moderateScale(8),
 
-  popularCard: {
-    width: moderateScale(300),
-
-    paddingHorizontal: moderateScale(16),
-    paddingTop: moderateScale(14),
-    paddingBottom: moderateScale(12),
-
-    borderRadius: moderateScale(18),
-
-    backgroundColor: COLORS.white,
-
-    elevation: moderateScale(3),
-
-    shadowColor: COLORS.black,
-
-    shadowOffset: {
-      width: 0,
-      height: moderateScale(2),
+      paddingBottom: moderateScale(30),
     },
 
-    shadowOpacity: 0.08,
-    shadowRadius: moderateScale(5),
+    popularSeparator: {
+      height: moderateScale(12),
+    },
 
-    overflow: 'hidden',
-  },
+    // =====================================================
+    // POPULAR CARD
+    // =====================================================
 
-  // ==========================================
-  // FULL WIDTH CARD
-  // ==========================================
+    popularCard: {
+      width: moderateScale(300),
 
-  popularCardFullWidth: {
-    width: '100%',
-    minHeight: moderateScale(165),
-  },
+      paddingHorizontal: moderateScale(16),
 
-  // ==========================================
-  // QUOTE ICON
-  // ==========================================
+      paddingTop: moderateScale(14),
 
-  popularQuoteIcon: {
-    width: moderateScale(28),
-    height: moderateScale(28),
+      paddingBottom: moderateScale(12),
 
-    right: moderateScale(6),
+      borderRadius: moderateScale(18),
 
-    resizeMode: 'contain',
-  },
+      backgroundColor: colors.card,
 
-  // ==========================================
-  // QUOTE TEXT
-  // ==========================================
+      elevation: moderateScale(3),
 
-  popularQuoteText: {
-    marginTop: moderateScale(8),
+      shadowColor: colors.black,
 
-    fontSize: moderateScale(14),
+      shadowOffset: {
+        width: 0,
+        height: moderateScale(2),
+      },
 
-    lineHeight: moderateScale(20),
+      shadowOpacity: 0.08,
 
-    color: COLORS.black,
+      shadowRadius: moderateScale(5),
 
-    fontWeight: 'bold',
+      overflow: 'hidden',
 
-    flexShrink: 1,
-  },
+      borderWidth: moderateScale(1),
 
-  // ==========================================
-  // AUTHOR
-  // ==========================================
+      borderColor: colors.border,
+    },
 
-  popularAuthor: {
-    marginTop: moderateScale(8),
+    // =====================================================
+    // FULL WIDTH CARD
+    // =====================================================
 
-    fontSize: moderateScale(10),
+    popularCardFullWidth: {
+      width: '100%',
 
-    lineHeight: moderateScale(14),
+      minHeight: moderateScale(165),
+    },
 
-    color: COLORS.black,
+    // =====================================================
+    // QUOTE ICON
+    // =====================================================
 
-    fontWeight: '400',
+    popularQuoteIcon: {
+      width: moderateScale(28),
 
-    flexShrink: 1,
-  },
+      height: moderateScale(28),
 
-  // ==========================================
-  // ACTIONS
-  // ==========================================
+      right: moderateScale(6),
 
-  popularActions: {
-    flexDirection: 'row',
+      resizeMode: 'contain',
+    },
 
-    alignItems: 'center',
+    // =====================================================
+    // QUOTE TEXT
+    // =====================================================
 
-    justifyContent: 'flex-end',
+    popularQuoteText: {
+      marginTop: moderateScale(8),
 
-    gap: moderateScale(8),
+      fontSize: moderateScale(14),
 
-    marginTop: moderateScale(20),
-  },
+      lineHeight: moderateScale(20),
 
-  popularActionButton: {
-    width: moderateScale(32),
-    height: moderateScale(32),
+      color: colors.textPrimary,
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+      fontWeight: 'bold',
 
-export default styles;
+      flexShrink: 1,
+    },
+
+    // =====================================================
+    // AUTHOR
+    // =====================================================
+
+    popularAuthor: {
+      marginTop: moderateScale(8),
+
+      fontSize: moderateScale(10),
+
+      lineHeight: moderateScale(14),
+
+      color: colors.textSecondary,
+
+      fontWeight: '400',
+
+      flexShrink: 1,
+    },
+
+    // =====================================================
+    // ACTIONS
+    // =====================================================
+
+    popularActions: {
+      flexDirection: 'row',
+
+      alignItems: 'center',
+
+      justifyContent: 'flex-end',
+
+      gap: moderateScale(8),
+
+      marginTop: moderateScale(20),
+    },
+
+    popularActionButton: {
+      width: moderateScale(32),
+
+      height: moderateScale(32),
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+    },
+  });
+
+export default createStyles;

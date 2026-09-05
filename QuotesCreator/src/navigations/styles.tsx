@@ -1,66 +1,137 @@
 import { StyleSheet } from 'react-native';
 
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: '#FFFFFF',
-  },
+import { moderateScale } from '@/styles/scaling';
 
-  tabBar: {
-    height: 72,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: '#FFFFFF',
+import { ThemeColors } from '@/constants/Colors';
 
-    borderTopWidth: 1,
-    borderTopColor: '#F1F1F1',
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // =====================================================
+    // WRAPPER
+    // =====================================================
 
-    paddingHorizontal: 8,
-  },
-
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-  },
-
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-
-  // ==========================================
-  // CENTER + BUTTON
-  // ==========================================
-
-  centerButtonContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  addButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-
-    backgroundColor: '#6C2BD9',
-
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    marginTop: -28,
-
-    elevation: 8,
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    wrapper: {
+      width: '100%',
+      backgroundColor: colors.background,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-  },
-});
-export default styles;
+
+    // =====================================================
+    // TAB BAR
+    // =====================================================
+
+    tabBar: {
+      height: moderateScale(68),
+
+      flexDirection: 'row',
+
+      alignItems: 'center',
+
+      justifyContent: 'space-around',
+
+      paddingHorizontal: moderateScale(8),
+
+      backgroundColor: colors.card,
+
+      borderTopWidth: moderateScale(1),
+
+      borderTopColor: colors.border,
+
+      elevation: moderateScale(8),
+
+      shadowColor: colors.black,
+
+      shadowOffset: {
+        width: 0,
+        height: moderateScale(-2),
+      },
+
+      shadowOpacity: 0.08,
+
+      shadowRadius: moderateScale(6),
+    },
+
+    // =====================================================
+    // TAB ITEM
+    // =====================================================
+
+    tabItem: {
+      flex: 1,
+
+      height: '100%',
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      paddingTop: moderateScale(5),
+    },
+
+    // =====================================================
+    // TAB LABEL
+    // =====================================================
+
+    tabLabel: {
+      marginTop: moderateScale(3),
+
+      fontSize: moderateScale(10),
+
+      lineHeight: moderateScale(14),
+
+      fontWeight: '600',
+
+      textAlign: 'center',
+    },
+
+    // =====================================================
+    // CENTER ADD BUTTON CONTAINER
+    // =====================================================
+
+    centerButtonContainer: {
+      flex: 1,
+
+      height: '100%',
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      marginTop: moderateScale(-18),
+    },
+
+    // =====================================================
+    // ADD BUTTON
+    // =====================================================
+
+    addButton: {
+      width: moderateScale(58),
+
+      height: moderateScale(58),
+
+      borderRadius: moderateScale(29),
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      backgroundColor: colors.accent,
+
+      borderWidth: moderateScale(4),
+
+      borderColor: colors.background,
+
+      elevation: moderateScale(6),
+
+      shadowColor: colors.black,
+
+      shadowOffset: {
+        width: 0,
+        height: moderateScale(3),
+      },
+
+      shadowOpacity: 0.2,
+
+      shadowRadius: moderateScale(5),
+    },
+  });
+
+export default createStyles;

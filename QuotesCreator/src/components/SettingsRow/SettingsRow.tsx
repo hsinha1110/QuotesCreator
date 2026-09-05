@@ -6,6 +6,10 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from 'react-native';
+import { useSelector } from 'react-redux';
+
+import { THEME_COLORS, ThemeColors } from '@/constants/Colors';
+import { RootState } from '@/redux/store';
 
 interface SettingsRowProps {
   icon: string;
@@ -24,6 +28,20 @@ const SettingsRow = ({
   onPress,
   showArrow = true,
 }: SettingsRowProps) => {
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
+  // ==========================================
+  // UI
+  // ==========================================
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -31,11 +49,13 @@ const SettingsRow = ({
       onPress={onPress}
     >
       {/* Icon */}
+
       <View style={styles.iconContainer}>
         <Text style={styles.icon}>{icon}</Text>
       </View>
 
       {/* Content */}
+
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
 
@@ -43,6 +63,7 @@ const SettingsRow = ({
       </View>
 
       {/* Right Side */}
+
       <View style={styles.rightContainer}>
         {value ? <Text style={styles.value}>{value}</Text> : null}
 
@@ -54,66 +75,67 @@ const SettingsRow = ({
 
 export default SettingsRow;
 
-const styles = StyleSheet.create({
-  container: {
-    minHeight: 76,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F1F4',
-    backgroundColor: '#FFFFFF',
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      minHeight: 76,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
+    },
 
-  iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#F4EEFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
+    iconContainer: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      backgroundColor: colors.light_grey,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
 
-  icon: {
-    fontSize: 20,
-    color: '#7437E8',
-    fontWeight: '600',
-  },
+    icon: {
+      fontSize: 20,
+      color: colors.accent,
+      fontWeight: '600',
+    },
 
-  content: {
-    flex: 1,
-    paddingVertical: 8,
-  },
+    content: {
+      flex: 1,
+      paddingVertical: 8,
+    },
 
-  title: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#181818',
-    marginBottom: 4,
-  },
+    title: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      marginBottom: 4,
+    },
 
-  subtitle: {
-    fontSize: 12,
-    color: '#8A8A91',
-    lineHeight: 17,
-  },
+    subtitle: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      lineHeight: 17,
+    },
 
-  rightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
+    rightContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 8,
+    },
 
-  value: {
-    fontSize: 12,
-    color: '#77777F',
-    marginRight: 6,
-  },
+    value: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginRight: 6,
+    },
 
-  arrow: {
-    fontSize: 25,
-    color: '#8C8C93',
-    fontWeight: '300',
-  },
-});
+    arrow: {
+      fontSize: 25,
+      color: colors.iconSecondary,
+      fontWeight: '300',
+    },
+  });

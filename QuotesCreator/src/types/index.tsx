@@ -260,6 +260,7 @@ export interface DailyQuote {
   createdAt?: string;
 
   updatedAt?: string;
+  body?: string;
 }
 
 export type DailyQuoteCardProps = {
@@ -655,7 +656,7 @@ export interface LanguageState {
 }
 export interface Quote {
   _id: string;
-
+  isLiked: boolean;
   categoryId?: string | null;
   subcategoryId?: string | null;
 

@@ -1,196 +1,137 @@
 import { StyleSheet } from 'react-native';
 
-import { moderateScale } from '@/styles/scaling';
-import COLORS from '@/constants/Colors';
+import { moderateScale } from 'react-native-size-matters';
 
 const styles = StyleSheet.create({
+  // =====================================================
+  // CONTAINER
+  // =====================================================
+
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
 
-  // ==========================================
-  // LIST
-  // ==========================================
+  flexContainer: {
+    flex: 1,
+  },
 
   listContainer: {
     paddingHorizontal: moderateScale(16),
-    paddingTop: moderateScale(16),
+    paddingTop: moderateScale(12),
     paddingBottom: moderateScale(30),
   },
 
-  quoteList: {
-    paddingHorizontal: moderateScale(16),
-    paddingTop: moderateScale(16),
-    paddingBottom: moderateScale(50),
-  },
-
-  quoteSeparator: {
-    height: moderateScale(12),
-  },
-
-  // ==========================================
-  // SUBCATEGORY
-  // ==========================================
+  // =====================================================
+  // SUBCATEGORY CARD
+  // =====================================================
 
   subCategoryCard: {
-    width: '100%',
-    minHeight: moderateScale(75),
-    paddingHorizontal: moderateScale(18),
-    paddingVertical: moderateScale(14),
     marginBottom: moderateScale(12),
+
     borderRadius: moderateScale(16),
-    backgroundColor: COLORS.white,
-    elevation: moderateScale(3),
-    shadowColor: COLORS.black,
+
+    borderWidth: 1,
+
+    overflow: 'hidden',
+
+    elevation: moderateScale(2),
+
     shadowOffset: {
       width: 0,
       height: moderateScale(2),
     },
-    shadowOpacity: 0.08,
-    shadowRadius: moderateScale(5),
+
+    shadowOpacity: 0.06,
+
+    shadowRadius: moderateScale(4),
   },
 
+  // =====================================================
+  // SUBCATEGORY CONTENT
+  // =====================================================
+
   subCategoryContent: {
+    minHeight: moderateScale(72),
+
+    paddingHorizontal: moderateScale(16),
+
+    paddingVertical: moderateScale(12),
+
     flexDirection: 'row',
+
     alignItems: 'center',
+
     justifyContent: 'space-between',
-    width: '100%',
   },
+
+  // =====================================================
+  // TEXT CONTAINER
+  // =====================================================
 
   subCategoryTextContainer: {
     flex: 1,
-    minWidth: 0,
+
+    marginRight: moderateScale(12),
   },
+
+  // =====================================================
+  // SUBCATEGORY NAME
+  // =====================================================
 
   subCategoryName: {
-    fontSize: moderateScale(17),
-    lineHeight: moderateScale(22),
-    fontWeight: '700',
-    color: COLORS.black,
+    fontSize: moderateScale(16),
+
+    fontWeight: '600',
   },
+
+  // =====================================================
+  // QUOTE COUNT
+  // =====================================================
 
   subCategoryQuoteCount: {
+    marginTop: moderateScale(5),
+
     fontSize: moderateScale(12),
-    marginTop: moderateScale(3),
-    color: COLORS.black,
+
+    fontWeight: '400',
   },
 
-  // ==========================================
-  // QUOTE
-  // ==========================================
-
-  quoteCard: {
-    width: '100%',
-    padding: moderateScale(18),
-    minHeight: moderateScale(150),
-    borderRadius: moderateScale(18),
-    backgroundColor: COLORS.light_grey,
-    elevation: moderateScale(3),
-    shadowColor: COLORS.black,
-    shadowOffset: {
-      width: 0,
-      height: moderateScale(2),
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: moderateScale(5),
-  },
-
-  quoteText: {
-    fontSize: moderateScale(17),
-    lineHeight: moderateScale(25),
-    fontWeight: '600',
-    color: COLORS.black,
-    marginTop: moderateScale(4),
-  },
-
-  author: {
-    fontSize: moderateScale(13),
-    marginTop: moderateScale(12),
-    color: COLORS.black,
-  },
-
-  quoteBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: moderateScale(14),
-  },
-
-  quoteLanguage: {
-    fontSize: moderateScale(11),
-    color: '#777',
-  },
-
-  quoteStats: {
-    flexDirection: 'row',
-    gap: moderateScale(12),
-  },
-
-  statText: {
-    fontSize: moderateScale(12),
-    color: COLORS.black,
-  },
-
-  // ==========================================
+  // =====================================================
   // LOADING
-  // ==========================================
+  // =====================================================
 
   loadingContainer: {
     flex: 1,
+
     alignItems: 'center',
+
     justifyContent: 'center',
   },
+
+  // =====================================================
+  // FOOTER LOADER
+  // =====================================================
 
   footerLoader: {
-    width: '100%',
-    minHeight: moderateScale(60),
+    height: moderateScale(60),
+
     alignItems: 'center',
+
     justifyContent: 'center',
-    paddingVertical: moderateScale(12),
   },
 
-  // ==========================================
+  // =====================================================
   // EMPTY
-  // ==========================================
-
-  emptyListContainer: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: moderateScale(20),
-  },
+  // =====================================================
 
   emptyContainer: {
     flex: 1,
+
+    minHeight: moderateScale(300),
+
     alignItems: 'center',
+
     justifyContent: 'center',
-    paddingTop: moderateScale(100),
-  },
-
-  emptyText: {
-    fontSize: moderateScale(15),
-    color: '#777',
-  },
-
-  // ==========================================
-  // QUOTE IMAGE
-  // ==========================================
-
-  quoteIcon: {
-    position: 'absolute',
-    top: moderateScale(7),
-    left: moderateScale(10),
-    width: moderateScale(28),
-    height: moderateScale(28),
-    resizeMode: 'contain',
-  },
-
-  displayText: {
-    fontSize: moderateScale(18),
-    lineHeight: moderateScale(24),
-    fontWeight: '700',
-    color: COLORS.black,
   },
 });
 

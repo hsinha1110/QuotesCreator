@@ -1,10 +1,15 @@
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import {moderateScale} from 'react-native-size-matters';
+import {useSelector} from 'react-redux';
+
 import {HeaderProps} from '@/types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import COLORS from '@/constants/Colors';
-import styles from './styles';
+
+import {RootState} from '@/redux/store';
+import {THEME_COLORS} from '@/constants/Colors';
+
+import createStyles from './styles';
 
 const Header = ({
   title,
@@ -24,9 +29,24 @@ const Header = ({
   showNotification = true,
   notificationCount = 0,
 }: HeaderProps) => {
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector(
+    (state: RootState) => state.theme.mode,
+  );
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
+
   return (
     <View style={styles.container}>
-      {/* LEFT */}
+      {/* =================================================
+          LEFT
+      ================================================= */}
+
       <View style={styles.side}>
         {showMenu ? (
           <TouchableOpacity
@@ -36,20 +56,28 @@ const Header = ({
             <Ionicons
               name={icon}
               size={moderateScale(25)}
-              color={COLORS.black}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
         ) : null}
       </View>
 
-      {/* CENTER */}
+      {/* =================================================
+          CENTER
+      ================================================= */}
+
       <View style={styles.center}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text
+          style={styles.title}
+          numberOfLines={1}>
           {title}
         </Text>
       </View>
 
-      {/* RIGHT */}
+      {/* =================================================
+          RIGHT
+      ================================================= */}
+
       <View style={[styles.side, styles.rightSide]}>
         {rightIcon || rightText ? (
           <TouchableOpacity
@@ -57,17 +85,23 @@ const Header = ({
             onPress={onRightPress}
             style={styles.rightButton}>
             
+            {/* RIGHT TEXT */}
+
             {rightText ? (
-              <Text style={styles.rightText} numberOfLines={1}>
+              <Text
+                style={styles.rightText}
+                numberOfLines={1}>
                 {rightText}
               </Text>
             ) : null}
+
+            {/* RIGHT ICON */}
 
             {rightIcon ? (
               <Ionicons
                 name={rightIcon}
                 size={moderateScale(23)}
-                color={COLORS.black}
+                color={colors.textPrimary}
               />
             ) : null}
           </TouchableOpacity>
@@ -77,16 +111,22 @@ const Header = ({
             onPress={onNotificationPress}
             style={styles.iconButton}>
             
+            {/* NOTIFICATION ICON */}
+
             <Ionicons
               name="notifications-outline"
               size={moderateScale(23)}
-              color={COLORS.black}
+              color={colors.textPrimary}
             />
+
+            {/* NOTIFICATION BADGE */}
 
             {notificationCount > 0 ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>
-                  {notificationCount > 99 ? '99+' : notificationCount}
+                  {notificationCount > 99
+                    ? '99+'
+                    : notificationCount}
                 </Text>
               </View>
             ) : null}

@@ -37,8 +37,21 @@ import { toggleFavourite } from '@/redux/slices/favouriteSlice';
 
 import { translations } from '@/language';
 
+import { THEME_COLORS } from '@/constants/Colors';
+import createStyles from './styles';
+
 const CreateQuotes = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // ==========================================
   // AUTH

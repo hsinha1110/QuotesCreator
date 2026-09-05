@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   ActivityIndicator,
   FlatList,
@@ -9,28 +10,36 @@ import {
 } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
+
 import { DrawerNavigationProp } from '@react-navigation/drawer';
+
 import { useDispatch, useSelector } from 'react-redux';
 
 import { AppDispatch, RootState } from '@/redux/store';
 
 import { latestQuotesThunk } from '@/redux/thunk/latestThunk';
+
 import { popularQuotesThunk } from '@/redux/thunk/popularThunk';
+
+import { getQuotesThunk } from '@/redux/thunk/getQuotesThunk';
 
 import { Quote } from '@/types';
 
 import EmptyState from '@/components/EmptyState/EmptyState';
+
 import QuoteActions from '@/components/QuotesActions/QuotesActions';
 
 import { toggleFavourite } from '@/redux/slices/favouriteSlice';
 
 import IMAGES from '@/assets/images';
+
 import Routes from '@/navigations/Routes';
+
 import { DrawerParamList } from '@/navigations/types';
 
-import styles from './styles';
 import COLORS from '@/constants/Colors';
-import { getQuotesThunk } from '@/redux/thunk/getQuotesThunk';
+
+import styles from './styles';
 
 // =====================================================
 // TYPES
@@ -40,7 +49,9 @@ export type QuotesType = 'subcategory' | 'latest' | 'popular';
 
 interface QuotesProps {
   type?: QuotesType;
+
   categoryId?: string;
+
   subcategoryId?: string | null;
 }
 
@@ -72,6 +83,34 @@ const Quotes = ({
   const language = useSelector((state: RootState) => state.language.language);
 
   const isHindi = language === 'Hindi';
+
+  // =====================================================
+  // THEME
+  // =====================================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const isDark = themeMode === 'dark';
+
+  // =====================================================
+  // THEME COLORS
+  // =====================================================
+
+  const themeColors = {
+    background: isDark ? '#121212' : COLORS.white,
+
+    card: isDark ? '#1E1E1E' : COLORS.white,
+
+    primaryText: isDark ? '#FFFFFF' : COLORS.black,
+
+    secondaryText: isDark ? '#BDBDBD' : '#777777',
+
+    border: isDark ? '#303030' : '#EEEEEE',
+
+    icon: isDark ? '#FFFFFF' : COLORS.black,
+
+    emptyText: isDark ? '#BDBDBD' : '#777777',
+  };
 
   // =====================================================
   // CATEGORY / SUBCATEGORY REDUX
@@ -145,6 +184,7 @@ const Quotes = ({
 
         if (type === 'latest') {
           console.log('🔥 FETCH LATEST PAGE 1');
+
           console.log('🌐 LANGUAGE:', language);
 
           await dispatch(
@@ -164,6 +204,7 @@ const Quotes = ({
 
         if (type === 'popular') {
           console.log('🔥 FETCH POPULAR PAGE 1');
+
           console.log('🌐 LANGUAGE:', language);
 
           await dispatch(
@@ -178,13 +219,16 @@ const Quotes = ({
         }
 
         // ==========================================
-        // SUBCATEGORY / CATEGORY
+        // CATEGORY / SUBCATEGORY
         // ==========================================
 
         if (type === 'subcategory' && categoryId) {
           console.log('🔥 FETCH CATEGORY QUOTES PAGE 1');
+
           console.log('CATEGORY ID:', categoryId);
+
           console.log('SUBCATEGORY ID:', subcategoryId);
+
           console.log('🌐 LANGUAGE:', language);
 
           await dispatch(
@@ -198,7 +242,9 @@ const Quotes = ({
                 : {}),
 
               page: 1,
+
               limit: 10,
+
               language,
             }),
           ).unwrap();
@@ -237,7 +283,7 @@ const Quotes = ({
     }
 
     // ==========================================
-    // SUBCATEGORY / CATEGORY
+    // CATEGORY
     // ==========================================
 
     if (type === 'subcategory') {
@@ -247,6 +293,7 @@ const Quotes = ({
 
       if (!categoryTotalPages || categoryPage >= categoryTotalPages) {
         console.log('❌ NO MORE CATEGORY QUOTES');
+
         return;
       }
     }
@@ -263,8 +310,6 @@ const Quotes = ({
 
         console.log('🔥 CATEGORY NEXT PAGE:', nextPage);
 
-        console.log('🌐 LANGUAGE:', language);
-
         await dispatch(
           getQuotesThunk({
             categoryId: categoryId!,
@@ -276,7 +321,9 @@ const Quotes = ({
               : {}),
 
             page: nextPage,
+
             limit: 10,
+
             language,
           }),
         ).unwrap();
@@ -298,14 +345,13 @@ const Quotes = ({
 
         if (currentPage >= totalPages) {
           console.log('❌ NO MORE LATEST PAGES');
+
           return;
         }
 
         const nextPage = currentPage + 1;
 
         console.log('🔥 LATEST NEXT PAGE:', nextPage);
-
-        console.log('🌐 LANGUAGE:', language);
 
         await dispatch(
           latestQuotesThunk({
@@ -332,14 +378,13 @@ const Quotes = ({
 
         if (currentPage >= totalPages) {
           console.log('❌ NO MORE POPULAR PAGES');
+
           return;
         }
 
         const nextPage = currentPage + 1;
 
         console.log('🔥 POPULAR NEXT PAGE:', nextPage);
-
-        console.log('🌐 LANGUAGE:', language);
 
         await dispatch(
           popularQuotesThunk({
@@ -380,7 +425,9 @@ const Quotes = ({
       dispatch(
         toggleFavourite({
           _id: item._id,
+
           text: displayText,
+
           author: item.author || 'Unknown',
         }),
       );
@@ -395,21 +442,64 @@ const Quotes = ({
     };
 
     return (
-      <View style={styles.quoteCard}>
+      <View
+        style={[
+          styles.quoteCard,
+
+          {
+            backgroundColor: themeColors.card,
+
+            borderColor: themeColors.border,
+
+            shadowColor: isDark ? '#000000' : COLORS.black,
+          },
+        ]}
+      >
         <Pressable
           onPress={() => handleQuotesDetails(item, index)}
           style={styles.quotePressable}
         >
+          {/* QUOTE ICON */}
+
           <Image
             source={IMAGES.QUOTES}
-            style={styles.quoteIcon}
+            style={[
+              styles.quoteIcon,
+              {
+                tintColor: themeColors.icon,
+              },
+            ]}
             resizeMode="contain"
           />
 
-          <Text style={styles.quoteText}>{displayText}</Text>
+          {/* QUOTE TEXT */}
 
-          <Text style={styles.author}>— {item.author || 'Unknown'}</Text>
+          <Text
+            style={[
+              styles.quoteText,
+              {
+                color: themeColors.primaryText,
+              },
+            ]}
+          >
+            {displayText}
+          </Text>
+
+          {/* AUTHOR */}
+
+          <Text
+            style={[
+              styles.author,
+              {
+                color: themeColors.secondaryText,
+              },
+            ]}
+          >
+            — {item.author || 'Unknown'}
+          </Text>
         </Pressable>
+
+        {/* ACTIONS */}
 
         <View style={styles.quoteBottom}>
           <QuoteActions
@@ -451,7 +541,14 @@ const Quotes = ({
     quotes.length === 0
   ) {
     return (
-      <View style={styles.loadingContainer}>
+      <View
+        style={[
+          styles.loadingContainer,
+          {
+            backgroundColor: themeColors.background,
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
@@ -462,7 +559,14 @@ const Quotes = ({
   // =====================================================
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+        },
+      ]}
+    >
       <FlatList
         data={quotes}
         keyExtractor={item => item._id}

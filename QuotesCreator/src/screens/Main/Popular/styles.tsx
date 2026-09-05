@@ -1,61 +1,70 @@
 import { StyleSheet } from 'react-native';
 
 import { moderateScale } from '@/styles/scaling';
-import COLORS from '@/constants/Colors';
 
-const styles = StyleSheet.create({
-  // ==========================================
-  // CONTAINER
-  // ==========================================
+import { ThemeColors } from '@/constants/Colors';
 
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    // ==========================================
+    // CONTAINER
+    // ==========================================
 
-  // ==========================================
-  // LIST
-  // ==========================================
+    container: {
+      flex: 1,
 
-  listContainer: {
-    paddingHorizontal: moderateScale(8),
-    paddingTop: moderateScale(8),
-    paddingBottom: moderateScale(30),
-  },
+      backgroundColor: colors.background,
+    },
 
-  // ==========================================
-  // ITEM GAP
-  // ==========================================
+    // ==========================================
+    // LIST
+    // ==========================================
 
-  listSeparator: {
-    height: moderateScale(12),
-  },
+    listContainer: {
+      paddingHorizontal: moderateScale(8),
 
-  // ==========================================
-  // INITIAL LOADING
-  // ==========================================
+      paddingTop: moderateScale(8),
 
-  loadingContainer: {
-    flex: 1,
+      paddingBottom: moderateScale(30),
+    },
 
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    // ==========================================
+    // ITEM GAP
+    // ==========================================
 
-  // ==========================================
-  // PAGINATION FOOTER LOADING
-  // ==========================================
+    listSeparator: {
+      height: moderateScale(12),
+    },
 
-  footerLoader: {
-    width: '100%',
+    // ==========================================
+    // INITIAL LOADING
+    // ==========================================
 
-    minHeight: moderateScale(60),
+    loadingContainer: {
+      flex: 1,
 
-    alignItems: 'center',
-    justifyContent: 'center',
+      alignItems: 'center',
 
-    paddingVertical: moderateScale(12),
-  },
-});
+      justifyContent: 'center',
 
-export default styles;
+      backgroundColor: colors.background,
+    },
+
+    // ==========================================
+    // PAGINATION FOOTER LOADING
+    // ==========================================
+
+    footerLoader: {
+      width: '100%',
+
+      minHeight: moderateScale(60),
+
+      alignItems: 'center',
+
+      justifyContent: 'center',
+
+      paddingVertical: moderateScale(12),
+    },
+  });
+
+export default createStyles;

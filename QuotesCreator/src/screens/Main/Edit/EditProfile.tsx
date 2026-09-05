@@ -1,66 +1,73 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+
+import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 
 import ImagePicker from 'react-native-image-crop-picker';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDispatch, useSelector } from 'react-redux';
 
 import Header from '@/components/Header/Header';
+
 import Input from '@/components/Input/Input';
+
 import Button from '@/components/Button/Button';
+
 import ImagePickerModal from '@/components/Modal/ImagePicker';
 
-import COLORS from '@/constants/Colors';
+import { THEME_COLORS } from '@/constants/Colors';
 
 import { AppDispatch, RootState } from '@/redux/store';
+
 import { updateProfileThunk } from '@/redux/thunk/updateProfileThunk';
 
-import {
-  clearProfile,
-  updateProfileLocal,
-} from '@/redux/slices/profileSlice';
+import { clearProfile, updateProfileLocal } from '@/redux/slices/profileSlice';
 
-import styles from './styles';
+import createStyles from './styles';
 
 import { useNavigation } from '@react-navigation/native';
+
 import { DrawerNavigationProp } from '@react-navigation/drawer';
+
 import { DrawerParamList } from '@/navigations/types';
 
 import { deleteAccountThunk } from '@/redux/thunk/deleteAccountThunk';
+
 import Routes from '@/navigations/Routes';
+
 import { logout } from '@/redux/slices/authSlice';
 
 import { translations } from '@/language';
 
-type ProfileNavigationProp =
-  DrawerNavigationProp<DrawerParamList>;
+type ProfileNavigationProp = DrawerNavigationProp<DrawerParamList>;
 
 const EditProfile = () => {
   // ==========================================
   // NAVIGATION / DISPATCH
   // ==========================================
 
-  const navigation =
-    useNavigation<ProfileNavigationProp>();
+  const navigation = useNavigation<ProfileNavigationProp>();
 
   const dispatch = useDispatch<AppDispatch>();
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
+
+  const colors = THEME_COLORS[themeMode];
+
+  const styles = createStyles(colors);
 
   // ==========================================
   // LANGUAGE
   // ==========================================
 
-  const language = useSelector(
-    (state: RootState) => state.language.language,
-  );
+  const language = useSelector((state: RootState) => state.language.language);
 
   const t = translations[language].EDIT_PROFILE;
 
@@ -69,28 +76,22 @@ const EditProfile = () => {
   // ==========================================
 
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [profileImage, setProfileImage] =
-    useState<string | null>(null);
 
-  const [showImagePicker, setShowImagePicker] =
-    useState(false);
+  const [email, setEmail] = useState('');
+
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   // ==========================================
   // REDUX
   // ==========================================
 
-  const authUser = useSelector(
-    (state: RootState) => state.auth.user,
-  );
+  const authUser = useSelector((state: RootState) => state.auth.user);
 
-  const token = useSelector(
-    (state: RootState) => state.auth.token,
-  );
+  const token = useSelector((state: RootState) => state.auth.token);
 
-  const profileState = useSelector(
-    (state: RootState) => state.profile,
-  );
+  const profileState = useSelector((state: RootState) => state.profile);
 
   const profileUser = profileState.user;
 
@@ -98,20 +99,12 @@ const EditProfile = () => {
   // CURRENT PROFILE DATA
   // ==========================================
 
-  const currentName =
-    profileUser?.name ||
-    authUser?.name ||
-    '';
+  const currentName = profileUser?.name || authUser?.name || '';
 
-  const currentEmail =
-    profileUser?.email ||
-    authUser?.email ||
-    '';
+  const currentEmail = profileUser?.email || authUser?.email || '';
 
   const currentProfileImage =
-    profileUser?.profileImage ||
-    authUser?.profileImage ||
-    null;
+    profileUser?.profileImage || authUser?.profileImage || null;
 
   // ==========================================
   // LOAD EXISTING USER DATA
@@ -144,25 +137,19 @@ const EditProfile = () => {
         compressImageQuality: 0.8,
       });
 
-      console.log(
-        '📸 CAMERA PATH:',
-        image.path,
-      );
+      console.log('📸 CAMERA PATH:', image.path);
 
       if (!image.path) {
-        console.log(
-          '❌ CAMERA PATH NOT FOUND',
-        );
+        console.log('❌ CAMERA PATH NOT FOUND');
+
         return;
       }
 
       setProfileImage(image.path);
+
       setShowImagePicker(false);
     } catch (error: any) {
-      console.log(
-        '❌ CAMERA ERROR:',
-        error,
-      );
+      console.log('❌ CAMERA ERROR:', error);
     }
   };
 
@@ -180,25 +167,19 @@ const EditProfile = () => {
         compressImageQuality: 0.8,
       });
 
-      console.log(
-        '🖼️ GALLERY PATH:',
-        image.path,
-      );
+      console.log('🖼️ GALLERY PATH:', image.path);
 
       if (!image.path) {
-        console.log(
-          '❌ GALLERY PATH NOT FOUND',
-        );
+        console.log('❌ GALLERY PATH NOT FOUND');
+
         return;
       }
 
       setProfileImage(image.path);
+
       setShowImagePicker(false);
     } catch (error: any) {
-      console.log(
-        '❌ GALLERY ERROR:',
-        error,
-      );
+      console.log('❌ GALLERY ERROR:', error);
     }
   };
 
@@ -208,32 +189,25 @@ const EditProfile = () => {
 
   const handleSave = async () => {
     if (!authUser?.id) {
-      console.log(
-        '❌ USER ID NOT FOUND',
-      );
+      console.log('❌ USER ID NOT FOUND');
+
       return;
     }
 
     if (!name.trim()) {
-      Alert.alert(
-        t.VALIDATION,
-        t.NAME_REQUIRED,
-      );
+      Alert.alert(t.VALIDATION, t.NAME_REQUIRED);
+
       return;
     }
 
     if (!email.trim()) {
-      Alert.alert(
-        t.VALIDATION,
-        t.EMAIL_REQUIRED,
-      );
+      Alert.alert(t.VALIDATION, t.EMAIL_REQUIRED);
+
       return;
     }
 
     try {
-      console.log(
-        '🔄 UPDATING PROFILE...',
-      );
+      console.log('🔄 UPDATING PROFILE...');
 
       const result = await dispatch(
         updateProfileThunk({
@@ -253,45 +227,27 @@ const EditProfile = () => {
         }),
       ).unwrap();
 
-      console.log(
-        '✅ UPDATE PROFILE RESPONSE:',
-        result,
-      );
+      console.log('✅ UPDATE PROFILE RESPONSE:', result);
 
-      const updatedUser =
-        result?.user || result;
+      const updatedUser = result?.user || result;
 
-      dispatch(
-        updateProfileLocal(updatedUser),
-      );
+      dispatch(updateProfileLocal(updatedUser));
 
-      console.log(
-        '✅ PROFILE REDUX UPDATED:',
-        updatedUser,
-      );
+      console.log('✅ PROFILE REDUX UPDATED:', updatedUser);
 
-      Alert.alert(
-        t.SUCCESS,
-        t.PROFILE_UPDATED,
-        [
-          {
-            text: t.OK,
-            onPress: () => {
-              navigation.goBack();
-            },
+      Alert.alert(t.SUCCESS, t.PROFILE_UPDATED, [
+        {
+          text: t.OK,
+
+          onPress: () => {
+            navigation.goBack();
           },
-        ],
-      );
+        },
+      ]);
     } catch (error) {
-      console.log(
-        '❌ UPDATE PROFILE ERROR:',
-        error,
-      );
+      console.log('❌ UPDATE PROFILE ERROR:', error);
 
-      Alert.alert(
-        t.ERROR,
-        t.UPDATE_FAILED,
-      );
+      Alert.alert(t.ERROR, t.UPDATE_FAILED);
     }
   };
 
@@ -301,57 +257,47 @@ const EditProfile = () => {
 
   const handleDeleteAccount = async () => {
     if (!authUser?.id || !token) {
-      Alert.alert(
-        t.ERROR,
-        t.USER_INFO_NOT_FOUND,
-      );
+      Alert.alert(t.ERROR, t.USER_INFO_NOT_FOUND);
+
       return;
     }
 
-    Alert.alert(
-      t.DELETE_ACCOUNT_TITLE,
-      t.DELETE_ACCOUNT_MESSAGE,
-      [
-        {
-          text: t.CANCEL,
-          style: 'cancel',
+    Alert.alert(t.DELETE_ACCOUNT_TITLE, t.DELETE_ACCOUNT_MESSAGE, [
+      {
+        text: t.CANCEL,
+
+        style: 'cancel',
+      },
+
+      {
+        text: t.DELETE,
+
+        style: 'destructive',
+
+        onPress: async () => {
+          try {
+            await dispatch(
+              deleteAccountThunk({
+                userId: authUser.id,
+                token,
+              }),
+            ).unwrap();
+
+            // Clear profile
+            dispatch(clearProfile());
+
+            // Logout user
+            dispatch(logout());
+
+            // Don't navigate manually here.
+          } catch (error: any) {
+            console.log('DELETE ACCOUNT ERROR:', error);
+
+            Alert.alert(t.ERROR, error?.message || t.DELETE_FAILED);
+          }
         },
-        {
-          text: t.DELETE,
-          style: 'destructive',
-
-          onPress: async () => {
-            try {
-              await dispatch(
-                deleteAccountThunk({
-                  userId: authUser.id,
-                  token,
-                }),
-              ).unwrap();
-
-              // Clear profile
-              dispatch(clearProfile());
-
-              // Logout user
-              dispatch(logout());
-
-              // Don't navigate manually here.
-            } catch (error: any) {
-              console.log(
-                'DELETE ACCOUNT ERROR:',
-                error,
-              );
-
-              Alert.alert(
-                t.ERROR,
-                error?.message ||
-                  t.DELETE_FAILED,
-              );
-            }
-          },
-        },
-      ],
-    );
+      },
+    ]);
   };
 
   // ==========================================
@@ -377,9 +323,7 @@ const EditProfile = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          styles.scrollContent
-        }
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         {/* ======================================
@@ -387,9 +331,7 @@ const EditProfile = () => {
         ====================================== */}
 
         <View style={styles.profileSection}>
-          <View
-            style={styles.profileImageContainer}
-          >
+          <View style={styles.profileImageContainer}>
             {profileImage ? (
               <Image
                 source={{
@@ -407,28 +349,20 @@ const EditProfile = () => {
                 resizeMode="cover"
               />
             ) : (
-              <View
-                style={styles.defaultProfile}
-              >
+              <View style={styles.defaultProfile}>
                 <Ionicons
                   name="person"
                   size={55}
-                  color="#999999"
+                  color={colors.iconSecondary}
                 />
               </View>
             )}
 
             <Pressable
               style={styles.cameraButton}
-              onPress={
-                handleChangeProfilePicture
-              }
+              onPress={handleChangeProfilePicture}
             >
-              <Ionicons
-                name="camera"
-                size={18}
-                color={COLORS.white}
-              />
+              <Ionicons name="camera" size={18} color={colors.white} />
             </Pressable>
           </View>
         </View>
@@ -437,16 +371,12 @@ const EditProfile = () => {
             NAME
         ====================================== */}
 
-        <Text style={styles.label}>
-          {t.FULL_NAME}
-        </Text>
+        <Text style={styles.label}>{t.FULL_NAME}</Text>
 
         <Input
           value={name}
           onChangeText={setName}
-          placeholder={
-            t.FULL_NAME_PLACEHOLDER
-          }
+          placeholder={t.FULL_NAME_PLACEHOLDER}
           leftIcon="person-outline"
         />
 
@@ -454,16 +384,12 @@ const EditProfile = () => {
             EMAIL
         ====================================== */}
 
-        <Text style={styles.label}>
-          {t.EMAIL}
-        </Text>
+        <Text style={styles.label}>{t.EMAIL}</Text>
 
         <Input
           value={email}
           onChangeText={setEmail}
-          placeholder={
-            t.EMAIL_PLACEHOLDER
-          }
+          placeholder={t.EMAIL_PLACEHOLDER}
           keyboardType="email-address"
           autoCapitalize="none"
           leftIcon="mail-outline"
@@ -473,26 +399,16 @@ const EditProfile = () => {
             SAVE
         ====================================== */}
 
-        <View
-          style={styles.saveButtonContainer}
-        >
-          <Button
-            title={t.SAVE_CHANGES}
-            onPress={handleSave}
-          />
+        <View style={styles.saveButtonContainer}>
+          <Button title={t.SAVE_CHANGES} onPress={handleSave} />
         </View>
 
         {/* ======================================
             DELETE
         ====================================== */}
 
-        <Pressable
-          style={styles.deleteButton}
-          onPress={handleDeleteAccount}
-        >
-          <Text style={styles.deleteText}>
-            {t.DELETE_ACCOUNT}
-          </Text>
+        <Pressable style={styles.deleteButton} onPress={handleDeleteAccount}>
+          <Text style={styles.deleteText}>{t.DELETE_ACCOUNT}</Text>
         </Pressable>
       </ScrollView>
 
@@ -502,9 +418,7 @@ const EditProfile = () => {
 
       <ImagePickerModal
         visible={showImagePicker}
-        onClose={() =>
-          setShowImagePicker(false)
-        }
+        onClose={() => setShowImagePicker(false)}
         onCamera={handleCamera}
         onGallery={handleGallery}
       />
