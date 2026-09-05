@@ -364,6 +364,12 @@ const hi = {
 
     APP_VERSION: 'QuoteCreator • संस्करण 1.0.0',
   },
+  BOTTOM_TAB: {
+    HOME: 'होम',
+    EXPLORE: 'एक्सप्लोर',
+    FAVORITES: 'पसंदीदा',
+    PROFILE: 'प्रोफ़ाइल',
+  },
 };
 
 export default hi;

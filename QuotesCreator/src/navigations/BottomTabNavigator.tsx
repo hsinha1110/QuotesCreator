@@ -6,37 +6,108 @@ import {
 } from '@react-navigation/bottom-tabs';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { View, TouchableOpacity, Text } from 'react-native';
+
+import {
+  View,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
+
+import {useSelector} from 'react-redux';
 
 import * as Screens from '@/screens/index';
+
+import {RootState} from '@/redux/store';
+
+import {translations} from '@/language';
 
 import styles from './styles';
 
 const Tab = createBottomTabNavigator();
 
-const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
+const CustomTabBar = ({
+  state,
+  navigation,
+}: BottomTabBarProps) => {
+
+  // =====================================================
+  // LANGUAGE
+  // =====================================================
+
+  const language = useSelector(
+    (state: RootState) => state.language.language,
+  );
+
+  const t = translations[language].BOTTOM_TAB;
+
+  // =====================================================
+  // GET TAB LABEL
+  // =====================================================
+
+  const getTabLabel = (routeName: string) => {
+    switch (routeName) {
+      case 'Home':
+        return t.HOME;
+
+      case 'Explore':
+        return t.EXPLORE;
+
+      case 'Favorites':
+        return t.FAVORITES;
+
+      case 'Profile':
+        return t.PROFILE;
+
+      default:
+        return routeName;
+    }
+  };
+
+  // =====================================================
+  // TAB BAR
+  // =====================================================
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.tabBar}>
-        {state.routes.map(route => {
-          const isFocused = state.index === state.routes.indexOf(route);
 
+        {state.routes.map(route => {
+          const isFocused =
+            state.index ===
+            state.routes.indexOf(route);
+
+          // =================================================
           // CENTER ADD BUTTON
+          // =================================================
+
           if (route.name === 'CreateQuote') {
             return (
-              <View style={styles.centerButtonContainer} key={route.key}>
+              <View
+                style={styles.centerButtonContainer}
+                key={route.key}
+              >
                 <TouchableOpacity
                   activeOpacity={0.8}
                   style={styles.addButton}
                   onPress={() => {
-                    navigation.navigate('CreateQuote');
+                    navigation.navigate(
+                      'CreateQuote',
+                    );
                   }}
                 >
-                  <Ionicons name="add" size={32} color="#FFFFFF" />
+                  <Ionicons
+                    name="add"
+                    size={32}
+                    color="#FFFFFF"
+                  />
                 </TouchableOpacity>
               </View>
             );
           }
+
+          // =================================================
+          // TAB PRESS
+          // =================================================
 
           const onPress = () => {
             const event = navigation.emit({
@@ -45,28 +116,53 @@ const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
               canPreventDefault: true,
             });
 
-            if (!isFocused && !event.defaultPrevented) {
+            if (
+              !isFocused &&
+              !event.defaultPrevented
+            ) {
               navigation.navigate(route.name);
             }
           };
 
+          // =================================================
+          // ICON
+          // =================================================
+
           let iconName = 'home-outline';
 
           if (route.name === 'Home') {
-            iconName = isFocused ? 'home' : 'home-outline';
+            iconName = isFocused
+              ? 'home'
+              : 'home-outline';
           }
 
           if (route.name === 'Explore') {
-            iconName = isFocused ? 'search' : 'search-outline';
+            iconName = isFocused
+              ? 'search'
+              : 'search-outline';
           }
 
           if (route.name === 'Favorites') {
-            iconName = isFocused ? 'heart' : 'heart-outline';
+            iconName = isFocused
+              ? 'heart'
+              : 'heart-outline';
           }
 
           if (route.name === 'Profile') {
-            iconName = isFocused ? 'person' : 'person-outline';
+            iconName = isFocused
+              ? 'person'
+              : 'person-outline';
           }
+
+          // =================================================
+          // TRANSLATED LABEL
+          // =================================================
+
+          const label = getTabLabel(route.name);
+
+          // =================================================
+          // TAB ITEM
+          // =================================================
 
           return (
             <TouchableOpacity
@@ -78,18 +174,24 @@ const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
               <Ionicons
                 name={iconName}
                 size={23}
-                color={isFocused ? '#6C2BD9' : '#8A8A8A'}
+                color={
+                  isFocused
+                    ? '#6C2BD9'
+                    : '#8A8A8A'
+                }
               />
 
               <Text
                 style={[
                   styles.tabLabel,
                   {
-                    color: isFocused ? '#6C2BD9' : '#8A8A8A',
+                    color: isFocused
+                      ? '#6C2BD9'
+                      : '#8A8A8A',
                   },
                 ]}
               >
-                {route.name}
+                {label}
               </Text>
             </TouchableOpacity>
           );
@@ -99,23 +201,44 @@ const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
   );
 };
 
+// =======================================================
+// BOTTOM TAB NAVIGATOR
+// =======================================================
+
 const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
-      tabBar={props => <CustomTabBar {...props} />}
+      tabBar={props => (
+        <CustomTabBar {...props} />
+      )}
       screenOptions={{
         headerShown: false,
       }}
     >
-      <Tab.Screen name="Home" component={Screens.Home} />
+      <Tab.Screen
+        name="Home"
+        component={Screens.Home}
+      />
 
-      <Tab.Screen name="Explore" component={Screens.Explore} />
+      <Tab.Screen
+        name="Explore"
+        component={Screens.Explore}
+      />
 
-      <Tab.Screen name="CreateQuote" component={Screens.CreateQuotes} />
+      <Tab.Screen
+        name="CreateQuote"
+        component={Screens.CreateQuotes}
+      />
 
-      <Tab.Screen name="Favorites" component={Screens.Favorites} />
+      <Tab.Screen
+        name="Favorites"
+        component={Screens.Favorites}
+      />
 
-      <Tab.Screen name="Profile" component={Screens.Profile} />
+      <Tab.Screen
+        name="Profile"
+        component={Screens.Profile}
+      />
     </Tab.Navigator>
   );
 };

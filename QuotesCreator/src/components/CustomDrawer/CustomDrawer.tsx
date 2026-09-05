@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+
 import {
   Animated,
   Dimensions,
@@ -25,6 +26,7 @@ import { navigate } from '@/utils/NavigationUtils';
 import { useAuth } from '@/context/AuthContext';
 
 import { CustomDrawerProps, MenuItemProps } from '@/types';
+
 import COLORS from '@/constants/Colors';
 import { translations } from '@/language';
 
@@ -56,16 +58,32 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
 
   // =====================================================
-  // AUTH
+  // FIREBASE AUTH
   // =====================================================
 
   const { logout, user: firebaseUser } = useAuth();
 
   // =====================================================
-  // REDUX USER
+  // AUTH REDUX USER
   // =====================================================
 
-  const reduxUser = useSelector((state: RootState) => state.auth.user);
+  const authUser = useSelector((state: RootState) => state.auth.user);
+
+  // =====================================================
+  // PROFILE REDUX USER
+  // =====================================================
+
+  /*
+   * IMPORTANT:
+   *
+   * Profile API response is saved in:
+   *
+   * state.profile.user
+   *
+   * Your profileImage is coming from this object.
+   */
+
+  const profileUser = useSelector((state: RootState) => state.profile.user);
 
   // =====================================================
   // FAVOURITES
@@ -102,18 +120,60 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   ).length;
 
   // =====================================================
+  // PROFILE IMAGE
+  // =====================================================
+
+  /*
+   * PRIORITY:
+   *
+   * 1. Profile API -> profileUser.profileImage
+   * 2. Auth API -> authUser.profileImage
+   * 3. Firebase -> firebaseUser.photoURL
+   */
+
+  const profileImage =
+    profileUser?.profileImage ||
+    authUser?.profileImage ||
+    firebaseUser?.photoURL ||
+    null;
+
+  // =====================================================
   // CURRENT USER
   // =====================================================
 
   const currentUser = {
-    id: reduxUser?.id || firebaseUser?.uid || '',
+    id: profileUser?._id || authUser?.id || firebaseUser?.uid || '',
 
-    name: reduxUser?.name || firebaseUser?.displayName || 'User',
+    name:
+      profileUser?.name ||
+      authUser?.name ||
+      firebaseUser?.displayName ||
+      'User',
 
-    email: reduxUser?.email || firebaseUser?.email || '',
+    email: profileUser?.email || authUser?.email || firebaseUser?.email || '',
 
-    profileImage: reduxUser?.profileImage || firebaseUser?.photoURL || null,
+    profileImage,
   };
+
+  // =====================================================
+  // DEBUG
+  // =====================================================
+
+  useEffect(() => {
+    console.log('========================================');
+
+    console.log('DRAWER AUTH USER:', authUser);
+
+    console.log('DRAWER PROFILE USER:', profileUser);
+
+    console.log('DRAWER FIREBASE USER:', firebaseUser);
+
+    console.log('DRAWER PROFILE IMAGE:', profileImage);
+
+    console.log('DRAWER CURRENT USER:', currentUser);
+
+    console.log('========================================');
+  }, [authUser, profileUser, firebaseUser, profileImage]);
 
   // =====================================================
   // ACTIVE ROUTE
@@ -130,7 +190,9 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
   useEffect(() => {
     Animated.spring(translateX, {
       toValue: visible ? 0 : -DRAWER_WIDTH,
+
       useNativeDriver: true,
+
       tension: 70,
       friction: 12,
     }).start();
@@ -278,12 +340,27 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           style={styles.profileCard}
           onPress={() => handleNavigation(Routes.PROFILE)}
         >
+          {/* PROFILE IMAGE */}
+
           {currentUser.profileImage ? (
             <Image
               source={{
                 uri: currentUser.profileImage,
               }}
               style={styles.profileImage}
+              resizeMode="cover"
+              onLoad={() => {
+                console.log(
+                  '✅ DRAWER PROFILE IMAGE LOADED:',
+                  currentUser.profileImage,
+                );
+              }}
+              onError={error => {
+                console.log(
+                  '❌ DRAWER PROFILE IMAGE ERROR:',
+                  error.nativeEvent.error,
+                );
+              }}
             />
           ) : (
             <View style={styles.profilePlaceholder}>
@@ -292,6 +369,8 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
               </Text>
             </View>
           )}
+
+          {/* PROFILE INFO */}
 
           <View style={styles.profileContent}>
             <Text style={styles.profileName} numberOfLines={1}>
@@ -340,9 +419,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           route={Routes.CREATE_QUOTES}
         />
 
-        {/* ================================================= */}
         {/* FAVORITES */}
-        {/* ================================================= */}
 
         <MenuItem
           icon={currentRoute === Routes.FAVORITES ? 'heart' : 'heart-outline'}
@@ -369,15 +446,11 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           route={Routes.DOWNLOADS}
         />
 
-        {/* ================================================= */}
         {/* DIVIDER */}
-        {/* ================================================= */}
 
         <View style={styles.divider} />
 
-        {/* ================================================= */}
         {/* NOTIFICATIONS */}
-        {/* ================================================= */}
 
         <MenuItem
           icon={
@@ -390,9 +463,7 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           badge={unreadCount}
         />
 
-        {/* ================================================= */}
         {/* PREFERENCES */}
-        {/* ================================================= */}
 
         <Text style={styles.sectionTitle}>{t.PREFERENCES}</Text>
 
@@ -406,15 +477,11 @@ const CustomDrawer = ({ visible, onClose }: CustomDrawerProps) => {
           route={Routes.SETTINGS}
         />
 
-        {/* ================================================= */}
         {/* SPACER */}
-        {/* ================================================= */}
 
         <View style={styles.spacer} />
 
-        {/* ================================================= */}
         {/* LOGOUT */}
-        {/* ================================================= */}
 
         <TouchableOpacity
           activeOpacity={0.75}
@@ -447,7 +514,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-
     zIndex: 9999,
     elevation: 9999,
   },
@@ -458,7 +524,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-
     backgroundColor: 'rgba(0,0,0,0.42)',
   },
 
@@ -487,14 +552,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-
     marginBottom: 22,
   },
 
   logoBox: {
     width: 42,
     height: 42,
-
     borderRadius: 13,
 
     backgroundColor: '#6C2BD9',
@@ -505,29 +568,24 @@ const styles = StyleSheet.create({
 
   headerContent: {
     flex: 1,
-
     marginLeft: 11,
   },
 
   appName: {
     fontSize: 17,
     fontWeight: '800',
-
     color: '#17141D',
   },
 
   appSubtitle: {
     marginTop: 2,
-
     fontSize: 10,
-
     color: '#8D8796',
   },
 
   closeButton: {
     width: 34,
     height: 34,
-
     borderRadius: 17,
 
     backgroundColor: '#F5F2FA',
@@ -554,6 +612,8 @@ const styles = StyleSheet.create({
     height: 46,
 
     borderRadius: 23,
+
+    backgroundColor: '#E7D8FA',
   },
 
   profilePlaceholder: {
@@ -571,7 +631,6 @@ const styles = StyleSheet.create({
   profileLetter: {
     fontSize: 19,
     fontWeight: '800',
-
     color: '#6C2BD9',
   },
 
@@ -585,23 +644,18 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 14,
     fontWeight: '700',
-
     color: '#1C1922',
   },
 
   profileEmail: {
     fontSize: 10,
-
     color: '#898391',
-
     marginTop: 3,
   },
 
   sectionTitle: {
     fontSize: 9,
-
     fontWeight: '800',
-
     color: '#A19BAA',
 
     letterSpacing: 1,
@@ -648,7 +702,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
 
     fontSize: 13,
-
     fontWeight: '600',
 
     color: '#302C37',
@@ -656,13 +709,8 @@ const styles = StyleSheet.create({
 
   activeMenuText: {
     color: '#6C2BD9',
-
     fontWeight: '700',
   },
-
-  // =====================================================
-  // BADGE
-  // =====================================================
 
   badge: {
     minWidth: 22,
@@ -680,9 +728,7 @@ const styles = StyleSheet.create({
 
   badgeText: {
     fontSize: 9,
-
     fontWeight: '800',
-
     color: '#FFFFFF',
   },
 
@@ -729,7 +775,6 @@ const styles = StyleSheet.create({
     marginLeft: 11,
 
     fontSize: 14,
-
     fontWeight: '700',
 
     color: '#E53935',

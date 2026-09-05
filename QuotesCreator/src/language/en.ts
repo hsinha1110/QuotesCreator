@@ -363,6 +363,12 @@ you like to save it here.`,
 
     APP_VERSION: 'QuoteCreator • Version 1.0.0',
   },
+  BOTTOM_TAB: {
+    HOME: 'Home',
+    EXPLORE: 'Explore',
+    FAVORITES: 'Favorites',
+    PROFILE: 'Profile',
+  },
 };
 
 export default en;
